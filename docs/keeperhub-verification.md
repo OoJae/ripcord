@@ -1,0 +1,143 @@
+# KeeperHub verification report — 2026-07-31
+
+Session 1 was supposed to introspect the KeeperHub MCP server directly. The MCP
+server was **not connected** in this environment (pre-flight `claude mcp add` +
+OAuth had not been run), so this report substitutes live-documentation
+verification against `docs.keeperhub.com`. Everything below is either VERIFIED
+against a live source or explicitly flagged as an assumption carrying a
+`// VERIFY:` marker in the code.
+
+Re-run the real MCP introspection at the start of Session 2 and diff against this.
+
+---
+
+## 1. MCP tool names — VERIFIED
+
+Source: <https://docs.keeperhub.com/ai-tools/mcp-server>. Endpoint
+`https://app.keeperhub.com/mcp`; per-workflow servers at
+`https://app.keeperhub.com/mcp/w/<slug>`. Auth: OAuth 2.1 (1-hour access tokens,
+30-day refresh) or a `kh_` API key as Bearer.
+
+Setup line, verbatim from the docs — matches the pre-flight step:
+
+```
+claude mcp add --transport http keeperhub https://app.keeperhub.com/mcp
+```
+
+Tools relevant to Ripcord, all confirmed present:
+
+| Purpose | Tool |
+|---|---|
+| Direct transfer | `execute_transfer` |
+| Direct contract call | `execute_contract_call` |
+| Read → evaluate → act atomically (WF-2's core pattern) | `execute_check_and_execute` |
+| Protocol action (e.g. `aave-v3/supply`) | `execute_protocol_action`, `search_protocol_actions` |
+| Workflow lifecycle | `create_workflow`, `update_workflow`, `validate_workflow`, `execute_workflow`, `delete_workflow`, `get_workflow`, `list_workflows` |
+| Run inspection | `get_execution`, `get_direct_execution_status` |
+| Templates | `search_templates`, `deploy_template` |
+| Marketplace (Session 4) | `list_workflow`, `unlist_workflow`, `update_workflow_listing`, `search_workflows`, `call_workflow` |
+| Misc | `ai_generate_workflow`, `list_action_schemas`, `get_plugin`, `search_plugins`, `list_integrations`, `get_wallet_integration`, `tools_documentation` |
+
+⚠️ **Naming trap:** `list_workflows` (plural — *read* your workflows) and
+`list_workflow` (singular — the marketplace *listing* verb, paired with
+`unlist_workflow`) are different tools. Easy to conflate in Session 4.
+
+Also available: the Claude Code plugin marketplace at
+<https://github.com/KeeperHub/claude-plugins>.
+
+## 2. REST API and run polling — VERIFIED, and adopted in code
+
+Source: <https://docs.keeperhub.com/api> and `/api/executions`. Base URL
+`https://app.keeperhub.com/api`; `kh_` key as Bearer; responses wrapped in a
+`{ "data": { … } }` envelope; 100 req/min authenticated.
+
+| Endpoint | Status |
+|---|---|
+| `POST /api/workflows/{workflowId}/execute` → `{executionId, status}` | VERIFIED |
+| `GET /api/workflows/executions/{executionId}/status` | VERIFIED — **used by `HttpKeeperHubClient.getRun`** |
+| `GET /api/workflows/executions/{executionId}/wait?timeoutMs=` (blocking, default 25s, max 60s) | VERIFIED — docs prefer it over client polling; noted as a Session-2 optimization |
+| `POST /api/workflows/create` | VERIFIED |
+
+Execution object fields: `id`, `workflowId`, `status`, `input`, `output`,
+`startedAt`, `completedAt`, `transactionHashes[]` (`hash`, `nodeId`, `nodeName`,
+`chainId`, `network`), `progress`.
+
+**Status enum (VERIFIED):** `pending | running | success | error | cancelled`.
+Note it is `error`, **not** `failed` — `src/types.ts` `RunState` matches this
+exactly, and `TERMINAL_RUN_STATES` is `{success, error, cancelled}`.
+
+## 3. Webhook trigger — PARTIAL, the one remaining unknown
+
+Webhook is one of five trigger types (Manual, Schedule, Webhook, Event, Block),
+with an auto-generated URL and optional auth headers
+(`/keepers/overview`, `/keepers/configuration`). `POST /api/workflows/{workflowId}/webhook`
+is named on the API page and requires API-key auth.
+
+**NOT documented anywhere:** the auto-generated URL pattern, the accepted POST
+body schema, and the response body (whether it returns an execution id).
+`/keepers/webhook`, `/keepers/triggers/webhook`, and `/workflows/webhook` all 404.
+
+**How the code copes** (`src/executor/keeperhub.ts`):
+- Posts the `DefensePayload` to `KEEPERHUB_DEFEND_WEBHOOK_URL` with
+  `Authorization: Bearer kh_…` — header name carries a `// VERIFY:` (could be `x-api-key`).
+- Parses the response permissively for `executionId | runId | id`, at the top
+  level or under the `data` envelope.
+- **Fails closed:** a 2xx with no extractable run id throws rather than
+  reporting a successful-but-untrackable trigger.
+- Documented fallback if the webhook contract diverges: the verified
+  `POST /api/workflows/{workflowId}/execute`.
+
+## 4. Gas sponsorship and private routing
+
+**Gas sponsorship — VERIFIED** (<https://docs.keeperhub.com/wallet-management/gas>):
+Turnkey Gas Station, per-organization, metered in USD against a monthly credit
+cap (mainnet counts, testnet does not). Sponsorship covers the **fee only** —
+"The native value a transaction sends … is always debited from your own wallet."
+Conditions: supported network (Ethereum, Base, Polygon, Arbitrum + testnets),
+**direct wallet sender** (not Safe), **public mempool routing**, credits remaining.
+
+**Private routing — NOT DOCUMENTED.** No page exists
+(`/wallet-management/private-routing` and siblings all 404), and
+`/plugins/web3` documents no private-relay/MEV option. The only reference
+anywhere is the negative constraint on the gas page: *"transactions routed
+through a private mempool are not sponsored."*
+
+⚠️ **Consequence for the Phase-2 plan, confirmed:** private routing and gas
+sponsorship are **mutually exclusive**. The build guide's decision table stands —
+sponsorship on setup txs (public mempool), private routing self-paid on mainnet
+defenses. Availability of private routing *on Base* still needs confirming in
+Session 2 via MCP/Discord; it is the one open risk to the hero-tx plan.
+
+## 5. Para vs Turnkey — a docs bug worth a PR
+
+- The Gas Management page names **Turnkey** only. Correct.
+- The Wallet Management index lists "Para Wallet Integration (**Discontinued**)".
+- But `llms.txt` still describes Wallet Management as *"Para MPC wallets, gas,
+  address book"*, and the Agentic Wallets page still describes the
+  *"Para MPC wallet model for autonomous agents"*.
+
+LLM-assisted builders consuming `llms.txt` are steered to a dead integration.
+This is the concrete, mergeable docs fix earmarked for the onboarding bounty
+(build guide §12, bounty deliverable 3).
+
+## 6. Do not codegen from the published OpenAPI
+
+`https://app.keeperhub.com/api/openapi` contains **83 paths, all of the form
+`POST /api/mcp/workflows/{slug}/call`** — it is a catalog of published
+marketplace workflow endpoints, not the REST API. None of the workflow or
+execution endpoints above appear in it. A generated client would be wrong.
+
+---
+
+## Corrections this report applied to the code
+
+1. `RunState` uses the verified enum including `error` (not the assumed `failed`).
+2. `getRun` targets the verified `/workflows/executions/{id}/status` endpoint and
+   handles the `{data:…}` envelope, rather than a guessed path.
+3. `transactionHashes[]` is mapped to `RunStatus.txHashes` with `chainId`/`network`,
+   with the first hash surfaced as `txHash` for notifications.
+4. Base Sepolia is a live Aave V3 market (6 reserves, verified on-chain), so the
+   Anvil-fork fallback from build guide §6.9 is very likely unnecessary.
+5. The Base Sepolia USDC in the address book is the Aave market's faucet token
+   `0xba50Cd…`, **not** Circle's `0x036CbD…` — a trap that would have produced
+   silently wrong balance reads.

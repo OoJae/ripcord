@@ -53,17 +53,41 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 | 2 | Gas-sponsored setup (capped approval) | Base mainnet | _(Session 3)_ | |
 | 3 | Paid x402 call to risk-score workflow | Base | _(Session 4)_ | |
 
-## Quickstart (testnet, <10 min)
+## Quickstart (works in under a minute, zero secrets)
 
 ```bash
 pnpm install
-cp .env.example .env      # fill in what you have — everything is optional for mock mode
-pnpm dev                  # zero secrets → full decision loop in mock mode, DRY_RUN on
-pnpm status               # current HF, recent decisions, recent runs
-pnpm test                 # offline test suite
+pnpm dev                  # no .env needed — full decision loop in mock mode, DRY_RUN on
+pnpm status               # current HF, recent decisions, recent runs, spend vs cap
+pnpm test                 # 168 offline tests
 ```
 
-With no `.env` at all, Ripcord runs a **mock demo**: a scripted health-factor descent triggers the full Sense → Plan → Critique → Guard → (dry-run) Execute pipeline, with every stage logged under one `decisionId`. Add `MONITORED_ADDRESS` (public Base Sepolia RPC is the default) for live Aave reads; add `ANTHROPIC_API_KEY` for LLM planning; add `KEEPERHUB_DEFEND_WEBHOOK_URL` + `KEEPERHUB_API_KEY` for real execution.
+With no `.env` at all, Ripcord runs a **mock demo**: a scripted health-factor descent drives the full Sense → Policy → Plan → Critique → Guard → (dry-run) Execute pipeline, every stage logged under one `decisionId`. Real output from `pnpm dev`:
+
+```
+🪂 RIPCORD starting — chain: base-sepolia · chain reads: MOCK · brain: HEURISTIC ·
+   executor: MOCK · alerts: log-only · DRY_RUN: ON · RIPCORD_ARM: 0 · caps: $15/tx · $30/24h
+band=healthy hf=1.82  shouldDefend=false
+band=warn    hf=1.4557 shouldDefend=false
+band=act     hf=1.2129 shouldDefend=true  "act: armed and cooldown elapsed — defend"
+guard=dry-run violations=[] checks=10
+DRY_RUN: all safety checks passed — would trigger KeeperHub defense
+   repay 4.79 USDC → 0xba50Cd…4D5f  (minHfAfter 1.6)
+   critic APPROVE — recomputed health factor 1.6003 clears the target 1.6
+band=act     hf=1.1490 shouldDefend=false
+   "defense suppressed — unarmed (hysteresis latch open); cooldown active"
+```
+
+Capabilities light up independently as you add secrets — each missing one falls back to a mock rather than failing:
+
+| Add to `.env` | Turns on |
+|---|---|
+| `MONITORED_ADDRESS` | Live Aave V3 reads (public Base Sepolia RPC is the default) |
+| `ANTHROPIC_API_KEY` | LLM Planner + Critic instead of the deterministic heuristics |
+| `KEEPERHUB_DEFEND_WEBHOOK_URL` + `KEEPERHUB_API_KEY` | Real execution through KeeperHub |
+| `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` | Telegram alerts instead of log-only |
+
+Optional knobs with code defaults: `RIPCORD_POLL_SEC` (60s live / 5s mock), `RIPCORD_DB_PATH` (`data/ripcord.sqlite`), `RIPCORD_MODEL` (`claude-sonnet-5`).
 
 ## Safety design
 
@@ -79,6 +103,17 @@ With no `.env` at all, Ripcord runs a **mock demo**: a scripted health-factor de
 
 _(populated in Session 3 — scenarios: forced revert, invalid planner JSON, Critic reject, duplicate trigger, RPC timeout, daemon kill/resume, KeeperHub retry visibility)_
 
+## Verified addresses
+
+Every address in [src/config.ts](src/config.ts) was checked against the official [Aave Address Book](https://github.com/bgd-labs/aave-address-book) **and** confirmed on-chain (bytecode present; `Pool.getReservesList()` decoded over the public RPC) on 2026-07-30. Two easy-to-get-wrong entries worth calling out:
+
+- Base mainnet USDC is native `0x8335…2913` — **not** bridged USDbC `0xd9aA…b6CA`.
+- Base Sepolia USDC is the Aave market's faucet token `0xba50…4D5f` — **not** Circle's `0x036CbD…`.
+
+The Base Sepolia Aave V3 market is live (6 reserves), so the Anvil-fork fallback in build guide §6.9 is likely unnecessary.
+
 ## Development
 
-Spec: [docs/ripcord-build-guide.md](docs/ripcord-build-guide.md) · Strategy: [docs/ripcord-battle-plan.md](docs/ripcord-battle-plan.md) · Friction log: [FRICTION.md](FRICTION.md) · Evidence: [docs/evidence/EVIDENCE.md](docs/evidence/EVIDENCE.md)
+Spec: [docs/ripcord-build-guide.md](docs/ripcord-build-guide.md) · Strategy: [docs/ripcord-battle-plan.md](docs/ripcord-battle-plan.md) · KeeperHub API verification: [docs/keeperhub-verification.md](docs/keeperhub-verification.md) · Friction log: [FRICTION.md](FRICTION.md) · Evidence: [docs/evidence/EVIDENCE.md](docs/evidence/EVIDENCE.md)
+
+Tests mirror `src/` under `test/`. The load-bearing ones are in [test/daemon/wiring.test.ts](test/daemon/wiring.test.ts): they drive a real daemon tick with a Planner and Critic that always want to spend, and assert the executor spy was never called. Unit-testing the Guard proves it says "no"; those prove the assembled daemon obeys it.
