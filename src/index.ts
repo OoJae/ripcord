@@ -243,8 +243,20 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       return;
     }
 
-    // --- Critique (fail-closed: an LLM critic that cannot produce valid output resolves to REJECT)
-    const critiqued = await critic.critique(snapshot, proposal, cfg.thresholds, cfg.caps);
+    // --- Critique. Fail-closed twice over: the LLM critic already resolves an
+    // exhausted retry budget to REJECT, and a Critic that *throws* (a custom
+    // implementation, a network error escaping) is converted to REJECT here.
+    // There is no path on which the absence of an approval becomes an approval.
+    let critiqued: Awaited<ReturnType<Critic["critique"]>>;
+    try {
+      critiqued = await critic.critique(snapshot, proposal, cfg.thresholds, cfg.caps);
+    } catch (err) {
+      log.error({ err: String(err) }, "critic threw — treating as REJECT (fail-closed)");
+      critiqued = {
+        verdict: { verdict: "REJECT", reason: `critic errored: ${String(err)}` },
+        raw: null,
+      };
+    }
     const verdict = critiqued.verdict;
 
     // --- Guard (deterministic final authority; all facts injected)
@@ -317,6 +329,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
           dryRun: true,
           hf: snapshot.hf,
           action: proposal.action,
+          asset: proposal.asset,
           amountUsd: proposal.amountUsd,
           expectedHfAfter: proposal.expectedHfAfter,
           rationale: proposal.rationale,
@@ -380,6 +393,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
           dryRun: false,
           hf: snapshot.hf,
           action: proposal.action,
+          asset: proposal.asset,
           amountUsd: proposal.amountUsd,
           expectedHfAfter: proposal.expectedHfAfter,
           rationale: proposal.rationale,

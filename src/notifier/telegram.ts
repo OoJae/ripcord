@@ -52,8 +52,6 @@ function fmtUsd(usd: number | undefined): string {
 
 /**
  * Render the outgoing message text; `kind` drives the layout.
- * Note: DecisionNotification carries no asset symbol, so defense lines show only
- * the action + USD amount (see contract note in the module report).
  */
 export function renderMessage(n: DecisionNotification): string {
   const header = `🪂 RIPCORD [${n.band}]`;
@@ -61,8 +59,9 @@ export function renderMessage(n: DecisionNotification): string {
     case "band-change":
       return `${header} HF ${fmtHf(n.hf)} — entering ${n.band} band`;
     case "defense": {
+      const asset = n.asset === undefined ? "" : ` ${n.asset}`;
       const lines: string[] = [
-        `${header} ${n.action ?? "defense"} ${fmtUsd(n.amountUsd)}`,
+        `${header} ${n.action ?? "defense"} ${fmtUsd(n.amountUsd)}${asset}`,
         `HF ${fmtHf(n.hf)} → expected ${fmtHf(n.expectedHfAfter)}`,
       ];
       if (n.rationale !== undefined) {

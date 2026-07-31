@@ -240,6 +240,7 @@ export interface DecisionNotification {
   dryRun: boolean;
   hf?: number;
   action?: PlannerProposal["action"];
+  asset?: AssetSymbol;
   amountUsd?: number;
   expectedHfAfter?: number;
   rationale?: string;

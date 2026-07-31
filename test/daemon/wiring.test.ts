@@ -196,6 +196,25 @@ describe("SAFETY PROOF: Critic approval is mandatory", () => {
   });
 });
 
+describe("SAFETY PROOF: a throwing Critic is not an approving Critic", () => {
+  it("converts an exception from critique() into a REJECT rather than crashing past the gate", async () => {
+    const h = harness({ dryRun: false, hf: "1.20" });
+    h.deps.critic = {
+      async critique() {
+        throw new Error("anthropic API unreachable");
+      },
+    };
+    await createDaemon(h.deps).runTick("01J9CRITICTHROWS00000000A");
+
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+    const decision = h.db.recentDecisions(1)[0];
+    expect(decision?.criticVerdict).toBe("REJECT");
+    expect(decision?.status).toBe("rejected");
+    expect(decision?.guardViolationsJson).toContain("critic-approval");
+    h.db.close();
+  });
+});
+
 describe("SAFETY PROOF: idempotency", () => {
   it("hysteresis alone stops an immediate re-fire of the same decision", async () => {
     const h = harness({ dryRun: false, hf: "1.20" });
