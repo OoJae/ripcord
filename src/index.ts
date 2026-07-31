@@ -9,6 +9,7 @@
 import { pathToFileURL } from "node:url";
 import { ulid } from "ulid";
 import { createHeuristicCritic, createLlmCritic } from "./agents/critic.js";
+import { hfAfter } from "./agents/hf-math.js";
 import { createAnthropicLlm } from "./agents/llm.js";
 import { createHeuristicPlanner, createLlmPlanner } from "./agents/planner.js";
 import {
@@ -310,6 +311,11 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       "guard evaluated",
     );
 
+    // Report OUR arithmetic to the human, never the model's self-report. Live
+    // testing showed both agents drift on this; the operator should see the
+    // number the Guard actually gated on.
+    const verifiedHfAfter = hfAfter(snapshot, proposal);
+
     if (guard.decision === "blocked") {
       await safeNotify(
         {
@@ -345,7 +351,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
           action: proposal.action,
           asset: proposal.asset,
           amountUsd: proposal.amountUsd,
-          expectedHfAfter: proposal.expectedHfAfter,
+          expectedHfAfter: verifiedHfAfter,
           rationale: proposal.rationale,
         },
         log,
@@ -409,7 +415,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
           action: proposal.action,
           asset: proposal.asset,
           amountUsd: proposal.amountUsd,
-          expectedHfAfter: proposal.expectedHfAfter,
+          expectedHfAfter: verifiedHfAfter,
           rationale: proposal.rationale,
           txHash: run.txHash,
           detail: run.state === "success" ? undefined : (run.error ?? `run ${run.state}`),
@@ -493,7 +499,7 @@ async function main(): Promise<void> {
   let planner: Planner;
   let critic: Critic;
   if (cfg.capabilities.llm && cfg.anthropicApiKey) {
-    const llm = createAnthropicLlm(cfg.anthropicApiKey, cfg.model);
+    const llm = createAnthropicLlm(cfg.anthropicApiKey, cfg.model, cfg.anthropicBaseUrl);
     planner = createLlmPlanner(llm);
     critic = createLlmCritic(llm);
   } else {
@@ -515,7 +521,7 @@ async function main(): Promise<void> {
   const banner = [
     `chain: ${cfg.chain}`,
     `chain reads: ${cfg.capabilities.chainReads ? `LIVE (${redactRpcUrl(cfg.rpcUrl)})` : "MOCK (no MONITORED_ADDRESS)"}`,
-    `brain: ${cfg.capabilities.llm ? `LLM ${cfg.model}` : "HEURISTIC (no ANTHROPIC_API_KEY)"}`,
+    `brain: ${cfg.capabilities.llm ? `LLM ${cfg.model}${cfg.anthropicBaseUrl ? ` @ ${redactRpcUrl(cfg.anthropicBaseUrl)}` : ""}` : "HEURISTIC (no ANTHROPIC_API_KEY)"}`,
     `executor: ${cfg.capabilities.keeperhub ? "KeeperHub webhook" : "MOCK (no KEEPERHUB_DEFEND_WEBHOOK_URL)"}`,
     `alerts: ${cfg.capabilities.telegram ? "Telegram" : "log-only"}`,
     `DRY_RUN: ${cfg.dryRun ? "ON" : "off"} · RIPCORD_ARM: ${cfg.armed ? "1" : "0"}`,

@@ -110,6 +110,9 @@ const EnvSchema = z.object({
   BASE_SEPOLIA_RPC_URL: z.preprocess(emptyToUndefined, z.url().optional()),
   MONITORED_ADDRESS: z.preprocess(emptyToUndefined, addressSchema.optional()),
   ANTHROPIC_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  // Point the Anthropic-protocol client at a compatible endpoint (e.g. a
+  // self-hosted or third-party gateway). Unset = api.anthropic.com.
+  ANTHROPIC_BASE_URL: z.preprocess(emptyToUndefined, z.url().optional()),
   KEEPERHUB_API_KEY: z.preprocess(emptyToUndefined, z.string().startsWith("kh_").optional()),
   KEEPERHUB_DEFEND_WEBHOOK_URL: z.preprocess(emptyToUndefined, z.url().optional()),
   TELEGRAM_BOT_TOKEN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
@@ -144,6 +147,7 @@ export interface AppConfig {
   rpcUrl: string;
   monitoredAddress?: Address;
   anthropicApiKey?: string;
+  anthropicBaseUrl?: string;
   model: string;
   keeperhubApiKey?: string;
   keeperhubWebhookUrl?: string;
@@ -252,6 +256,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     rpcUrl,
     monitoredAddress: e.MONITORED_ADDRESS as Address | undefined,
     anthropicApiKey: e.ANTHROPIC_API_KEY,
+    anthropicBaseUrl: e.ANTHROPIC_BASE_URL,
     model: e.RIPCORD_MODEL ?? DEFAULT_MODEL,
     keeperhubApiKey: e.KEEPERHUB_API_KEY,
     keeperhubWebhookUrl: e.KEEPERHUB_DEFEND_WEBHOOK_URL,

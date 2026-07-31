@@ -55,8 +55,18 @@ export interface GuardInput {
 /** Epsilon for the HF-improvement comparison so exact equality passes despite float noise. */
 const HF_EPSILON = 1e-9;
 
-/** How far the Planner's claimed hfAfter may exceed the recomputed value before it blocks. */
-const HF_CLAIM_TOLERANCE = 0.01;
+/**
+ * How far the Planner's claimed hfAfter may exceed the Guard's recomputed value
+ * before the claim is treated as evidence of a broken model.
+ *
+ * Deliberately generous. Safety does NOT rest on this rule — `min-hf-improvement`
+ * already gates on the Guard's own recomputation, so an inflated claim cannot buy
+ * an unsafe execution. This rule only catches a Planner that is grossly wrong.
+ * Live testing showed real models drift by ~0.02–0.08 on this arithmetic; blocking
+ * a valid rescue over that would trade a real liquidation risk for a cosmetic one.
+ */
+const HF_CLAIM_ABS_TOLERANCE = 0.25;
+const HF_CLAIM_REL_TOLERANCE = 0.1; // 10% of the recomputed value
 
 /** Defense in depth: any raw EVM address inside LLM output is an instant block. */
 const RAW_ADDRESS_RE = /0x[0-9a-fA-F]{40}/;
@@ -237,16 +247,20 @@ export function checkGuard(input: GuardInput): GuardResult {
   // 7b. hf-claim-honesty — the Planner overstating its own outcome is evidence of
   // a miscalculating or dishonest model, so it blocks even when 7 would pass.
   const claimed = proposal?.expectedHfAfter;
+  const claimAllowance = Math.max(
+    HF_CLAIM_ABS_TOLERANCE,
+    Math.abs(recomputedHfAfter) * HF_CLAIM_REL_TOLERANCE,
+  );
   const claimOverstates =
     Number.isFinite(claimed) &&
     Number.isFinite(recomputedHfAfter) &&
-    claimed > recomputedHfAfter + HF_CLAIM_TOLERANCE;
+    claimed > recomputedHfAfter + claimAllowance;
   record(
     "hf-claim-honesty",
     !claimOverstates,
     claimOverstates
-      ? `planner claimed hfAfter ${claimed} but the recomputed value is ${recomputedHfAfter} — overstated beyond tolerance ${HF_CLAIM_TOLERANCE}`
-      : `planner claim ${String(claimed)} is consistent with the recomputed ${recomputedHfAfter}`,
+      ? `planner claimed hfAfter ${claimed} but the recomputed value is ${recomputedHfAfter} — overstated beyond the ${claimAllowance.toFixed(3)} allowance`
+      : `planner claim ${String(claimed)} is within the ${claimAllowance.toFixed(3)} allowance of the recomputed ${recomputedHfAfter}`,
   );
 
   // 8. snapshot-provenance — the position we are about to defend must be the

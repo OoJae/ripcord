@@ -10,8 +10,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { LlmClient } from "../types.js";
 
-export function createAnthropicLlm(apiKey: string, model: string): LlmClient {
-  const client = new Anthropic({ apiKey });
+export function createAnthropicLlm(apiKey: string, model: string, baseURL?: string): LlmClient {
+  // baseURL lets an Anthropic-protocol-compatible endpoint stand in for
+  // api.anthropic.com; the request/response shape is identical either way.
+  const client = new Anthropic(baseURL === undefined ? { apiKey } : { apiKey, baseURL });
 
   return {
     async complete(req): Promise<string> {

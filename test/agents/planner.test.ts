@@ -140,6 +140,19 @@ describe("planner: prompt hygiene", () => {
     expect(user).not.toContain("Infinity");
     expect(system).toMatch(/never output a contract address/i);
   });
+
+  it("tells the Planner to size minimally and warns that its claim is recomputed", () => {
+    // Both learned from a live run: Mimo maxed out MAX_TX_USD when ~a third of it
+    // would do, and overstated expectedHfAfter (6.41 vs a true 5.01).
+    const { system } = buildPlannerPrompt(ctx());
+    expect(system).toMatch(/SMALLEST amount/);
+    expect(system).toMatch(/Do NOT max out MAX_TX_USD/);
+    expect(system).toMatch(/deterministic guard\s+recomputes it/i);
+    // the deterministic minimum is supplied, not left to model arithmetic
+    expect(buildPlannerPrompt(ctx()).user).toMatch(
+      /smallest repayment that clears the target: \$5\.00/,
+    );
+  });
 });
 
 describe("planner: heuristic (zero-secret demo brain)", () => {

@@ -61,7 +61,7 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 pnpm install
 pnpm dev                  # no .env needed — full decision loop in mock mode, DRY_RUN on
 pnpm status               # current HF, recent decisions, recent runs, spend vs cap
-pnpm test                 # 168 offline tests
+pnpm test                 # 185 offline tests
 ```
 
 With no `.env` at all, Ripcord runs a **mock demo**: a scripted health-factor descent drives the full Sense → Policy → Plan → Critique → Guard → (dry-run) Execute pipeline, every stage logged under one `decisionId`. Real output from `pnpm dev`:
@@ -72,7 +72,7 @@ With no `.env` at all, Ripcord runs a **mock demo**: a scripted health-factor de
 band=healthy hf=1.82  shouldDefend=false
 band=warn    hf=1.4557 shouldDefend=false
 band=act     hf=1.2129 shouldDefend=true  "act: armed and cooldown elapsed — defend"
-guard=dry-run violations=[] checks=10
+guard=dry-run violations=[] checks=12
 DRY_RUN: all safety checks passed — would trigger KeeperHub defense
    repay 4.79 USDC → 0xba50Cd…4D5f  (minHfAfter 1.6)
    critic APPROVE — recomputed health factor 1.6003 clears the target 1.6
@@ -89,7 +89,13 @@ Capabilities light up independently as you add secrets — each missing one fall
 | `KEEPERHUB_DEFEND_WEBHOOK_URL` + `KEEPERHUB_API_KEY` | Real execution through KeeperHub |
 | `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` | Telegram alerts instead of log-only |
 
-Optional knobs with code defaults: `RIPCORD_POLL_SEC` (60s live / 5s mock), `RIPCORD_DB_PATH` (`data/ripcord.sqlite`), `RIPCORD_MODEL` (`claude-sonnet-5`).
+Optional knobs with code defaults: `RIPCORD_POLL_SEC` (60s live / 5s mock), `RIPCORD_DB_PATH` (`data/ripcord.sqlite`), `RIPCORD_MODEL` (`claude-sonnet-5`), `ANTHROPIC_BASE_URL` (point the Planner/Critic at any Anthropic-protocol-compatible endpoint).
+
+### The agents judge; code computes
+
+Both the Planner and the Critic receive a **VERIFIED FIGURES** block — the post-defense health factor and the smallest sufficient repayment, computed deterministically in [`src/agents/hf-math.ts`](src/agents/hf-math.ts). Neither model is asked to do arithmetic the system then relies on.
+
+This is not theoretical tidiness. On the first live run a real model claimed a post-defense health factor of 6.41 where the truth was 5.01, and the Critic vetoed a perfectly good rescue because its own division came out at 1.50 instead of 1.61. The Guard caught every one — it recomputes independently and gates on its own number — but a Critic that randomly vetoes valid rescues is useless even when it is safe. Moving the arithmetic into code and leaving the agents to judge fixed it: the same scenario now sizes defenses to the exact minimum ($4.79 in the act band, $6.99 in panic) and both are approved. Write-up in [FRICTION.md](FRICTION.md).
 
 ## Safety design
 

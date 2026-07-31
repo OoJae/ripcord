@@ -65,6 +65,57 @@ failure rather than an upfront "3 fields required" prompt.
 (and ideally in `validate_workflow`'s output), so the seeds are a guided setup
 rather than a puzzle. Good onboarding-bounty material.
 
+## 2026-07-31 — our own bug: we asked an LLM to be a calculator
+
+**What:** The first live run with a real model (Mimo v2.5 Pro over the Anthropic
+protocol) exposed that *both* agents' arithmetic is unreliable. The Planner claimed
+`expectedHfAfter: 6.41` when the true value was 5.01; on the next tick it claimed
+1.97 against a true 4.08. The Critic was worse in the direction that matters — it
+computed 1.50 for a proposal whose real outcome was 1.61 and **rejected a valid
+rescue**. Separately, the Planner maxed out `MAX_TX_USD` ($15) when ~$5 would clear
+the target, which would burn the daily cap 3× faster than necessary.
+
+**Why it mattered less than it looks:** the Guard recomputes the health factor
+itself, so no unsafe transaction was ever possible — every one of these was caught.
+But a system whose Critic randomly vetoes good rescues is useless even when it is
+safe: a missed defense can lose the position.
+
+**Fix applied — deterministic code computes, the agents judge:**
+1. Both prompts now receive a **VERIFIED FIGURES** block: the exact post-defense
+   health factor and the smallest repayment that clears the target, computed by
+   `src/agents/hf-math.ts`. Neither model is asked to divide.
+2. The Critic is told explicitly it is *not* the calculator, and that the verified
+   figures — not the Planner's claim — are authoritative. It keeps its veto, which
+   is what the safety property actually requires.
+3. `hf-claim-honesty` was recalibrated. At a 0.01 tolerance it blocked every real
+   defense, because genuine models drift ~0.02–0.08. Since `min-hf-improvement`
+   already gates on the Guard's own number, an inflated claim can never buy an
+   unsafe execution — so honesty is a *signal*, not the safety gate. Allowance is
+   now max(0.25 absolute, 10% relative), which still catches a grossly broken model.
+4. Telegram alerts and the audit trail now report the **Guard's** recomputed health
+   factor, never the model's self-reported one, so the human is never shown a number
+   the system didn't actually gate on.
+
+**Result:** the same scenario now sizes both defenses to the exact minimum ($4.79 in
+the act band, $6.99 in panic — both landing on 1.6003) and the Critic approves both.
+
+**Lesson:** an LLM's job in a financial control loop is judgement, not float
+division. Any number the system gates on must come from code. This was already the
+Guard's design; the mistake was asking the *agents* to reproduce the arithmetic and
+then treating their answer as meaningful.
+
+## 2026-07-31 — a Claude Code OAuth token is not an API key
+
+**What:** Tried the `sk-ant-oat01-…` token from `claude setup-token` as
+`ANTHROPIC_API_KEY`. It fails with `401 invalid x-api-key` — OAuth tokens go on
+`Authorization: Bearer` with an `anthropic-beta: oauth-2025-04-20` header, not on
+`x-api-key`. Sent correctly it authenticates (429 rather than 401), but it draws on
+the interactive Claude Code subscription quota, which is the wrong bucket for a
+daemon polling on a timer.
+**Resolution:** added `ANTHROPIC_BASE_URL` so any Anthropic-protocol-compatible
+endpoint can back the Planner/Critic with no code change, and pointed it at Mimo
+v2.5 Pro. Swapping to a first-party `sk-ant-…` key later is three lines of `.env`.
+
 ## 2026-07-31 — our own bug: graceful degradation became a safety hole
 
 **What:** Ripcord degrades each missing capability to a mock so `pnpm dev` works with zero
