@@ -202,7 +202,15 @@ export function createDaemon(deps: DaemonDeps): Daemon {
     }
 
     log.info(
-      { band: res.band, hf: snapshot.hf, shouldDefend: res.shouldDefend, reason: res.reason },
+      {
+        band: res.band,
+        // JSON renders Infinity as null, so carry hasDebt alongside: a no-debt
+        // position logs as `hf: null, hasDebt: false`, which reads correctly.
+        hf: snapshot.hf,
+        hasDebt: snapshot.hasDebt,
+        shouldDefend: res.shouldDefend,
+        reason: res.reason,
+      },
       "tick",
     );
 

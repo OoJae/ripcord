@@ -10,6 +10,12 @@ function fmtTime(ms: number): string {
   return new Date(ms).toISOString().replace("T", " ").slice(0, 19);
 }
 
+/** A position with no debt has an unbounded health factor; render it as such. */
+function fmtHf(hf: number | null): string {
+  if (hf === null || Number.isNaN(hf)) return "?";
+  return Number.isFinite(hf) ? hf.toFixed(4) : "∞ (no debt)";
+}
+
 function pad(s: string, w: number): string {
   return s.length >= w ? s.slice(0, w) : s + " ".repeat(w - s.length);
 }
@@ -44,7 +50,7 @@ async function main(): Promise<void> {
     const last = decisions[0];
     if (last) {
       console.log(
-        `  last observed: HF ${last.hf === null ? "?" : last.hf.toFixed(4)} [${last.band}] at ${fmtTime(last.createdAtMs)}`,
+        `  last observed: HF ${fmtHf(last.hf)} [${last.band}] at ${fmtTime(last.createdAtMs)}`,
       );
     }
     const lastDefense = db.lastDefenseAt();
