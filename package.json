@@ -5,7 +5,7 @@
   "description": "Autonomous MEV-aware liquidation-protection agent for Aave V3 on Base, executing through KeeperHub",
   "type": "module",
   "engines": {
-    "node": ">=20.10"
+    "node": ">=22.13"
   },
   "packageManager": "pnpm@11.1.2",
   "scripts": {
