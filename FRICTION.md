@@ -39,6 +39,32 @@ Dated entries of everything that confused us or broke while building on KeeperHu
 **What:** The locked stack specified `claude-sonnet-4-6` for Planner/Critic. Live model catalog check showed it is now a legacy snapshot; `claude-sonnet-5` is the current Sonnet at the same list price with intro pricing ($2/$10 per MTok) through Aug 31.
 **Decision:** User approved switching to `claude-sonnet-5` (single constant in `src/config.ts`).
 
+## 2026-07-31 — two template-reference syntaxes in the same seeded workflow
+
+**What:** The seeded "Aave Health Factor Monitor" workflow uses **two different**
+reference syntaxes for the same value. The Condition node uses the fully-qualified
+form `{{@step-1:Get Aave Health Factor.healthFactor}}`, while the Discord and
+SendGrid nodes downstream use a short form `{{step-1.healthFactor}}`. The docs
+describe only the `{{@nodeId:Label.field}}` form.
+**Impact:** A builder copying the seeded workflow cannot tell which form is
+canonical, whether the short form is a supported alias or a latent bug in the
+seed, or whether the short form silently renders empty at runtime. Since the seed
+ships disabled with blank integration IDs, nobody finds out until they wire it up.
+**Proposed fix:** Make the seeds internally consistent (use the documented form
+everywhere), and if the short form *is* a supported alias, document it.
+
+## 2026-07-31 — seeded workflows ship with blank required fields and no validation hint
+
+**What:** All three seeded workflows have empty required fields — `user: ""` on the
+Aave read, `integrationId: ""` on the Discord node, `emailTo: ""` on the SendGrid
+node — and are `enabled: false`. Nothing in the workflow object flags *which*
+fields still need filling.
+**Impact:** A new builder's first instinct is to hit Enable/Run; they get a runtime
+failure rather than an upfront "3 fields required" prompt.
+**Proposed fix:** Surface required-but-blank fields in the UI before enabling
+(and ideally in `validate_workflow`'s output), so the seeds are a guided setup
+rather than a puzzle. Good onboarding-bounty material.
+
 ## 2026-07-31 — our own bug: graceful degradation became a safety hole
 
 **What:** Ripcord degrades each missing capability to a mock so `pnpm dev` works with zero

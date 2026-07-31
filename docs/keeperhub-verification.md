@@ -1,5 +1,84 @@
 # KeeperHub verification report — 2026-07-31
 
+> **Update, later the same day: the MCP server is now authenticated and the
+> introspection below has been done live.** See §0 — it supersedes the
+> "MCP not connected" caveat that follows. The docs-based findings in §1–§6 all
+> held up; §0 adds the workflow node schema, which they could not give us.
+
+---
+
+## 0. Live MCP introspection — VERIFIED against the org
+
+### Org wallet (the signer for every Ripcord transaction)
+
+`list_integrations` returns **exactly one** integration:
+
+```
+id:      06gumjr8215bj2z8jacgt
+type:    web3
+address: 0x30C8A36e99f0708c3e3301b1Ed99cf418BDCf27a
+```
+
+That is the **Turnkey EOA (EVM Compatible)** wallet. The org also has a Turnkey
+EOA (SVM Compatible) `J4RkjA…4LJj` for Solana, but it is **not registered as an
+integration at all** — so it cannot be selected for a web3 write action even by
+mistake. Ripcord is EVM-only; this is the wallet, and `integrationId
+06gumjr8215bj2z8jacgt` is what WF-2's contract-call node will reference.
+
+### Workflow node schema — the biggest Session-2 unknown, now answered
+
+The org ships three seeded starter workflows (all `enabled: false`, all with
+placeholder blanks). One is **"Aave Health Factor Monitor"**
+(`zz5f7urg15v83k9kiugww`) — effectively a first draft of our WF-1. Reading its
+graph gives us the exact node shapes:
+
+**Schedule trigger:**
+```json
+{ "triggerType": "Schedule", "scheduleCron": "0 * * * *", "scheduleTimezone": "UTC" }
+```
+
+**Aave read — a first-class protocol action, not a raw contract call:**
+```json
+{ "actionType": "aave-v3/get-user-account-data",
+  "network": "1",
+  "user": "",
+  "_protocolMeta": "{\"protocolSlug\":\"aave-v3\",\"contractKey\":\"pool\",
+                     \"functionName\":\"getUserAccountData\",\"actionType\":\"read\"}" }
+```
+`network` is a **chain-id string** — `"8453"` for Base, `"84532"` for Base Sepolia.
+`user` is the monitored address. Note KeeperHub resolves the Pool address itself
+from `contractKey: "pool"`, so WF-1 does not need our address book for the read.
+
+**Condition node:**
+```json
+{ "actionType": "Condition",
+  "group": { "logic": "AND", "rules": [
+    { "operator": "<",
+      "leftOperand": "{{@step-1:Get Aave Health Factor.healthFactor}}",
+      "rightOperand": "1500000000000000000" } ] } }
+```
+
+Two things worth calling out:
+- **The health factor is compared as a raw 1e18 wad string** —
+  `"1500000000000000000"` is literally our `THRESHOLDS_WAD.warn`. KeeperHub and
+  Ripcord agree on the representation, which is a nice independent confirmation
+  of the decision to do band comparisons in bigint wads rather than floats.
+- **Reference syntax** is `{{@nodeId:Label.field}}`, matching the battle plan.
+
+**Other confirmed fields:** `workflowType: "read"` (WF-2 will be the write
+variant), and the marketplace fields we need in Session 4 already exist on the
+object — `visibility`, `isListed`, `listedSlug`, `priceUsdcPerCall`, `inputSchema`,
+`outputMapping`.
+
+### Plan adjustment for Session 2
+
+Rather than building WF-1 from scratch, **adapt `zz5f7urg15v83k9kiugww`**: point
+`user` at `0x30C8…f27a`, switch `network` from `"1"` to `"84532"`, and replace the
+Discord/SendGrid branches with Telegram. Then build WF-2 `defend` as the write
+workflow using the same node vocabulary.
+
+---
+
 Session 1 was supposed to introspect the KeeperHub MCP server directly. The MCP
 server was **not connected** in this environment (pre-flight `claude mcp add` +
 OAuth had not been run), so this report substitutes live-documentation

@@ -4,31 +4,56 @@ Session 1 shipped the offline-testable core. Everything below needs a human
 because it involves accounts, browsers, funds, or OAuth. Numbered in the order
 that unblocks the most work soonest.
 
+## Which Turnkey wallet Ripcord uses
+
+The KeeperHub org has two Turnkey EOAs. **Ripcord uses the EVM one:**
+
+| Wallet | Address | Use |
+|---|---|---|
+| **Turnkey EOA (EVM Compatible)** | `0x30C8…f27a` — multi-chain | ✅ **This one.** Base is EVM; every Aave `supply`/`borrow`/`repay`/`approve` is signed by it, and it is the account that holds the monitored position. |
+| Turnkey EOA (SVM Compatible) | `J4RkjA…4LJj` — Solana | ❌ Not used. Solana-only; Aave V3 on Base is unreachable from it. |
+
+Two consequences worth being explicit about:
+
+- **`MONITORED_ADDRESS` should be the full `0x30C8…f27a` address.** Ripcord watches
+  the position that the executing wallet owns, so the sensor target and the
+  KeeperHub signer are the same account. (Aave's `repay`/`supply` do accept an
+  `onBehalfOf` other than the sender, so a split is *possible* — but keeping them
+  identical is simpler, and it means the Guard's `snapshot-provenance` rule
+  double-checks the very account we sign for.)
+- **Fund `0x30C8…f27a`**, not the Solana one: Base Sepolia ETH now, and a small
+  Base mainnet balance in Session 3.
+
+Grab the full address from the KeeperHub Organization Wallet dialog (the UI
+truncates it) and put it in `.env`.
+
 ## Blocking Session 2 (do these first)
 
-1. **Create the GitHub repo and push.**
-   The repo is committed locally but has no remote. Do a 30-second `ripcord crypto`
-   collision search first (build guide §5.2), then:
-   ```bash
-   gh repo create ripcord --private --source=. --remote=origin --push
-   ```
-   Keep it private for now; it **must be public before submission**.
+1. ~~**Create the GitHub repo and push.**~~ ✅ **Done** —
+   <https://github.com/OoJae/ripcord> (private, `main` pushed, CI green).
+   It **must be made public before submission**: `gh repo edit OoJae/ripcord --visibility public`.
 
-2. **Connect the KeeperHub MCP server** — this was the one Session-1 step I
-   could not do, and it gates all of WF-1/WF-2 work:
-   ```bash
-   claude mcp add --transport http keeperhub https://app.keeperhub.com/mcp
-   claude mcp list          # confirm registered
-   ```
-   Then in-session run `/mcp` to authenticate (OAuth 2.1), and install the plugin:
-   `/plugin marketplace add KeeperHub/claude-plugins`.
-   First task in Session 2 will be re-introspecting the tools and diffing against
-   [keeperhub-verification.md](keeperhub-verification.md).
+2. **Authenticate the KeeperHub MCP server.** The server is already *registered*
+   by the `keeperhub@keeperhub-plugins` plugin at `https://app.keeperhub.com/mcp`
+   — `claude mcp list` shows it as "Needs authentication". Only the auth step is
+   left, and it cannot be done non-interactively. Either:
+   - **OAuth (preferred):** run `/mcp` in an interactive Claude Code session,
+     pick `keeperhub`, and approve in the browser; or
+   - **Headless:** create an org API key at app.keeperhub.com (avatar → API Keys →
+     Organisation → New API Key; starts with `kh_`, shown once), then set
+     `KH_API_KEY=kh_…` in your environment and restart Claude Code.
 
-3. **KeeperHub account + org wallet + API key.** Sign up, note the provisioned
-   Turnkey org wallet address, generate a `kh_` API key, put it in `.env` as
-   `KEEPERHUB_API_KEY`. (The key must start with `kh_` — config validation
-   enforces that.)
+   Verify with `/keeperhub:status`. First task in Session 2 is re-introspecting the
+   tools and diffing against [keeperhub-verification.md](keeperhub-verification.md).
+
+3. **KeeperHub `kh_` API key into `.env`** as `KEEPERHUB_API_KEY` (the same key
+   works for both the MCP auth above and the daemon's REST calls). Config
+   validation enforces the `kh_` prefix.
+
+   Note: you already have a workflow named **"Aave Health Factor Monitor"**
+   (`zz5f7urg15v83k9kiugww`) in the org — that is essentially WF-1 `hf-monitor`.
+   In Session 2 we'll reconcile it with the spec (it currently alerts Discord +
+   email; the plan is Telegram) rather than building a duplicate.
 
 ## Needed for a live testnet run
 
