@@ -8,7 +8,15 @@ import { describe, expect, it } from "vitest";
 import { THRESHOLDS_WAD } from "../../src/config.js";
 import { classifyBand, evaluate, markDefenseFired } from "../../src/policy/thresholds.js";
 import type { Band, PolicyState } from "../../src/types.js";
-import { MAX_UINT256, ONE_WEI, WAD_1_10, WAD_1_25, WAD_1_50, WAD_1_55, wadOf } from "../fixtures/aave.js";
+import {
+  MAX_UINT256,
+  ONE_WEI,
+  WAD_1_10,
+  WAD_1_25,
+  WAD_1_50,
+  WAD_1_55,
+  wadOf,
+} from "../fixtures/aave.js";
 import { makeSnapshot } from "../helpers/fakes.js";
 
 const T0 = 1_753_920_000_000;
@@ -130,6 +138,45 @@ describe("evaluate — cooldown window", () => {
 });
 
 describe("evaluate — velocity is display-only", () => {
+  // These cases are deliberately anchored on states where the answer is NO.
+  // Comparing two snapshots that both already defend cannot detect velocity
+  // flipping a decision — only a case that must stay suppressed can.
+
+  it("a steeply falling HF does NOT promote a healthy position into a defense", () => {
+    const r = evaluate(
+      makeSnapshot("1.80", { hfVelocityPerMin: -0.9 }),
+      THRESHOLDS_WAD,
+      freshArmed(),
+      T0,
+    );
+    expect(r.band).toBe("healthy");
+    expect(r.shouldDefend).toBe(false);
+  });
+
+  it("a steeply falling HF does NOT override the hysteresis latch in the act band", () => {
+    const unarmed: PolicyState = { armed: false, lastFiredAtMs: null, lastBand: "act" };
+    const r = evaluate(
+      makeSnapshot("1.20", { hfVelocityPerMin: -0.9 }),
+      THRESHOLDS_WAD,
+      unarmed,
+      T0,
+    );
+    expect(r.band).toBe("act");
+    expect(r.shouldDefend).toBe(false);
+  });
+
+  it("a steeply falling HF does NOT override an active cooldown", () => {
+    // Re-armed, but only 60s since the last defense — well inside the 1800s window.
+    const inCooldown: PolicyState = { armed: true, lastFiredAtMs: T0, lastBand: "act" };
+    const r = evaluate(
+      makeSnapshot("1.20", { hfVelocityPerMin: -0.9 }),
+      THRESHOLDS_WAD,
+      inCooldown,
+      T0 + 60_000,
+    );
+    expect(r.shouldDefend).toBe(false);
+  });
+
   it("same wad with velocity -0.5 vs +0.5 → identical band and shouldDefend", () => {
     const falling = evaluate(
       makeSnapshot("1.20", { hfVelocityPerMin: -0.5 }),
@@ -190,7 +237,20 @@ describe("purity and state transitions", () => {
     expect(r.nextState.lastBand).toBe("healthy");
   });
 
-  it("no-debt snapshot is healthy regardless of sentinel hfWad", () => {
+  it("hasDebt=false wins even when the wad itself would classify as panic", () => {
+    // MAX_UINT256 classifies healthy on its own, so it cannot prove the
+    // hasDebt short-circuit exists. A panic-range wad with hasDebt=false can.
+    const r = evaluate(
+      makeSnapshot("0.50", { hasDebt: false, hf: Number.POSITIVE_INFINITY }),
+      THRESHOLDS_WAD,
+      freshArmed(),
+      T0,
+    );
+    expect(r.band).toBe("healthy");
+    expect(r.shouldDefend).toBe(false);
+  });
+
+  it("no-debt snapshot is healthy with the maxUint256 sentinel too", () => {
     const r = evaluate(
       makeSnapshot("1.20", { hasDebt: false, hfWad: MAX_UINT256, hf: Number.POSITIVE_INFINITY }),
       THRESHOLDS_WAD,

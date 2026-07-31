@@ -151,6 +151,8 @@ export type GuardRuleId =
   | "max-tx-usd"
   | "daily-cap"
   | "min-hf-improvement"
+  | "hf-claim-honesty"
+  | "snapshot-provenance"
   | "idempotency"
   | "arm-flag"
   | "dry-run";

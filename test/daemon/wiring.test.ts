@@ -19,12 +19,12 @@ import type {
   Critic,
   DecisionNotification,
   Notifier,
-  PlanResult,
   Planner,
+  PlanResult,
   Sensor,
   Snapshot,
 } from "../../src/types.js";
-import { fixedClock, makeSnapshot, makeTestConfig } from "../helpers/fakes.js";
+import { fixedClock, makeSnapshot, makeTestConfig, TEST_ADDRESS } from "../helpers/fakes.js";
 
 /** A Planner that always proposes a valid, affordable, target-clearing defense. */
 const permissivePlanner: Planner = {
@@ -59,7 +59,11 @@ const rejectingCritic: Critic = {
 };
 
 function stubSensor(snapshot: Snapshot): Sensor {
-  return { async read() { return snapshot; } };
+  return {
+    async read() {
+      return snapshot;
+    },
+  };
 }
 
 function silentLogger(): DaemonLogger {
@@ -80,19 +84,21 @@ interface Harness {
   db: ReturnType<typeof openDb>;
 }
 
-function harness(opts: {
-  chain?: "base" | "base-sepolia";
-  dryRun?: boolean;
-  armed?: boolean;
-  hf?: string;
-  critic?: Critic;
-} = {}): Harness {
+function harness(
+  opts: {
+    chain?: "base" | "base-sepolia";
+    dryRun?: boolean;
+    armed?: boolean;
+    hf?: string;
+    critic?: Critic;
+  } = {},
+): Harness {
   const chain = opts.chain ?? "base-sepolia";
   // NOTE: loadConfig itself refuses mainnet + DRY_RUN=false + ARM=0 (belt).
   // These tests bypass that via overrides on purpose, to prove the daemon and
   // Guard (suspenders) hold even if the config layer were ever weakened.
   const config = makeTestConfig(
-    {},
+    { MONITORED_ADDRESS: TEST_ADDRESS },
     {
       chain,
       dryRun: opts.dryRun ?? false,
@@ -293,7 +299,9 @@ describe("daemon: policy suppression paths", () => {
     const h = harness({ dryRun: false, hf: "1.20" });
     await createDaemon(h.deps).runTick("01J9ADDRESSBOOK000000000A");
 
-    expect(h.executor.receivedPayloads[0]?.assetAddress).toBe(ADDRESS_BOOK["base-sepolia"].usdc.address);
+    expect(h.executor.receivedPayloads[0]?.assetAddress).toBe(
+      ADDRESS_BOOK["base-sepolia"].usdc.address,
+    );
     h.db.close();
   });
 });

@@ -8,7 +8,7 @@
  */
 
 import { z } from "zod";
-import type { AddressBook, Address, Chain, Thresholds, ThresholdsWad } from "./types.js";
+import type { Address, AddressBook, Chain, Thresholds, ThresholdsWad } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // Constants (not env-driven in Session 1)
@@ -98,8 +98,7 @@ export const ADDRESS_BOOK: Record<Chain, AddressBook> = {
 // Env schema
 
 /** Treat empty strings as absent so a copied-but-unfilled .env.example is inert. */
-const emptyToUndefined = (v: unknown) =>
-  typeof v === "string" && v.trim() === "" ? undefined : v;
+const emptyToUndefined = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
 
 const addressSchema = z
   .string()
@@ -163,6 +162,34 @@ export interface AppConfig {
   capabilities: Capabilities;
 }
 
+/**
+ * Render an RPC endpoint for logs with the path elided.
+ * Provider URLs routinely carry the API key as a path segment
+ * (`https://base-mainnet.g.alchemy.com/v2/<KEY>`), so the raw URL is a secret
+ * and must never reach a log line, an error string, or the status output.
+ */
+export function redactRpcUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.pathname === "/" && u.search === "" ? u.origin : `${u.origin}/…`;
+  } catch {
+    return "[unparseable-rpc-url]";
+  }
+}
+
+/** Scrub an RPC URL (and its key-bearing tail) out of arbitrary error text. */
+export function scrubRpcUrl(text: string, rpcUrl: string): string {
+  if (rpcUrl === "") return text;
+  let out = text.split(rpcUrl).join(redactRpcUrl(rpcUrl));
+  try {
+    const path = new URL(rpcUrl).pathname;
+    if (path.length > 1) out = out.split(path).join("/…");
+  } catch {
+    /* unparseable — the whole-URL replacement above is the best we can do */
+  }
+  return out;
+}
+
 /** Exact money conversion boundary: USD floats become integer cents exactly once, here. */
 export function usdToCents(usd: number): number {
   if (!Number.isFinite(usd)) {
@@ -174,9 +201,7 @@ export function usdToCents(usd: number): number {
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const parsed = EnvSchema.safeParse(env);
   if (!parsed.success) {
-    const issues = parsed.error.issues
-      .map((i) => `${i.path.join(".")}: ${i.message}`)
-      .join("; ");
+    const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
     throw new Error(`Invalid environment: ${issues}`);
   }
   const e = parsed.data;
@@ -184,6 +209,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const chain: Chain = e.CHAIN;
   const dryRun = e.DRY_RUN === "true";
   const armed = e.RIPCORD_ARM === "1";
+  const liveReads = e.MONITORED_ADDRESS !== undefined;
+  const liveExecutor = e.KEEPERHUB_DEFEND_WEBHOOK_URL !== undefined;
 
   // Refuse to even start half-armed on mainnet (belt; the Guard is suspenders).
   if (chain === "base" && !dryRun && !armed) {
@@ -193,15 +220,30 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     );
   }
 
+  // Refuse to pair the MOCK sensor with a LIVE executor. Missing capabilities
+  // degrade to mocks, which is what makes the zero-secret demo work — but a
+  // fabricated position must never be able to trigger a real transaction.
+  // Concretely: .env.example ships MONITORED_ADDRESS blank, so an operator who
+  // fills in the webhook URL and arms the daemon would otherwise have the
+  // scripted mock HF descent drive real defenses against a synthetic position.
+  if (!dryRun && liveExecutor && !liveReads) {
+    throw new Error(
+      "Refusing to start: a live KeeperHub executor is configured " +
+        "(KEEPERHUB_DEFEND_WEBHOOK_URL) with DRY_RUN=false, but MONITORED_ADDRESS is unset " +
+        "so chain reads would come from the MOCK sensor. A simulated position must never " +
+        "drive real transactions. Set MONITORED_ADDRESS, or keep DRY_RUN=true.",
+    );
+  }
+
   const rpcUrl =
     chain === "base"
       ? (e.BASE_RPC_URL ?? DEFAULT_RPC_URLS.base)
       : (e.BASE_SEPOLIA_RPC_URL ?? DEFAULT_RPC_URLS["base-sepolia"]);
 
   const capabilities: Capabilities = {
-    chainReads: e.MONITORED_ADDRESS !== undefined,
+    chainReads: liveReads,
     llm: e.ANTHROPIC_API_KEY !== undefined,
-    keeperhub: e.KEEPERHUB_DEFEND_WEBHOOK_URL !== undefined,
+    keeperhub: liveExecutor,
     telegram: e.TELEGRAM_BOT_TOKEN !== undefined && e.TELEGRAM_CHAT_ID !== undefined,
   };
 

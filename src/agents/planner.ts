@@ -10,7 +10,7 @@
  * allowlist, and the schema plus the Guard both reject any that appear.
  */
 
-import type { LlmClient, PlanResult, Planner, PlannerContext } from "../types.js";
+import type { LlmClient, Planner, PlannerContext, PlanResult } from "../types.js";
 import { hfAfterRepay, repayNeededForTarget } from "./hf-math.js";
 import { buildPlannerPrompt } from "./prompts.js";
 import { completeWithSchema, PlannerProposalSchema } from "./schemas.js";

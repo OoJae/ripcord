@@ -54,7 +54,10 @@ describe("planner: accepted outputs", () => {
 
 describe("planner: rejected outputs (each retries, never silently passes)", () => {
   const bad: Array<[string, string]> = [
-    ["missing amountUsd", '{"action":"repay","asset":"USDC","expectedHfAfter":1.6,"rationale":"x"}'],
+    [
+      "missing amountUsd",
+      '{"action":"repay","asset":"USDC","expectedHfAfter":1.6,"rationale":"x"}',
+    ],
     [
       "unknown action enum",
       '{"action":"swap","asset":"USDC","amountUsd":5,"expectedHfAfter":1.6,"rationale":"x"}',
@@ -131,7 +134,9 @@ describe("planner: prompt hygiene", () => {
     expect(user).toContain("MAX_TX_USD: $15.00");
     expect(user).toContain("DAILY_CAP_USD: $30.00");
     expect(user).toContain("no debt");
-    expect(user).not.toContain("115792089237316195423570985008687907853269984665640564039457584007913129639935");
+    expect(user).not.toContain(
+      "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+    );
     expect(user).not.toContain("Infinity");
     expect(system).toMatch(/never output a contract address/i);
   });

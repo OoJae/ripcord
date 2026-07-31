@@ -39,6 +39,41 @@ Dated entries of everything that confused us or broke while building on KeeperHu
 **What:** The locked stack specified `claude-sonnet-4-6` for Planner/Critic. Live model catalog check showed it is now a legacy snapshot; `claude-sonnet-5` is the current Sonnet at the same list price with intro pricing ($2/$10 per MTok) through Aug 31.
 **Decision:** User approved switching to `claude-sonnet-5` (single constant in `src/config.ts`).
 
+## 2026-07-31 — our own bug: graceful degradation became a safety hole
+
+**What:** Ripcord degrades each missing capability to a mock so `pnpm dev` works with zero
+secrets. An adversarial review found the capabilities were evaluated *independently*: with
+`MONITORED_ADDRESS` blank (as `.env.example` ships it) but `KEEPERHUB_DEFEND_WEBHOOK_URL` set,
+`CHAIN=base`, `DRY_RUN=false`, `RIPCORD_ARM=1`, the daemon paired the **mock sensor** with the
+**live mainnet executor**. The scripted mock HF descent hit the act band ~35s after boot and
+fired real defenses against a fabricated position at the burn address, repeating until the
+$30 daily cap was exhausted. Reproduced end to end before fixing.
+**Fix applied (two independent layers):** `loadConfig` now refuses to start when a live executor
+is paired with mock reads outside DRY_RUN; and the Guard gained a `snapshot-provenance` rule
+requiring the snapshot's chain and address to match the configured target (tolerating an
+unconfigured target only while the executor is a mock).
+**Lesson worth writing down:** "fall back to a mock" is a safe default for *reads* and a
+dangerous one for *writes*. Capability flags that degrade independently need a cross-check.
+
+## 2026-07-31 — our own bug: the Guard trusted the LLM's arithmetic
+
+**What:** The Guard's `min-hf-improvement` rule compared the Planner's **self-reported**
+`expectedHfAfter` against the threshold. A model that miscalculated — or simply asserted
+`"expectedHfAfter": 9.99` on a $0.50 repayment — passed the last deterministic gate.
+**Fix applied:** the Guard now recomputes the post-defense health factor itself from the
+snapshot and the amount, and a second rule (`hf-claim-honesty`) blocks a Planner whose claim
+overstates the recomputed value, since that is evidence of a miscalculating or dishonest model.
+**Lesson:** a deterministic gate that validates a number the untrusted party supplied is not a
+gate. Recompute, don't verify.
+
+## 2026-07-31 — `biome check` output was being swallowed by a shell wrapper
+
+**What:** `pnpm lint` reported "Lint: No issues found" while `./node_modules/.bin/biome check .`
+reported 30 formatter errors. A local shell wrapper was summarising only the lint category and
+hiding the formatter diagnostics — a false green that would have turned red in CI.
+**Lesson:** verify tooling output against the raw binary at least once per project; a wrapper
+that summarises can silently invert a pass/fail signal.
+
 ## 2026-07-31 — pnpm 11.1.2 script-runner crash + build-script approvals
 
 **What:** `pnpm test` crashed in `runDepsStatusCheck` (recursive `pnpm install` spawn) because better-sqlite3/esbuild build scripts were unapproved; the `package.json` `pnpm.onlyBuiltDependencies` field was not honored — this pnpm reads `allowBuilds` from `pnpm-workspace.yaml`.

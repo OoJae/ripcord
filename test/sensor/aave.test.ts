@@ -94,7 +94,12 @@ describe("sensor: HF velocity", () => {
   it("returns null with fewer than three samples", () => {
     expect(computeVelocity([])).toBeNull();
     expect(computeVelocity([{ tMs: 0, hf: 1.5 }])).toBeNull();
-    expect(computeVelocity([{ tMs: 0, hf: 1.5 }, { tMs: 60_000, hf: 1.4 }])).toBeNull();
+    expect(
+      computeVelocity([
+        { tMs: 0, hf: 1.5 },
+        { tMs: 60_000, hf: 1.4 },
+      ]),
+    ).toBeNull();
   });
 
   it("ignores non-finite samples instead of propagating Infinity", () => {

@@ -144,9 +144,7 @@ describe("createNotifier (telegram)", () => {
     const { logger, ofLevel } = fakeLogger();
     const throwing: typeof fetch = async () => {
       // Realistic worst case: the error text embeds the full URL (token included).
-      throw new Error(
-        `ECONNRESET https://api.telegram.org/bot${FAKE_TOKEN}/sendMessage`,
-      );
+      throw new Error(`ECONNRESET https://api.telegram.org/bot${FAKE_TOKEN}/sendMessage`);
     };
 
     await expect(createNotifier(cfg, logger, throwing).notify(defense())).resolves.toBeUndefined();

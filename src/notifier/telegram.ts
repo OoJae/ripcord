@@ -142,10 +142,7 @@ export function createNotifier(
           );
           return;
         }
-        logger.debug(
-          { kind: n.kind, decisionId: n.decisionId },
-          "telegram notification sent",
-        );
+        logger.debug({ kind: n.kind, decisionId: n.decisionId }, "telegram notification sent");
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         logger.warn(

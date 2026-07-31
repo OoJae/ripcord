@@ -211,9 +211,7 @@ export function openDb(path: string): RipcordDb {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
 
-  const hasExecutionStmt = db.prepare(
-    "SELECT 1 FROM executions WHERE decision_id = ? LIMIT 1",
-  );
+  const hasExecutionStmt = db.prepare("SELECT 1 FROM executions WHERE decision_id = ? LIMIT 1");
 
   // FAIL-CLOSED SPEND ACCOUNTING: every execution status counts — including
   // 'error' and 'timeout' — because a trigger that errored or timed out on our
@@ -228,9 +226,7 @@ export function openDb(path: string): RipcordDb {
        AND status IN ('triggered','running','success','error','timeout')`,
   );
 
-  const lastDefenseStmt = db.prepare(
-    "SELECT MAX(requested_at_ms) AS latest FROM executions",
-  );
+  const lastDefenseStmt = db.prepare("SELECT MAX(requested_at_ms) AS latest FROM executions");
 
   const recentDecisionsStmt = db.prepare(
     "SELECT * FROM decisions ORDER BY created_at_ms DESC LIMIT ?",
@@ -263,10 +259,7 @@ export function openDb(path: string): RipcordDb {
     updateDecision(decisionId, patch): void {
       const { clause, params } = buildSet(patch, DECISION_COLS);
       if (clause === "") return; // nothing defined to update
-      db.prepare(`UPDATE decisions SET ${clause} WHERE decision_id = ?`).run(
-        ...params,
-        decisionId,
-      );
+      db.prepare(`UPDATE decisions SET ${clause} WHERE decision_id = ?`).run(...params, decisionId);
     },
 
     hasExecution(decisionId: string): boolean {

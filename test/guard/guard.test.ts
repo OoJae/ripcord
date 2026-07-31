@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ADDRESS_BOOK } from "../../src/config.js";
 import { checkGuard, type GuardInput } from "../../src/guard/guard.js";
 import type { CriticVerdict, GuardResult, GuardRuleId, PlannerProposal } from "../../src/types.js";
-import { makeSnapshot } from "../helpers/fakes.js";
+import { makeSnapshot, TEST_ADDRESS } from "../helpers/fakes.js";
 
 /** A fully valid testnet input: repay 10 USDC at HF 1.20, APPROVE, within caps. */
 function baseInput(overrides: Partial<GuardInput> = {}): GuardInput {
@@ -23,6 +23,7 @@ function baseInput(overrides: Partial<GuardInput> = {}): GuardInput {
     addressBook: ADDRESS_BOOK["base-sepolia"],
     spentTodayCents: 0,
     alreadyExecuted: false,
+    monitoredAddress: TEST_ADDRESS,
     ...overrides,
   };
 }
@@ -52,16 +53,16 @@ describe("checkGuard — golden paths", () => {
     const res = checkGuard(baseInput());
     expect(res.decision).toBe("execute");
     expect(res.violations).toEqual([]);
-    expect(res.checks).toHaveLength(10);
+    expect(res.checks).toHaveLength(12);
     expect(res.checks.every((c) => c.passed)).toBe(true);
-    expect(res.reason).toBe("all 10 safety checks passed");
+    expect(res.reason).toBe("all 12 safety checks passed");
   });
 
   it("returns dry-run when everything passes but DRY_RUN holds fire", () => {
     const res = checkGuard(baseInput({ flags: { dryRun: true, armed: false } }));
     expect(res.decision).toBe("dry-run");
     expect(res.violations).toEqual([]);
-    expect(res.checks).toHaveLength(10);
+    expect(res.checks).toHaveLength(12);
     expect(res.checks.every((c) => c.passed)).toBe(true);
     expect(check(res, "dry-run").detail).toContain("held fire");
   });
@@ -69,9 +70,7 @@ describe("checkGuard — golden paths", () => {
 
 describe("action-none", () => {
   it("blocks a 'none' proposal (and its zero amount also fails amount-positive)", () => {
-    const res = checkGuard(
-      withProposal({ action: "none", amountUsd: 0, expectedHfAfter: 1.2 }),
-    );
+    const res = checkGuard(withProposal({ action: "none", amountUsd: 0, expectedHfAfter: 1.2 }));
     expect(res.decision).toBe("blocked");
     expect(violation(res, "action-none").detail).toBe("planner proposed no action");
     // Both violations report — no short-circuit between rules.
@@ -176,25 +175,101 @@ describe("daily-cap (integer cents)", () => {
   });
 });
 
-describe("min-hf-improvement", () => {
-  it("passes exact equality: hf 1.20 + 0.05 → expected 1.25 (epsilon tolerance)", () => {
-    // Without the 1e-9 epsilon, 1.2 + 0.05 = 1.2500000000000002 in floats would
-    // spuriously block an exactly-sufficient improvement.
-    const res = checkGuard(withProposal({ expectedHfAfter: 1.25 }));
+describe("min-hf-improvement (recomputed, never taken on trust)", () => {
+  // Snapshot: $30 collateral @ LT 80% = $24 effective, $20 debt, HF 1.20.
+  // Required after a defense: 1.20 + 0.05 = 1.25.
+  // The Guard derives hfAfter from the AMOUNT, so these cases vary the amount —
+  // varying only the planner's claimed expectedHfAfter proves nothing.
+
+  it("passes an amount that genuinely reaches the floor", () => {
+    // $24 / ($20 − $1) = 1.2632 ≥ 1.25
+    const res = checkGuard(withProposal({ amountUsd: 1, expectedHfAfter: 1.2632 }));
     expect(check(res, "min-hf-improvement").passed).toBe(true);
     expect(res.decision).toBe("execute");
   });
 
-  it("blocks an improvement just under the floor (1.2499)", () => {
-    const res = checkGuard(withProposal({ expectedHfAfter: 1.2499 }));
+  it("blocks an amount that lands just under the floor", () => {
+    // $24 / ($20 − $0.50) = 1.2308 < 1.25
+    const res = checkGuard(withProposal({ amountUsd: 0.5, expectedHfAfter: 1.2308 }));
     expect(res.decision).toBe("blocked");
     violation(res, "min-hf-improvement");
   });
 
-  it("blocks a proposal whose expected HF is below the current HF", () => {
-    const res = checkGuard(withProposal({ expectedHfAfter: 1.1 }));
+  it("blocks a repayment too small to move the position at all", () => {
+    // $24 / ($20 − $0.01) = 1.2006 — barely above the current 1.20
+    const res = checkGuard(withProposal({ amountUsd: 0.01, expectedHfAfter: 1.2006 }));
     expect(res.decision).toBe("blocked");
     violation(res, "min-hf-improvement");
+  });
+
+  it("IGNORES an inflated expectedHfAfter — a lying Planner cannot buy a pass", () => {
+    // The Planner claims 9.99 on a $0.50 repayment whose real outcome is 1.2308.
+    // Before the Guard recomputed, this claim alone would have satisfied the rule.
+    const res = checkGuard(withProposal({ amountUsd: 0.5, expectedHfAfter: 9.99 }));
+    expect(res.decision).toBe("blocked");
+    violation(res, "min-hf-improvement");
+    expect(check(res, "min-hf-improvement").detail).toContain("planner claimed 9.99");
+  });
+});
+
+describe("hf-claim-honesty", () => {
+  it("blocks a Planner that overstates its own outcome beyond tolerance", () => {
+    // Real outcome of a $10 repayment is 2.4; claiming 5.0 is evidence of a
+    // miscalculating or dishonest model, so it blocks even though the
+    // recomputed value would comfortably clear min-hf-improvement.
+    const res = checkGuard(withProposal({ amountUsd: 10, expectedHfAfter: 5.0 }));
+    expect(res.decision).toBe("blocked");
+    violation(res, "hf-claim-honesty");
+    expect(check(res, "min-hf-improvement").passed).toBe(true); // the other rule is happy
+  });
+
+  it("tolerates a conservative (understated) claim", () => {
+    const res = checkGuard(withProposal({ amountUsd: 10, expectedHfAfter: 1.45 }));
+    expect(check(res, "hf-claim-honesty").passed).toBe(true);
+    expect(res.decision).toBe("execute");
+  });
+});
+
+describe("snapshot-provenance", () => {
+  it("blocks when the snapshot is for a different address than the one configured", () => {
+    const res = checkGuard(
+      baseInput({ monitoredAddress: "0x9999999999999999999999999999999999999999" }),
+    );
+    expect(res.decision).toBe("blocked");
+    violation(res, "snapshot-provenance");
+  });
+
+  it("blocks when the snapshot came from a different chain (mock sensor on mainnet)", () => {
+    // This is the exact shape of the critical bug the review caught: the mock
+    // sensor reports base-sepolia while the daemon is configured for mainnet.
+    const res = checkGuard(
+      baseInput({
+        chain: "base",
+        addressBook: ADDRESS_BOOK.base,
+        flags: { dryRun: false, armed: true },
+      }),
+    );
+    expect(res.decision).toBe("blocked");
+    violation(res, "snapshot-provenance");
+  });
+
+  it("blocks an unestablishable provenance when the executor is LIVE", () => {
+    // No configured target + a real KeeperHub executor = a fabricated position
+    // could trigger a real transaction. This is the critical hole, closed.
+    const res = checkGuard(baseInput({ monitoredAddress: undefined, liveExecutor: true }));
+    expect(res.decision).toBe("blocked");
+    expect(violation(res, "snapshot-provenance").detail).toContain("live executor");
+  });
+
+  it("tolerates an unestablishable provenance while the executor is a MOCK", () => {
+    // The zero-secret demo: no target configured, but nothing can leave the box.
+    const res = checkGuard(baseInput({ monitoredAddress: undefined, liveExecutor: false }));
+    expect(check(res, "snapshot-provenance").passed).toBe(true);
+    expect(res.decision).toBe("execute");
+  });
+
+  it("passes when the snapshot matches the configured chain and address", () => {
+    expect(check(checkGuard(baseInput()), "snapshot-provenance").passed).toBe(true);
   });
 });
 
@@ -224,6 +299,8 @@ describe("arm-flag", () => {
       baseInput({
         chain: "base",
         addressBook: ADDRESS_BOOK.base,
+        // The snapshot must come from the same chain, or snapshot-provenance blocks first.
+        snapshot: makeSnapshot("1.20", {}, "base"),
         flags: { dryRun: false, armed: true },
       }),
     );
@@ -257,6 +334,6 @@ describe("multi-violation — every rule is evaluated, nothing short-circuits", 
     // reason is the FIRST violation in rule order
     expect(res.reason).toContain("critic-approval");
     // full audit trail is still 10 entries
-    expect(res.checks).toHaveLength(10);
+    expect(res.checks).toHaveLength(12);
   });
 });

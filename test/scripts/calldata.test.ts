@@ -4,12 +4,12 @@
  * decimal scale is caught here rather than on a live chain.
  */
 
-import { describe, expect, it } from "vitest";
 import { toFunctionSelector } from "viem";
-import { ADDRESS_BOOK } from "../../src/config.js";
+import { describe, expect, it } from "vitest";
 import { buildApproveCall } from "../../scripts/approve-repay-asset.js";
 import { buildSetupCalls } from "../../scripts/setup-position.js";
 import { buildStressCall } from "../../scripts/stress-position.js";
+import { ADDRESS_BOOK } from "../../src/config.js";
 import { TEST_ADDRESS } from "../helpers/fakes.js";
 
 const SUPPLY = toFunctionSelector("supply(address,uint256,address,uint16)");

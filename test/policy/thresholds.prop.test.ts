@@ -78,7 +78,11 @@ describe("thresholds properties", () => {
         (a, b) => {
           const lo = a <= b ? a : b;
           const hi = a <= b ? b : a;
-          const fresh = (): PolicyState => ({ armed: true, lastFiredAtMs: null, lastBand: "healthy" });
+          const fresh = (): PolicyState => ({
+            armed: true,
+            lastFiredAtMs: null,
+            lastBand: "healthy",
+          });
           const rLo = evaluate(snapAt(lo), THRESHOLDS_WAD, fresh(), T0);
           const rHi = evaluate(snapAt(hi), THRESHOLDS_WAD, fresh(), T0);
           expect(SEVERITY[rLo.band]).toBeGreaterThanOrEqual(SEVERITY[rHi.band]);

@@ -102,8 +102,12 @@ async function main(): Promise<void> {
     argOf("--supply-eth", "0.01"),
     argOf("--borrow-usdc", "10"),
   );
-  console.log(`# setup-position — intended calls on ${cfg.chain} (NOT sent; execute via KeeperHub)`);
-  console.log("# prerequisite: wrap ETH→WETH (WETH.deposit) and WETH.approve(Pool, supplyAmount)\n");
+  console.log(
+    `# setup-position — intended calls on ${cfg.chain} (NOT sent; execute via KeeperHub)`,
+  );
+  console.log(
+    "# prerequisite: wrap ETH→WETH (WETH.deposit) and WETH.approve(Pool, supplyAmount)\n",
+  );
   for (const c of calls) {
     console.log(`## ${c.description}`);
     console.log(`   target:   ${c.target}`);

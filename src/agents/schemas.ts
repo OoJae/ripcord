@@ -60,7 +60,9 @@ export function assertNoAddresses(value: unknown, path = "output"): void {
     return;
   }
   if (Array.isArray(value)) {
-    value.forEach((v, i) => assertNoAddresses(v, `${path}[${i}]`));
+    value.forEach((v, i) => {
+      assertNoAddresses(v, `${path}[${i}]`);
+    });
     return;
   }
   if (value !== null && typeof value === "object") {

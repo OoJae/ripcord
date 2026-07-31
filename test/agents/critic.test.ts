@@ -106,12 +106,7 @@ describe("critic: heuristic verifier recomputes independently", () => {
   });
 
   it("REJECTs an invalid action/asset pairing", async () => {
-    const { verdict } = await critic.critique(
-      SNAP,
-      proposal({ asset: "WETH" }),
-      THRESHOLDS,
-      CAPS,
-    );
+    const { verdict } = await critic.critique(SNAP, proposal({ asset: "WETH" }), THRESHOLDS, CAPS);
     expect(verdict.verdict).toBe("REJECT");
     expect(verdict.reason).toMatch(/pairing/);
   });

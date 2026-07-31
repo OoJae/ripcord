@@ -2,15 +2,8 @@
  * Shared test doubles. No network, no timers, no real secrets — ever.
  */
 
-import { loadConfig, type AppConfig } from "../../src/config.js";
-import type {
-  Address,
-  Band,
-  Chain,
-  Clock,
-  LlmClient,
-  Snapshot,
-} from "../../src/types.js";
+import { type AppConfig, loadConfig } from "../../src/config.js";
+import type { Address, Band, Chain, Clock, LlmClient, Snapshot } from "../../src/types.js";
 import { wadOf } from "../fixtures/aave.js";
 
 /** Queue-scripted LLM double; records every call for prompt assertions. */

@@ -17,7 +17,7 @@ import { pathToFileURL } from "node:url";
 import { encodeFunctionData, parseUnits } from "viem";
 import { ADDRESS_BOOK, TOKEN_DECIMALS } from "../src/config.js";
 import type { Address, Chain } from "../src/types.js";
-import { POOL_ABI, type IntendedCall } from "./setup-position.js";
+import { type IntendedCall, POOL_ABI } from "./setup-position.js";
 
 export const WITHDRAW_ABI = [
   {
@@ -80,7 +80,9 @@ async function main(): Promise<void> {
     borrowUsdc: argOf("--borrow-usdc"),
     withdrawWeth: argOf("--withdraw-weth"),
   });
-  console.log(`# stress-position — intended call on ${cfg.chain} (NOT sent; execute via KeeperHub)`);
+  console.log(
+    `# stress-position — intended call on ${cfg.chain} (NOT sent; execute via KeeperHub)`,
+  );
   console.log(`## ${call.description}`);
   console.log(`   target:   ${call.target}`);
   console.log(`   function: ${call.functionName}(${call.args.map(String).join(", ")})`);

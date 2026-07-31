@@ -27,7 +27,9 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 describe("HttpKeeperHubClient.triggerDefense", () => {
   it("POSTs the exact payload with Bearer auth and parses executionId", async () => {
-    const fetchImpl = vi.fn(async () => jsonResponse({ executionId: "exec_123", status: "running" }));
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse({ executionId: "exec_123", status: "running" }),
+    );
     const client = new HttpKeeperHubClient({
       webhookUrl: "https://app.keeperhub.com/hook/wf2",
       apiKey: "kh_secret",

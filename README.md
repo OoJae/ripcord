@@ -93,11 +93,16 @@ Optional knobs with code defaults: `RIPCORD_POLL_SEC` (60s live / 5s mock), `RIP
 
 - **DRY_RUN=true by default.** Mainnet writes additionally require `RIPCORD_ARM=1` — provably: with `RIPCORD_ARM=0` nothing can reach the executor in mainnet mode (wiring-level test).
 - **All onchain writes go through KeeperHub.** viem is reads-only.
-- **Hard caps** (`MAX_TX_USD`, `DAILY_CAP_USD` over a rolling 24h) enforced in a deterministic Guard, in integer cents.
-- **Addresses come only from the config allowlist** — LLM output containing any raw address is rejected outright.
-- **No Critic APPROVE → no execution. Ever.** The Guard overrides both LLM agents.
+- **Hard caps** (`MAX_TX_USD`, `DAILY_CAP_USD` over a rolling 24h) enforced in a deterministic Guard, in integer cents — sub-cent float games cannot slip under a cap.
+- **Addresses come only from the config allowlist** — LLM output containing any raw address is rejected outright, even inside prose.
+- **No Critic APPROVE → no execution. Ever.** A Critic that exhausts its retries resolves to REJECT; a Critic that *throws* is converted to REJECT. There is no path on which the absence of an approval becomes an approval.
+- **The Guard recomputes, it does not verify.** The post-defense health factor is derived from the snapshot and the amount — never read from the Planner's self-reported `expectedHfAfter`. A separate rule blocks a Planner whose claim overstates the recomputed value.
+- **Snapshot provenance is checked.** A defense can only act on a position whose chain and address match the configured target, so a simulated or stale snapshot can never drive a real transaction. Config independently refuses to pair mock reads with a live executor.
 - **Idempotency by decisionId** (ULID), backstopped by a SQLite UNIQUE constraint.
+- **Secrets never reach logs.** The Telegram bot token is redacted from every log path, and RPC URLs (which routinely embed a provider API key) are elided in the banner and scrubbed out of error text.
 - Capped, revocable USDC approval; kill switch: Ctrl-C stops the daemon while WF-1 monitoring survives.
+
+The safety design was reviewed adversarially: 22 candidate findings across four independent lenses, each then double-verified by a skeptic prompted to refute it. Seven survived and all are fixed — including two the review reproduced end to end (a mock sensor able to drive a live mainnet defense, and the Guard trusting LLM-supplied arithmetic). See [FRICTION.md](FRICTION.md) for the write-ups.
 
 ## Chaos matrix
 

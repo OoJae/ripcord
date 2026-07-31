@@ -11,8 +11,10 @@
  * malformed verdict, an unknown asset, a non-finite amount — all block.
  */
 
+import { hfAfter } from "../agents/hf-math.js";
 import { usdToCents } from "../config.js";
 import type {
+  Address,
   AddressBook,
   Chain,
   CriticVerdict,
@@ -37,10 +39,24 @@ export interface GuardInput {
   spentTodayCents: number;
   /** True when the db already has an execution for this decision id. */
   alreadyExecuted: boolean;
+  /**
+   * The address the operator configured for monitoring. When set, the snapshot
+   * must match it — otherwise we would be defending a position we never read.
+   */
+  monitoredAddress?: Address;
+  /**
+   * True when a real KeeperHub executor is wired up. With no configured
+   * monitored address the snapshot's provenance cannot be established at all,
+   * which is only tolerable while the executor is a mock (the zero-secret demo).
+   */
+  liveExecutor?: boolean;
 }
 
 /** Epsilon for the HF-improvement comparison so exact equality passes despite float noise. */
 const HF_EPSILON = 1e-9;
+
+/** How far the Planner's claimed hfAfter may exceed the recomputed value before it blocks. */
+const HF_CLAIM_TOLERANCE = 0.01;
 
 /** Defense in depth: any raw EVM address inside LLM output is an instant block. */
 const RAW_ADDRESS_RE = /0x[0-9a-fA-F]{40}/;
@@ -110,14 +126,18 @@ export function checkGuard(input: GuardInput): GuardResult {
     }
     if (entry !== undefined) {
       if (!VALID_ADDRESS_RE.test(entry.address) || ZERO_ADDRESS_RE.test(entry.address)) {
-        problems.push(`allowlist entry for ${entryLabel} has invalid/zero address ${entry.address}`);
+        problems.push(
+          `allowlist entry for ${entryLabel} has invalid/zero address ${entry.address}`,
+        );
       }
     }
 
     // Action↔asset pairing (re-checked here; the schema upstream is not trusted).
     const action = proposal?.action;
     if (action === "repay" && proposal.asset !== "USDC") {
-      problems.push(`pairing violation: repay requires USDC, got ${JSON.stringify(proposal.asset)}`);
+      problems.push(
+        `pairing violation: repay requires USDC, got ${JSON.stringify(proposal.asset)}`,
+      );
     } else if (action === "supplyCollateral" && proposal.asset !== "WETH") {
       problems.push(
         `pairing violation: supplyCollateral requires WETH, got ${JSON.stringify(proposal.asset)}`,
@@ -135,7 +155,9 @@ export function checkGuard(input: GuardInput): GuardResult {
       ["rationale", proposal?.rationale],
     ] as const) {
       if (typeof value === "string" && RAW_ADDRESS_RE.test(value)) {
-        problems.push(`raw address detected in proposal.${field} — addresses come ONLY from config`);
+        problems.push(
+          `raw address detected in proposal.${field} — addresses come ONLY from config`,
+        );
       }
     }
 
@@ -192,23 +214,78 @@ export function checkGuard(input: GuardInput): GuardResult {
     );
   }
 
-  // 7. min-hf-improvement — epsilon tolerance so exact equality passes float noise.
+  // 7. min-hf-improvement — gated on the Guard's OWN recomputation, never on the
+  // Planner's claimed expectedHfAfter. A model that miscalculates or inflates its
+  // claim must not be able to talk its way past the last deterministic check.
+  // (NaN from a malformed proposal fails the comparison → fail-closed.)
+  const recomputedHfAfter = hfAfter(snapshot, proposal);
   const requiredHf = snapshot.hf + input.minHfImprovement;
-  if (proposal?.expectedHfAfter >= requiredHf - HF_EPSILON) {
+  if (recomputedHfAfter >= requiredHf - HF_EPSILON) {
     record(
       "min-hf-improvement",
       true,
-      `expectedHfAfter ${proposal.expectedHfAfter} >= hf ${snapshot.hf} + minImprovement ${input.minHfImprovement}`,
+      `recomputed hfAfter ${recomputedHfAfter} >= hf ${snapshot.hf} + minImprovement ${input.minHfImprovement}`,
     );
   } else {
     record(
       "min-hf-improvement",
       false,
-      `expectedHfAfter ${String(proposal?.expectedHfAfter)} < hf ${snapshot.hf} + minImprovement ${input.minHfImprovement} (required ${requiredHf})`,
+      `recomputed hfAfter ${String(recomputedHfAfter)} < hf ${snapshot.hf} + minImprovement ${input.minHfImprovement} (required ${requiredHf}); planner claimed ${String(proposal?.expectedHfAfter)}`,
     );
   }
 
-  // 8. idempotency — one decision, one defense, ever.
+  // 7b. hf-claim-honesty — the Planner overstating its own outcome is evidence of
+  // a miscalculating or dishonest model, so it blocks even when 7 would pass.
+  const claimed = proposal?.expectedHfAfter;
+  const claimOverstates =
+    Number.isFinite(claimed) &&
+    Number.isFinite(recomputedHfAfter) &&
+    claimed > recomputedHfAfter + HF_CLAIM_TOLERANCE;
+  record(
+    "hf-claim-honesty",
+    !claimOverstates,
+    claimOverstates
+      ? `planner claimed hfAfter ${claimed} but the recomputed value is ${recomputedHfAfter} — overstated beyond tolerance ${HF_CLAIM_TOLERANCE}`
+      : `planner claim ${String(claimed)} is consistent with the recomputed ${recomputedHfAfter}`,
+  );
+
+  // 8. snapshot-provenance — the position we are about to defend must be the
+  // position we actually read. Catches a mock/synthetic snapshot reaching a
+  // live executor, a stale snapshot from the other chain, and any drift between
+  // the configured monitored address and the one the sensor reported.
+  {
+    const problems: string[] = [];
+    if (input.monitoredAddress === undefined) {
+      // No configured target. Tolerable only while the executor is a mock — the
+      // zero-secret demo runs here. With a live executor this is exactly the
+      // "fabricated position triggers a real transaction" hole.
+      if (input.liveExecutor === true) {
+        problems.push(
+          "no MONITORED_ADDRESS configured but a live executor is wired — snapshot provenance cannot be established",
+        );
+      }
+    } else if (snapshot.address?.toLowerCase() !== input.monitoredAddress.toLowerCase()) {
+      problems.push(
+        `snapshot address ${String(snapshot.address)} does not match the monitored address ${input.monitoredAddress}`,
+      );
+    }
+    if (snapshot.chain !== chain) {
+      problems.push(
+        `snapshot chain ${String(snapshot.chain)} does not match the active chain ${chain}`,
+      );
+    }
+    record(
+      "snapshot-provenance",
+      problems.length === 0,
+      problems.length === 0
+        ? input.monitoredAddress === undefined
+          ? `snapshot is from ${chain}:${String(snapshot.address)} (no configured target; executor is a mock)`
+          : `snapshot is from ${chain}:${String(snapshot.address)}, matching the configured target`
+        : problems.join("; "),
+    );
+  }
+
+  // 9. idempotency — one decision, one defense, ever.
   if (input.alreadyExecuted) {
     record("idempotency", false, "decision already executed — refusing duplicate defense");
   } else {

@@ -49,6 +49,44 @@ describe("config: safety-critical strictness", () => {
     expect(loadConfig({ ...base, DRY_RUN: "false" }).dryRun).toBe(false);
   });
 
+  it("refuses to pair the MOCK sensor with a LIVE executor", () => {
+    // The critical case: .env.example ships MONITORED_ADDRESS blank. An operator
+    // who fills in the webhook URL and disables DRY_RUN would otherwise have the
+    // scripted mock HF descent drive real transactions against a fake position.
+    const dangerous = {
+      CHAIN: "base",
+      DRY_RUN: "false",
+      RIPCORD_ARM: "1",
+      KEEPERHUB_DEFEND_WEBHOOK_URL: "https://app.keeperhub.com/hook/wf2",
+      MONITORED_ADDRESS: "",
+    };
+    expect(() => loadConfig(dangerous)).toThrow(/MOCK sensor/);
+    // …and the same combination on testnet is refused too.
+    expect(() => loadConfig({ ...dangerous, CHAIN: "base-sepolia", RIPCORD_ARM: "0" })).toThrow(
+      /MOCK sensor/,
+    );
+  });
+
+  it("allows a live executor once a monitored address is configured", () => {
+    const cfg = loadConfig({
+      CHAIN: "base",
+      DRY_RUN: "false",
+      RIPCORD_ARM: "1",
+      KEEPERHUB_DEFEND_WEBHOOK_URL: "https://app.keeperhub.com/hook/wf2",
+      MONITORED_ADDRESS: "0x1111111111111111111111111111111111111111",
+    });
+    expect(cfg.capabilities).toMatchObject({ chainReads: true, keeperhub: true });
+  });
+
+  it("still allows a live executor in DRY_RUN without a monitored address", () => {
+    // Harmless: DRY_RUN holds fire, so the mock position cannot cause a transaction.
+    expect(() =>
+      loadConfig({
+        KEEPERHUB_DEFEND_WEBHOOK_URL: "https://app.keeperhub.com/hook/wf2",
+      }),
+    ).not.toThrow();
+  });
+
   it("rejects a malformed MONITORED_ADDRESS", () => {
     expect(() => loadConfig({ ...base, MONITORED_ADDRESS: "0x123" })).toThrow(/address/);
   });

@@ -12,7 +12,8 @@ import type { PlannerProposal, Snapshot } from "../types.js";
 
 /** Health factor after repaying `amountUsd` of debt. Infinity once debt is cleared. */
 export function hfAfterRepay(snapshot: Snapshot, amountUsd: number): number {
-  const effectiveCollateral = snapshot.totalCollateralUsd * (snapshot.liquidationThresholdBps / 1e4);
+  const effectiveCollateral =
+    snapshot.totalCollateralUsd * (snapshot.liquidationThresholdBps / 1e4);
   const remainingDebt = snapshot.totalDebtUsd - amountUsd;
   if (remainingDebt <= 0) return Number.POSITIVE_INFINITY;
   return effectiveCollateral / remainingDebt;
@@ -34,7 +35,8 @@ export function hfAfter(snapshot: Snapshot, proposal: PlannerProposal): number {
 
 /** Smallest repayment that reaches `targetHf`; 0 when the position already clears it. */
 export function repayNeededForTarget(snapshot: Snapshot, targetHf: number): number {
-  const effectiveCollateral = snapshot.totalCollateralUsd * (snapshot.liquidationThresholdBps / 1e4);
+  const effectiveCollateral =
+    snapshot.totalCollateralUsd * (snapshot.liquidationThresholdBps / 1e4);
   const needed = snapshot.totalDebtUsd - effectiveCollateral / targetHf;
   return needed > 0 ? needed : 0;
 }

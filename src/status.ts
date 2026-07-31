@@ -43,7 +43,9 @@ async function main(): Promise<void> {
   } else {
     const last = decisions[0];
     if (last) {
-      console.log(`  last observed: HF ${last.hf === null ? "?" : last.hf.toFixed(4)} [${last.band}] at ${fmtTime(last.createdAtMs)}`);
+      console.log(
+        `  last observed: HF ${last.hf === null ? "?" : last.hf.toFixed(4)} [${last.band}] at ${fmtTime(last.createdAtMs)}`,
+      );
     }
     const lastDefense = db.lastDefenseAt();
     if (lastDefense !== null) {

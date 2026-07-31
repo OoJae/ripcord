@@ -19,7 +19,7 @@ import type {
 } from "../types.js";
 import { hfAfter } from "./hf-math.js";
 import { buildCriticPrompt } from "./prompts.js";
-import { completeWithSchema, CriticVerdictSchema, SchemaValidationError } from "./schemas.js";
+import { CriticVerdictSchema, completeWithSchema, SchemaValidationError } from "./schemas.js";
 
 export function createLlmCritic(llm: LlmClient): Critic {
   return {

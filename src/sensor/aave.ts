@@ -15,7 +15,7 @@
 import { createPublicClient, http } from "viem";
 import type { AppConfig } from "../config.js";
 import { TOKEN_DECIMALS } from "../config.js";
-import type { Address, Sensor, Snapshot } from "../types.js";
+import type { Address, Chain, Sensor, Snapshot } from "../types.js";
 
 /** Aave V3 IPool.getUserAccountData — 6 uint256 outputs, in this exact order. */
 export const POOL_ACCOUNT_DATA_ABI = [
@@ -217,6 +217,8 @@ const MOCK_LT_BPS = 8000n; // 80%
 const MOCK_DEBT_START = 1_318_681_318n; // $13.19 → HF ≈ 1.82
 const MOCK_DEBT_STEP = 110_000_000n; // +$1.10 of debt per read
 const MOCK_DEBT_FLOOR = 200_000_000n; // $2.00 — keeps HF finite after big defenses
+/** Obviously-fake address: a mock snapshot must never look like a real position. */
+const MOCK_ADDRESS: Address = "0x000000000000000000000000000000000000dEaD";
 
 /**
  * Scripted position for the zero-secret demo. HF is *computed* from a synthetic
@@ -224,7 +226,7 @@ const MOCK_DEBT_FLOOR = 200_000_000n; // $2.00 — keeps HF finite after big def
  * arithmetically consistent recovery: default descent runs
  * 1.82 → 1.68 → 1.56 → 1.46 → 1.37 → 1.28 → 1.21 → … until a defense lands.
  */
-export function createMockSensor(scenario?: string[]): MockSensor {
+export function createMockSensor(scenario?: string[], chain: Chain = "base-sepolia"): MockSensor {
   let debtBase = MOCK_DEBT_START;
   const scripted = [...(scenario ?? [])];
 
@@ -240,8 +242,10 @@ export function createMockSensor(scenario?: string[]): MockSensor {
         // Explicit scenario: derive the debt that would produce this HF so the
         // position stays internally consistent for applyDefense().
         const [whole = "0", frac = ""] = next.split(".");
-        const hfWadTarget = BigInt(whole) * 10n ** 18n + BigInt((frac + "0".repeat(18)).slice(0, 18));
-        debtForSnapshot = hfWadTarget === 0n ? debtBase : (effectiveCollateral * 10n ** 18n) / hfWadTarget;
+        const hfWadTarget =
+          BigInt(whole) * 10n ** 18n + BigInt((frac + "0".repeat(18)).slice(0, 18));
+        debtForSnapshot =
+          hfWadTarget === 0n ? debtBase : (effectiveCollateral * 10n ** 18n) / hfWadTarget;
         debtBase = debtForSnapshot;
         hfWad = hfWadTarget;
       } else {
@@ -260,8 +264,8 @@ export function createMockSensor(scenario?: string[]): MockSensor {
 
       return {
         timestampMs: Date.now(),
-        chain: "base-sepolia",
-        address: "0x000000000000000000000000000000000000dEaD",
+        chain,
+        address: MOCK_ADDRESS,
         ...parsed,
         balances: {
           usdcRaw: 25_000_000n,

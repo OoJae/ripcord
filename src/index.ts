@@ -8,11 +8,26 @@
 
 import { pathToFileURL } from "node:url";
 import { ulid } from "ulid";
-import { getConfig, MOCK_POLL_SEC, TOKEN_DECIMALS, usdToCents, type AppConfig } from "./config.js";
 import { createHeuristicCritic, createLlmCritic } from "./agents/critic.js";
-import { createHeuristicPlanner, createLlmPlanner } from "./agents/planner.js";
 import { createAnthropicLlm } from "./agents/llm.js";
+import { createHeuristicPlanner, createLlmPlanner } from "./agents/planner.js";
+import {
+  type AppConfig,
+  getConfig,
+  MOCK_POLL_SEC,
+  redactRpcUrl,
+  scrubRpcUrl,
+  TOKEN_DECIMALS,
+  usdToCents,
+} from "./config.js";
+import {
+  HttpKeeperHubClient,
+  MockKeeperHubClient,
+  RunTimeoutError,
+  waitForRun,
+} from "./executor/keeperhub.js";
 import { checkGuard } from "./guard/guard.js";
+import { createNotifier } from "./notifier/telegram.js";
 import { evaluate, markDefenseFired } from "./policy/thresholds.js";
 import {
   computeVelocity,
@@ -20,14 +35,7 @@ import {
   createMockSensor,
   SampleWindow,
 } from "./sensor/aave.js";
-import {
-  HttpKeeperHubClient,
-  MockKeeperHubClient,
-  RunTimeoutError,
-  waitForRun,
-} from "./executor/keeperhub.js";
 import { openDb } from "./state/db.js";
-import { createNotifier } from "./notifier/telegram.js";
 import type {
   Clock,
   Critic,
@@ -109,7 +117,11 @@ export function buildDefensePayload(
     amountBaseUnits: baseUnitsFor(proposal.asset, proposal.amountUsd).toString(),
     amountUsd: proposal.amountUsd,
     minHfAfter: cfg.thresholds.targetHf,
-    monitoredAddress: snapshot.address ?? cfg.monitoredAddress,
+    // Config is the authority for WHO we defend, exactly as it is for WHICH
+    // contracts we touch. The snapshot only gets a say when no monitored address
+    // is configured at all — and in that case the Guard's snapshot-provenance
+    // rule has already blocked execution before we ever build a payload.
+    monitoredAddress: cfg.monitoredAddress ?? snapshot.address,
   };
 }
 
@@ -134,7 +146,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       try {
         return await sensor.read();
       } catch (err) {
-        log.warn({ err: String(err), attempt }, "sensor read failed");
+        log.warn({ err: scrubRpcUrl(String(err), cfg.rpcUrl), attempt }, "sensor read failed");
         if (attempt < 3) await sleep(500 * attempt);
       }
     }
@@ -271,6 +283,8 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       addressBook: cfg.addressBook,
       spentTodayCents: db.spentCentsSince(now - 86_400_000),
       alreadyExecuted: db.hasExecution(decisionId),
+      monitoredAddress: cfg.monitoredAddress,
+      liveExecutor: cfg.capabilities.keeperhub,
     });
 
     db.updateDecision(decisionId, {
@@ -471,8 +485,10 @@ async function main(): Promise<void> {
 
   const db = openDb(cfg.dbPath);
 
-  const mockSensor = cfg.capabilities.chainReads ? null : createMockSensor();
-  const sensor: Sensor = cfg.capabilities.chainReads ? createAaveSensor(cfg) : (mockSensor as Sensor);
+  const mockSensor = cfg.capabilities.chainReads ? null : createMockSensor(undefined, cfg.chain);
+  const sensor: Sensor = cfg.capabilities.chainReads
+    ? createAaveSensor(cfg)
+    : (mockSensor as Sensor);
 
   let planner: Planner;
   let critic: Critic;
@@ -498,7 +514,7 @@ async function main(): Promise<void> {
 
   const banner = [
     `chain: ${cfg.chain}`,
-    `chain reads: ${cfg.capabilities.chainReads ? `LIVE (${cfg.rpcUrl})` : "MOCK (no MONITORED_ADDRESS)"}`,
+    `chain reads: ${cfg.capabilities.chainReads ? `LIVE (${redactRpcUrl(cfg.rpcUrl)})` : "MOCK (no MONITORED_ADDRESS)"}`,
     `brain: ${cfg.capabilities.llm ? `LLM ${cfg.model}` : "HEURISTIC (no ANTHROPIC_API_KEY)"}`,
     `executor: ${cfg.capabilities.keeperhub ? "KeeperHub webhook" : "MOCK (no KEEPERHUB_DEFEND_WEBHOOK_URL)"}`,
     `alerts: ${cfg.capabilities.telegram ? "Telegram" : "log-only"}`,
