@@ -222,3 +222,40 @@ tick `band=warn hf=1.400106 shouldDefend=false` — the warn band is real, and t
 daemon correctly holds. Mainnet history lives in its own DB
 (`data/ripcord-mainnet.sqlite`) so testnet spend/cooldown never leak into
 mainnet accounting.
+
+## Phase 2 — THE HERO TX 🪂 (2026-08-01, Base mainnet, autonomous, REAL FUNDS)
+
+One decisionId ties the whole story: **`01KYZKX5R00C9F8D6G3ZS55CE0`**.
+
+```
+22:31:56  daemon armed — chain: base · DRY_RUN: off · RIPCORD_ARM: 1
+22:32:0x  nudge borrow $3.44 (vrqxlzg6osvbzvfn8j0ia) → debt $30.12
+22:32:58  tick: band=act hf=1.240014 → "act: armed and cooldown elapsed — defend"
+          Planner: repay USDC $6.78 (verified figure, copied verbatim)
+          Critic: APPROVE — "Verified hfAfter 1.6002 meets target 1.6, amountUsd
+                  $6.78 is within MAX_TX_USD and wallet balance"
+22:33:07  Guard: execute — 12/12 checks, 0 violations
+          → WF-2-mainnet run deqcbg6pwj968qlvqmri5
+          gate resolved: "base" == "base" && 1240014872141337558 < 1.5e18
+                         && 6780000 <= 60000000  → ALL TRUE
+          poll ladder in log: 2000 → 3000 → 4500 → 6750 ms (chaos #7, live)
+22:33:19  run success — tx 0x6e314ece3f28df705ce60d62bdcb130b46013aa1b919f6b5efb91dd335e9cd05
+          repay executedCall: sponsored=TRUE, reverted=false, gas 184,531
+22:34:20  tick: band=healthy hf=1.602815 — "hysteresis latch re-armed"
+          → immediately disarmed: ARM=0, DRY_RUN=true, WF-2-mainnet disabled
+```
+
+**Hero tx:** [`0x6e314ece…9cd05`](https://basescan.org/tx/0x6e314ece3f28df705ce60d62bdcb130b46013aa1b919f6b5efb91dd335e9cd05)
+
+Three-way reconciliation (Phase-2 AC):
+1. **Basescan receipt** — sender is the Gas Station relayer `0x1e367b91…` via
+   paymaster `0x5af5194b…f07d`: the DEFENSE itself was gas-sponsored.
+2. **KeeperHub execution record** — full audit trail: trigger → verify → gate →
+   repay → confirm, 10.7s, tx hash, gas 184,531, post-tx HF read 1.600155.
+3. **SQLite** — decision `executed`, guard `execute`, Critic APPROVE verbatim,
+   execution row carries the same run id and tx hash.
+
+Position after: collateral $45.00 · debt $23.37 · **HF 1.6028** · wallet ~$23.35
+USDC + 0.009 ETH. Armed wall-clock time: **under 4 minutes**.
+
+Full log: [`logs/hero-tx.log`](logs/hero-tx.log).

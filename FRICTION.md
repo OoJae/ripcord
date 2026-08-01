@@ -458,3 +458,28 @@ header ever stops working.
 
 **Proposed fix:** Document Idempotency-Key on the workflow-execute endpoint (plus the
 PATCH and logs routes). One line each; all three already work.
+
+## 2026-08-01 — accepted risk: mainnet ran on the exposed org API key
+
+**What:** The `kh_` org key was pasted into an AI-chat transcript early in the project.
+Rotation was offered and explicitly declined before mainnet funding (hackathon time
+pressure); the mainnet phase ran on the exposed key. Bounding factors: the wallet held
+~$62 max, WF-2's own gate caps any repay at 60 USDC, sponsorship caps gas exposure, and
+armed time totalled under 4 minutes. **Rotate before submission** — this entry exists so
+the decision is auditable rather than silent.
+
+## 2026-08-01 — `usePrivateMempoolRpc` is per-chain and Ethereum-only; the node field is a decoy
+
+**What:** `GET /api/chains` (public) exposes `usePrivateMempoolRpc` — Flashbots Protect,
+enabled for chains 1 and 11155111 only. The `usePrivateMempool` field that appears on
+`web3/write-contract` nodes in live workflows is therefore inert on the other 20 chains,
+Base included, and nothing warns when you set it.
+
+**Impact:** We designed Phase 2 around flipping that node field on Base and had to
+re-plan when recon disproved it (public-route + documented tradeoff instead — which
+turned out better: Base defenses keep gas sponsorship, since sponsorship excludes
+private-mempool txs).
+
+**Proposed fix:** Reject or warn on `usePrivateMempool: true` for chains where
+`usePrivateMempoolRpc` is false, and document the per-chain support list outside of the
+API reference.

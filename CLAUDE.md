@@ -28,4 +28,4 @@ Never guess KeeperHub/Aave details. Verify via the connected KeeperHub MCP serve
 - Before any mainnet/real-money action: present exact plan, wait for explicit human go.
 
 ## Current phase
-Phase 2 (mainnet + private routing). Update this line as phases complete: 0 setup ✅ · 1 testnet core ✅ · 2 mainnet+private routing ⬜ · 3 x402 marketplace ⬜ · 4 docs+video ⬜ · 5 submitted ⬜
+Phase 3 (x402 marketplace, stretch). Update this line as phases complete: 0 setup ✅ · 1 testnet core ✅ · 2 mainnet+MEV-aware execution ✅ (private routing is Ethereum-only; tradeoff documented) · 3 x402 marketplace ⬜ · 4 docs+video ⬜ · 5 submitted ⬜

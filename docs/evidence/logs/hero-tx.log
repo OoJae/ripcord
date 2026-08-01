@@ -1,0 +1,66 @@
+[22:31:56.506] [32mINFO[39m (90624): [36m🪂 RIPCORD starting — chain: base · chain reads: LIVE (https://base-rpc.publicnode.com) · brain: LLM mimo-v2.5-pro @ https://token-plan-sgp.xiaomimimo.com/… · executor: KeeperHub webhook · alerts: Telegram · DRY_RUN: off · RIPCORD_ARM: 1 · caps: $15/tx · $30/24h[39m
+[22:31:57.257] [32mINFO[39m (90624): [36mtick[39m
+    [35mdecisionId[39m: "01KYZKV9PV2HRS81T52Z7ZY9YR"
+    [35mband[39m: "warn"
+    [35mhf[39m: 1.400105
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "warn: no defense needed"
+[22:32:58.247] [32mINFO[39m (90624): [36mtick[39m
+    [35mdecisionId[39m: "01KYZKX5R00C9F8D6G3ZS55CE0"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.240014
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: true
+    [35mreason[39m: "act: armed and cooldown elapsed — defend"
+[22:33:07.031] [32mINFO[39m (90624): [36mguard evaluated[39m
+    [35mdecisionId[39m: "01KYZKX5R00C9F8D6G3ZS55CE0"
+    [35mguard[39m: "execute"
+    [35mviolations[39m: []
+    [35mchecks[39m: 12
+[22:33:08.644] [32mINFO[39m (90624): [36mrun poll (backoff ladder)[39m
+    [35mdecisionId[39m: "01KYZKX5R00C9F8D6G3ZS55CE0"
+    [35mrunId[39m: "deqcbg6pwj968qlvqmri5"
+    [35mpoll[39m: 1
+    [35mstate[39m: "running"
+    [35mnextDelayMs[39m: 2000
+[22:33:11.116] [32mINFO[39m (90624): [36mrun poll (backoff ladder)[39m
+    [35mdecisionId[39m: "01KYZKX5R00C9F8D6G3ZS55CE0"
+    [35mrunId[39m: "deqcbg6pwj968qlvqmri5"
+    [35mpoll[39m: 2
+    [35mstate[39m: "running"
+    [35mnextDelayMs[39m: 3000
+[22:33:14.494] [32mINFO[39m (90624): [36mrun poll (backoff ladder)[39m
+    [35mdecisionId[39m: "01KYZKX5R00C9F8D6G3ZS55CE0"
+    [35mrunId[39m: "deqcbg6pwj968qlvqmri5"
+    [35mpoll[39m: 3
+    [35mstate[39m: "running"
+    [35mnextDelayMs[39m: 4500
+[22:33:19.495] [32mINFO[39m (90624): [36mrun poll (backoff ladder)[39m
+    [35mdecisionId[39m: "01KYZKX5R00C9F8D6G3ZS55CE0"
+    [35mrunId[39m: "deqcbg6pwj968qlvqmri5"
+    [35mpoll[39m: 4
+    [35mstate[39m: "success"
+    [35mnextDelayMs[39m: 6750
+[22:34:20.126] [32mINFO[39m (90624): [36mtick[39m
+    [35mdecisionId[39m: "01KYZKZNMW0KX2HXW9ZBMM3548"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.602815
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: hf strictly above rearm threshold — hysteresis latch re-armed"
+[22:35:20.626] [32mINFO[39m (90624): [36mtick[39m
+    [35mdecisionId[39m: "01KYZM1GTAB6EABZ5YJDSMHRAQ"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.602815
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[22:36:20.971] [32mINFO[39m (90624): [36mtick[39m
+    [35mdecisionId[39m: "01KYZM3BQVEJZ9KYH4YRGC3Z2T"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.602815
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[22:37:09.031] [32mINFO[39m (90624): [36mSIGTERM received — finishing in-flight tick, then exiting[39m
