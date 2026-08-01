@@ -508,3 +508,17 @@
     [35mguard[39m: "execute"
     [35mviolations[39m: []
     [35mchecks[39m: 12
+[15:00:23.478] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYT0F3BYG1XHR1CBY9EBY1Y"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.599979
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: hf strictly above rearm threshold — hysteresis latch re-armed"
+[15:01:25.664] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYT2BB3EPD7VVQC3BZJ3KYT"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.599979
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"

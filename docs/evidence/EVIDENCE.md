@@ -129,6 +129,7 @@ so the first defense that cleared Planner + Critic + Guard reverted on-chain.
 |---|---|---|---|---|---|
 | 1 | 13:58:04 | `7wnw3uuchs8gpto51vm8u` | 4.20 | **error** | `Contract call failed: Error(ERC20: transfer amount exceeds allowance)` |
 | 2 | 14:28:36 | `zfv7imdpw0ucrvv7g2toy` | 4.21 | **success** | [`0xf1f52639…aab176`](https://sepolia.basescan.org/tx/0xf1f526390d4c2bee7cf8bc16fe103f35563d72cc40e92ccfc0b7ded8b8aab176) |
+| 3 | 14:59:05 | `ni3gbbfz5q5bwj8s3j9mc` | 4.20 | **success** | [`0xbeccc0d4…a27e`](https://sepolia.basescan.org/tx/0xbeccc0d431f7ebb5b41f80d0f1612de9e63c2197d7f43ef00c75e642ded7a27e) |
 
 On run 1 the node trace was `trigger-1 → verify-1 → gate-1 → repay-1(error)` — the gate
 **passed** (the position genuinely was below warn) and the write reverted at the token
