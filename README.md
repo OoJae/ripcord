@@ -93,6 +93,17 @@ Capabilities light up independently as you add secrets — each missing one fall
 | `KEEPERHUB_DEFEND_WEBHOOK_URL` + `KEEPERHUB_API_KEY` | Real execution through KeeperHub |
 | `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` | Telegram alerts instead of log-only |
 
+`KEEPERHUB_DEFEND_WEBHOOK_URL` is WF-2's trigger endpoint —
+`https://app.keeperhub.com/api/workflows/<WF-2 id>/execute`. Use the `/execute`
+endpoint with your org `kh_` key; the sibling `/webhook` endpoint requires a
+separately-minted user webhook key (`wfb_*`). Details in
+[`workflows/README.md`](workflows/README.md).
+
+Even with all four set, `DRY_RUN=true` (the default) still holds fire — the Guard
+evaluates every rule and reports the payload it *would* have sent. Turning off
+DRY_RUN on Base mainnet additionally requires `RIPCORD_ARM=1`, and the config
+refuses to start half-armed.
+
 Optional knobs with code defaults: `RIPCORD_POLL_SEC` (60s live / 5s mock), `RIPCORD_DB_PATH` (`data/ripcord.sqlite`), `RIPCORD_MODEL` (`claude-sonnet-5`), `ANTHROPIC_BASE_URL` (point the Planner/Critic at any Anthropic-protocol-compatible endpoint).
 
 ### The agents judge; code computes

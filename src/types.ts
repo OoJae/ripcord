@@ -186,6 +186,14 @@ export interface GuardResult {
 // ---------------------------------------------------------------------------
 // Executor (KeeperHub)
 
+/**
+ * The wire contract with WF-2. Field names and casing are VERIFIED against the
+ * live workflow (2026-08-01) — WF-2's nodes read them as
+ * `{{@trigger-1:Trigger.<field>}}`, so renaming one here silently breaks the
+ * workflow's template references. The executor wraps this in {"input": …}.
+ *
+ * Mirrored by WF-2's `webhookSchema`; see workflows/wf2-defend.json.
+ */
 export interface DefensePayload {
   decisionId: string; // ULID — idempotency key end to end
   chain: Chain;
@@ -196,10 +204,10 @@ export interface DefensePayload {
   /** bigint token base units as string (JSON-safe). */
   amountBaseUnits: string;
   amountUsd: number;
-  /** WF-2 check-and-execute floor (= thresholds.targetHf). */
+  /** Target HF the defense is sized to reach (= thresholds.targetHf). Recorded
+   *  for audit; WF-2's own gate re-derives its decision from chain state. */
   minHfAfter: number;
   monitoredAddress: Address;
-  // VERIFY: exact field names/casing against the WF-2 webhook contract (Session 2, MCP introspection)
 }
 
 export interface TriggerResult {
