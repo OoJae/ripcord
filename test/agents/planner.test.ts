@@ -142,10 +142,16 @@ describe("planner: prompt hygiene", () => {
   });
 
   it("tells the Planner to size minimally and warns that its claim is recomputed", () => {
-    // Both learned from a live run: Mimo maxed out MAX_TX_USD when ~a third of it
-    // would do, and overstated expectedHfAfter (6.41 vs a true 5.01).
+    // All learned from live runs: Mimo maxed out MAX_TX_USD when ~a third of it
+    // would do, overstated expectedHfAfter (6.41 vs a true 5.01), and later
+    // shaved the verified figure down ($4.20 against a verified $4.23), which
+    // lands under the target and gets the whole defense rejected. The prompt has
+    // to close BOTH directions, so both are pinned here.
     const { system } = buildPlannerPrompt(ctx());
-    expect(system).toMatch(/SMALLEST amount/);
+    expect(system).toMatch(/smallest amount that REACHES the target/);
+    expect(system).toMatch(/Copy that number into amountUsd verbatim/);
+    expect(system).toMatch(/do\s+not shave it down/);
+    expect(system).toMatch(/Under-repaying is worse/);
     expect(system).toMatch(/Do NOT max out MAX_TX_USD/);
     expect(system).toMatch(/deterministic guard\s+recomputes it/i);
     // the deterministic minimum is supplied, not left to model arithmetic
