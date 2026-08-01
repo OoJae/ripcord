@@ -147,18 +147,15 @@
     [35mhasDebt[39m: true
     [35mshouldDefend[39m: false
     [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
-st defense"
-[14:13:14.619] [32mINFO[39m (42490): [36mtick[39m
-    [35mdecisionId[39m: "01KYYQA4VDC4DXMSBGVD7JYSYM"
+[14:16:22.424] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQFW7F489YT13J8ZZEBCQV"
     [35mband[39m: "act"
     [35mhf[39m: 1.226572
     [35mhasDebt[39m: true
     [35mshouldDefend[39m: false
-    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
-[14:13:31.927] [32mINFO[39m (44662): [36mtick[39m
-    [35mdecisionId[39m: "01KYYQANQDRSNKHQNN5PDJKHGG"
-    [35mband[39m: "act"
-    [35mhf[39m: 1.226572
+    [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
+[14:17:03.631] [32mINFO[39m (41611): [36mSIGTERM received — finishing in-flight tick, then exiting[39m
+2
     [35mhasDebt[39m: true
     [35mshouldDefend[39m: false
     [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
@@ -185,6 +182,35 @@ st defense"
     [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
 [14:15:32.465] [32mINFO[39m (44662): [36mtick[39m
     [35mdecisionId[39m: "01KYYQEBETJ1DFG1RNC4B278K3"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:16:15.628] [32mINFO[39m (42490): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQFNF1A1SQ7KA0NW4J0VPK"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:16:32.731] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQG6AK4CZ7B71GQTCP6C16"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:17:03.630] [32mINFO[39m (42490): [36mSIGTERM received — finishing in-flight tick, then exiting[39m
+[14:17:33.548] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQJ15WQ5F45VVD6TZE4T96"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:18:33.980] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQKWJEKYX85SSMXJ23EV1E"
     [35mband[39m: "act"
     [35mhf[39m: 1.226572
     [35mhasDebt[39m: true

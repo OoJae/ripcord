@@ -365,3 +365,29 @@ can be verified without waiting a full period. Surface a validation error (or at
 a `validate_workflow` warning) when a Schedule trigger cannot be registered, and state
 plainly in the docs whether scheduled execution requires a plan tier — the same
 undisclosed-gating pattern already bit us with `code/run-code`.
+
+## 2026-08-01 — known gap: the daemon has no single-instance lock
+
+**What:** During the live run we found **four** `pnpm dev` daemons alive at once — three
+from restarts earlier the same afternoon plus one left over from the previous day. The
+tell was `pnpm status`: three `observed` decisions per minute against a 60-second poll.
+
+They survived because `pkill -f "tsx src/index.ts"` matches the *zsh wrapper* but not the
+real process, which `ps` reports as
+`node .../tsx/dist/cli.mjs src/index.ts`. The kill reported success and killed nothing.
+
+**Why it matters beyond the operator error:** every instance shares one SQLite file, so
+cooldown and the rolling daily cap do serialize them *once a row is written* — but each
+daemon mints its own ULID `decisionId`, so the Guard's idempotency rule cannot dedupe
+across instances. Two daemons ticking in the same second can both pass the cooldown check
+before either inserts an execution, and both fire. The blast radius is still bounded by
+MAX_TX_USD, the daily cap and the allowlist — the Guard does its job — but the position
+could be defended twice for the same event.
+
+**Not exploited here:** only one execution row exists per event, and we killed the extras
+before the next defense window.
+
+**Proposed fix (Phase 2):** take an exclusive advisory lock at startup — a `daemon_lock`
+row carrying pid + heartbeat, or an O_EXCL pidfile — and refuse to start when another
+live instance holds it, the same fail-closed posture as the half-armed mainnet check in
+`loadConfig`. Cheap, and it turns a silent double-spend window into a startup error.
