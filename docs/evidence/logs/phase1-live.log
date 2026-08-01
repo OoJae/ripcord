@@ -216,3 +216,106 @@
     [35mhasDebt[39m: true
     [35mshouldDefend[39m: false
     [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:19:34.296] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQNQJYH891NZJ5PKBP84D1"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:20:34.606] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQQJFS4KS0XZZ5SQNHK2HD"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:21:34.902] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQSDCGFZVHTBPX46ND19Y9"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226571
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense [hf velocity -0.0000/min]"
+[14:22:35.155] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQV88RS60ZWHXP5VMW78Z6"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226571
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense [hf velocity -0.0000/min]"
+[14:23:35.451] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQX34C586P8F8E54S4ZF2R"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226571
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:24:35.750] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYQYY0ASK0J7M9CQ3MG6DE9"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226571
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:25:36.027] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYR0RW89NAHW2ZBPYTCWGK5"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226571
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:26:36.561] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYR2KQXC1Y65DQBH05WTBQT"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226571
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:27:36.841] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYR4EVKDW8713MF64KC8HMH"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226571
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:28:38.432] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYR69QC2HNZZC95JCGS7C2D"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226571
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: true
+    [35mreason[39m: "act: armed and cooldown elapsed — defend"
+[14:28:46.238] [32mINFO[39m (44662): [36mguard evaluated[39m
+    [35mdecisionId[39m: "01KYYR69QC2HNZZC95JCGS7C2D"
+    [35mguard[39m: "execute"
+    [35mviolations[39m: []
+    [35mchecks[39m: 12
+[14:29:55.690] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYR8PEY1F2X6BKTFC2QWQG3"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.601035
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: hf strictly above rearm threshold — hysteresis latch re-armed"
+[14:30:56.293] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYRAHJHA6V9SR9N8K5K8NTX"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.601035
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[14:31:56.566] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYRCCG6Z64H2CNWM1WYPEBK"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.601035
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[14:32:56.837] [32mINFO[39m (44662): [36mtick[39m
+    [35mdecisionId[39m: "01KYYRE7BSQWE2DXKRWDF45YZ6"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226633
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense [hf velocity -0.1864/min]"

@@ -125,17 +125,31 @@ stalled agent, failing safe but never defending. Fixed by ceiling to whole cents
 **The failure was real, not staged.** The USDC allowance to the Pool was still zero,
 so the first defense that cleared Planner + Critic + Guard reverted on-chain.
 
-| # | Decision | Run | Status | Detail |
-|---|---|---|---|---|
-| 1 | `…KXM0BQBA` | `7wnw3uuchs8gpto51vm8u` | **error** | `Contract call failed: Error(ERC20: transfer amount exceeds allowance)` |
+| # | Time | Run | $ | Status | Detail |
+|---|---|---|---|---|---|
+| 1 | 13:58:04 | `7wnw3uuchs8gpto51vm8u` | 4.20 | **error** | `Contract call failed: Error(ERC20: transfer amount exceeds allowance)` |
+| 2 | 14:28:36 | `zfv7imdpw0ucrvv7g2toy` | 4.21 | **success** | [`0xf1f52639…aab176`](https://sepolia.basescan.org/tx/0xf1f526390d4c2bee7cf8bc16fe103f35563d72cc40e92ccfc0b7ded8b8aab176) |
 
-Node trace `trigger-1 → verify-1 → gate-1 → repay-1(error)` — the gate **passed**
-(the position genuinely was below warn) and the write reverted at the token layer.
-The daemon recorded status `error`, notified, and `markDefenseFired` started the
-real 1800s cooldown, which is what spaces the retry.
+On run 1 the node trace was `trigger-1 → verify-1 → gate-1 → repay-1(error)` — the gate
+**passed** (the position genuinely was below warn) and the write reverted at the token
+layer. The daemon recorded `error`, notified, and `markDefenseFired` started the real
+1800s cooldown. **The 30-minute gap before the retry is the product's own behaviour, not
+a staged pause.**
 
 Remediation inside that window: `approve(Pool, 60000000)` on the Aave test USDC —
 execution `m9zygb457ph9822nupfc4`, sponsored. Allowance verified `60000000`.
+
+Run 2, the retry, completed the full path:
+
+```
+14:28:46  guard evaluated · execute · violations: [] · checks: 12
+          WF-2 trace: trigger-1 ✅ → verify-1 ✅ → gate-1 ✅ → repay-1 ✅ → confirm-1 ✅
+          tx 0xf1f526390d4c2bee7cf8bc16fe103f35563d72cc40e92ccfc0b7ded8b8aab176
+14:29:55  HF 1.601035 [healthy] — "hysteresis latch re-armed"
+```
+
+Position: **HF 1.2266 → 1.6010**, debt $18.00 → $13.79. It cleared the 1.60 target by
+0.001 — the deliberate one-cent ceiling, not luck.
 
 ## Still to capture
 
