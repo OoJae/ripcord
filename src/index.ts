@@ -38,6 +38,7 @@ import {
 } from "./sensor/aave.js";
 import { openDb } from "./state/db.js";
 import type {
+  AssetSymbol,
   Clock,
   Critic,
   DefensePayload,
@@ -87,13 +88,15 @@ export interface Daemon {
 const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /** Convert a USD amount into token base units for the defense payload. */
-export function baseUnitsFor(asset: "USDC" | "WETH", amountUsd: number): bigint {
+export function baseUnitsFor(asset: AssetSymbol, amountUsd: number): bigint {
   if (asset === "USDC") {
     // USDC ≈ $1 — exact 6-decimal conversion.
     return BigInt(Math.round(amountUsd * 10 ** TOKEN_DECIMALS.USDC));
   }
-  // No WETH price feed in Session 1: WF-2 derives units from amountUsd + its own
-  // oracle read (check-and-execute). VERIFY in Session 2 when WF-2 exists.
+  // Collateral is priced in USD by the Aave oracle, and Ripcord has no price
+  // feed in Session 1, so it cannot convert USD → collateral base units here.
+  // WF-2 derives the amount from amountUsd plus its own oracle read
+  // (check-and-execute). VERIFY in Session 2 when WF-2 exists.
   return 0n;
 }
 
@@ -108,7 +111,7 @@ export function buildDefensePayload(
   }
   // Addresses resolved HERE, from the config allowlist — never from LLM output.
   const assetAddress =
-    proposal.asset === "USDC" ? cfg.addressBook.usdc.address : cfg.addressBook.weth.address;
+    proposal.asset === "USDC" ? cfg.addressBook.usdc.address : cfg.addressBook.collateral.address;
   return {
     decisionId,
     chain: cfg.chain,

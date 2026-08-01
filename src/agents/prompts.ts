@@ -34,7 +34,7 @@ function renderPosition(s: Snapshot): string {
     `liquidation threshold: ${(s.liquidationThresholdBps / 100).toFixed(2)}%`,
     `hf velocity: ${s.hfVelocityPerMin === null ? "unknown (warming up)" : `${s.hfVelocityPerMin.toFixed(4)}/min`}`,
     `wallet USDC: $${s.balances.usdcUsd.toFixed(2)}`,
-    `wallet WETH: ${s.balances.wethEth} ETH`,
+    `wallet ${s.balances.collateralSymbol} (collateral): ${s.balances.collateralAmount}`,
   ].join("\n");
 }
 
@@ -53,7 +53,7 @@ Your job: given a position snapshot, propose ONE defensive action that restores 
 
 Allowed actions (nothing else exists):
 - "repay" — repay borrowed USDC. asset MUST be "USDC".
-- "supplyCollateral" — supply more WETH as collateral. asset MUST be "WETH".
+- "supplyCollateral" — supply more of the chain's collateral asset. Its symbol is shown in the POSITION block as "wallet <SYMBOL> (collateral)"; use exactly that symbol.
 - "none" — no defense is warranted or possible. amountUsd MUST be 0.
 
 Hard constraints:
@@ -78,7 +78,7 @@ recomputes it independently before anything executes and rejects a proposal whos
 claim is inflated, so an accurate modest number always beats an optimistic one.
 
 Respond with ONLY a JSON object, no prose and no markdown fences:
-{"action": "repay"|"supplyCollateral"|"none", "asset": "USDC"|"WETH", "amountUsd": <number>, "expectedHfAfter": <number>, "rationale": "<one short sentence>"}`;
+{"action": "repay"|"supplyCollateral"|"none", "asset": "USDC"|"<collateral symbol>", "amountUsd": <number>, "expectedHfAfter": <number>, "rationale": "<one short sentence>"}`;
 
 export function buildPlannerPrompt(ctx: PlannerContext): BuiltPrompt {
   const history =
@@ -125,7 +125,7 @@ APPROVE only if ALL of these hold:
 1. VERIFIED hfAfter is at least the target health factor.
 2. amountUsd is within MAX_TX_USD.
 3. amountUsd is within the wallet balance of that asset.
-4. The action/asset pairing is valid (repay<->USDC, supplyCollateral<->WETH).
+4. The action/asset pairing is valid: repay uses USDC; supplyCollateral uses the chain's collateral asset shown in the POSITION block.
 5. The action actually improves the position, and the size is sensible — not
    drastically more than needed to clear the target.
 

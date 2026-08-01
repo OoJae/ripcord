@@ -87,7 +87,7 @@ export function createHeuristicCritic(): Critic {
       }
 
       const balance =
-        proposal.asset === "USDC" ? snapshot.balances.usdcUsd : snapshot.balances.wethEth;
+        proposal.asset === "USDC" ? snapshot.balances.usdcUsd : snapshot.balances.collateralAmount;
       if (proposal.amountUsd > balance) {
         return reject(`amount $${proposal.amountUsd} exceeds the wallet balance ${balance}`);
       }

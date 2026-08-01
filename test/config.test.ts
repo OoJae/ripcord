@@ -160,7 +160,7 @@ describe("config: wad thresholds and cents", () => {
 
   it("all allowlist addresses are verified and non-zero", () => {
     for (const book of Object.values(ADDRESS_BOOK)) {
-      for (const entry of [book.aavePool, book.usdc, book.weth]) {
+      for (const entry of [book.aavePool, book.usdc, book.collateral]) {
         expect(entry.verified).toBe(true);
         expect(entry.address).toMatch(/^0x[0-9a-fA-F]{40}$/);
         expect(entry.address).not.toBe("0x0000000000000000000000000000000000000000");

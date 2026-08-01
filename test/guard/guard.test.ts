@@ -113,8 +113,29 @@ describe("allowlist", () => {
     expect(c.detail).toContain(ADDRESS_BOOK["base-sepolia"].usdc.address);
   });
 
-  it("blocks a repay+WETH pairing mismatch", () => {
-    const res = checkGuard(withProposal({ asset: "WETH" }));
+  it("accepts the chain's own collateral symbol for supplyCollateral", () => {
+    // Base Sepolia's collateral is cbETH (the WETH reserve is capped out), so
+    // cbETH — not WETH — is the symbol the Guard must accept here.
+    const res = checkGuard(
+      withProposal({ action: "supplyCollateral", asset: "cbETH", amountUsd: 5 }),
+    );
+    expect(check(res, "allowlist").passed).toBe(true);
+    expect(check(res, "allowlist").detail).toContain(
+      ADDRESS_BOOK["base-sepolia"].collateral.address,
+    );
+  });
+
+  it("blocks the OTHER chain's collateral symbol", () => {
+    // WETH is mainnet's collateral; naming it on Base Sepolia is a pairing error.
+    const res = checkGuard(
+      withProposal({ action: "supplyCollateral", asset: "WETH", amountUsd: 5 }),
+    );
+    expect(res.decision).toBe("blocked");
+    expect(violation(res, "allowlist").detail).toMatch(/requires cbETH/);
+  });
+
+  it("blocks a repay+collateral pairing mismatch", () => {
+    const res = checkGuard(withProposal({ asset: "cbETH" }));
     expect(res.decision).toBe("blocked");
     expect(violation(res, "allowlist").detail).toContain("pairing");
   });

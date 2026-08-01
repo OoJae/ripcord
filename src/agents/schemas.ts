@@ -17,7 +17,7 @@ const AMOUNT_SANITY_MAX = 1000;
 export const PlannerProposalSchema = z
   .strictObject({
     action: z.enum(["repay", "supplyCollateral", "none"]),
-    asset: z.enum(["USDC", "WETH"]),
+    asset: z.enum(["USDC", "WETH", "cbETH"]),
     amountUsd: z.number().finite().nonnegative().max(AMOUNT_SANITY_MAX),
     expectedHfAfter: z.number().finite().positive().max(1000),
     rationale: z.string().min(1).max(500),
@@ -26,10 +26,12 @@ export const PlannerProposalSchema = z
     if (p.action === "repay" && p.asset !== "USDC") {
       ctx.addIssue({ code: "custom", message: "action 'repay' requires asset 'USDC'" });
     }
-    if (p.action === "supplyCollateral" && p.asset !== "WETH") {
+    if (p.action === "supplyCollateral" && p.asset === "USDC") {
+      // The exact collateral symbol is chain-specific, so the Guard makes the
+      // final call; the schema only rules out the debt asset.
       ctx.addIssue({
         code: "custom",
-        message: "action 'supplyCollateral' requires asset 'WETH'",
+        message: "action 'supplyCollateral' requires the chain's collateral asset, not USDC",
       });
     }
     if (p.action === "none" && p.amountUsd !== 0) {

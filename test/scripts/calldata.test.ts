@@ -25,7 +25,7 @@ describe("scripts: setup-position", () => {
     const [supply, borrow] = calls;
     expect(supply?.target).toBe(ADDRESS_BOOK["base-sepolia"].aavePool.address);
     expect(supply?.calldata.startsWith(SUPPLY)).toBe(true);
-    expect(supply?.args[0]).toBe(ADDRESS_BOOK["base-sepolia"].weth.address);
+    expect(supply?.args[0]).toBe(ADDRESS_BOOK["base-sepolia"].collateral.address);
     expect(supply?.args[1]).toBe(10_000_000_000_000_000n); // 0.01 WETH, 18 dec
 
     expect(borrow?.calldata.startsWith(BORROW)).toBe(true);
@@ -37,7 +37,7 @@ describe("scripts: setup-position", () => {
   it("uses the mainnet allowlist entries when the chain is base", () => {
     const [supply] = buildSetupCalls("base", TEST_ADDRESS, "0.01", "10");
     expect(supply?.target).toBe(ADDRESS_BOOK.base.aavePool.address);
-    expect(supply?.args[0]).toBe(ADDRESS_BOOK.base.weth.address);
+    expect(supply?.args[0]).toBe(ADDRESS_BOOK.base.collateral.address);
   });
 });
 

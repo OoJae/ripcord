@@ -121,12 +121,13 @@ export function checkGuard(input: GuardInput): GuardResult {
     let entry: KnownAddress | undefined;
     let entryLabel = "";
 
+    const collateralSymbol = input.addressBook?.collateral?.symbol;
     if (proposal?.asset === "USDC") {
       entry = input.addressBook?.usdc;
       entryLabel = "usdc";
-    } else if (proposal?.asset === "WETH") {
-      entry = input.addressBook?.weth;
-      entryLabel = "weth";
+    } else if (proposal?.asset === collateralSymbol) {
+      entry = input.addressBook?.collateral;
+      entryLabel = "collateral";
     } else {
       problems.push(`asset ${JSON.stringify(proposal?.asset)} is not on the allowlist`);
     }
@@ -148,9 +149,9 @@ export function checkGuard(input: GuardInput): GuardResult {
       problems.push(
         `pairing violation: repay requires USDC, got ${JSON.stringify(proposal.asset)}`,
       );
-    } else if (action === "supplyCollateral" && proposal.asset !== "WETH") {
+    } else if (action === "supplyCollateral" && proposal.asset !== collateralSymbol) {
       problems.push(
-        `pairing violation: supplyCollateral requires WETH, got ${JSON.stringify(proposal.asset)}`,
+        `pairing violation: supplyCollateral on ${chain} requires ${String(collateralSymbol)}, got ${JSON.stringify(proposal.asset)}`,
       );
     } else if (action !== "repay" && action !== "supplyCollateral" && action !== "none") {
       problems.push(`unknown action ${JSON.stringify(action)}`);

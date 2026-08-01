@@ -65,6 +65,47 @@ failure rather than an upfront "3 fields required" prompt.
 (and ideally in `validate_workflow`'s output), so the seeds are a guided setup
 rather than a puzzle. Good onboarding-bounty material.
 
+## 2026-08-01 — the Aave Base Sepolia WETH reserve is capped out (blocks the documented setup)
+
+**What:** Build guide §6 assumes a WETH-collateral / USDC-debt position on Base
+Sepolia. `Pool.supply(WETH, …)` reverts with `SupplyCapExceeded()` (`0xf58f733a`)
+for **any** amount — 0.02 WETH and 0.0001 WETH alike. The reserve shows 997.21 of a
+1000 WETH cap, so the ~2.79 apparent headroom is misleading: Aave's cap check
+includes `accruedToTreasury` and the scaled supply at the current liquidity index,
+and on this market that leaves no room at all. WBTC is in the same state (100/100).
+
+**Why it is worth logging:** a newcomer following any "supply WETH on a testnet"
+tutorial hits a bare custom-error selector with no decoded reason. Nothing in the
+Aave UI or the address book signals that the flagship testnet reserve is unusable,
+and the error surfaces only at transaction time.
+
+**Fix applied (ours):** the collateral asset is now **per-chain** — WETH on Base
+mainnet, **cbETH on Base Sepolia** (no supply cap, LT 84.5%, faucet-mintable). The
+debt asset stays USDC, so `repay USDC` — Ripcord's primary defense — is untouched.
+`AddressBook.collateral` carries the symbol and decimals, the sensor reads whichever
+token the chain declares, and the Guard's `supplyCollateral` pairing rule checks
+against that chain's symbol (with tests for both accepting cbETH on Sepolia and
+rejecting mainnet's WETH there). This kept us off the Anvil-fork fallback in §6.9,
+so KeeperHub still executes every transaction — criterion #1 intact.
+
+**Proposed fix (Aave/KeeperHub):** surface reserve caps and remaining headroom in
+the faucet/testnet UI, and decode Aave custom errors in KeeperHub's execution error
+string — `execution reverted (unknown custom error) data="0xf58f733a"` cost real
+debugging time that `SupplyCapExceeded()` would not have.
+
+## 2026-08-01 — getting Aave test tokens on Base Sepolia is undocumented but trivial
+
+**What:** No docs page explains how to obtain the Aave Base Sepolia test assets. The
+answer, found by reading the token's `owner()`: a permissionless Aave **Faucet** at
+`0xD9145b5F45Ad4519c7ACcD6E0A4A82e83bB8A6Dc` with `isPermissioned() == false`, so
+anyone can call `mint(token, to, amount)` for any listed reserve. It is recorded as
+`BASE_SEPOLIA_FAUCET` in `src/config.ts`.
+
+**Proposed fix:** name the faucet address in the Aave testnet docs, or link it from
+the market page. Also note the market's USDC is the faucet token
+`0xba50Cd…4D5f`, **not** Circle's `0x036CbD…` — a trap that silently yields
+zero-balance reads.
+
 ## 2026-07-31 — our own bug: we asked an LLM to be a calculator
 
 **What:** The first live run with a real model (Mimo v2.5 Pro over the Anthropic

@@ -178,7 +178,13 @@ describe("planner: heuristic (zero-secret demo brain)", () => {
 
   it("proposes no action when no USDC is available to repay with", async () => {
     const snapshot = makeSnapshot("1.20", {
-      balances: { usdcRaw: 0n, usdcUsd: 0, wethRaw: 0n, wethEth: 0 },
+      balances: {
+        usdcRaw: 0n,
+        usdcUsd: 0,
+        collateralRaw: 0n,
+        collateralAmount: 0,
+        collateralSymbol: "WETH" as const,
+      },
     });
     const { proposal } = await createHeuristicPlanner().plan(ctx({ snapshot }));
     expect(proposal.action).toBe("none");

@@ -98,7 +98,13 @@ describe("critic: heuristic verifier recomputes independently", () => {
 
   it("REJECTs an amount beyond the wallet balance", async () => {
     const broke = makeSnapshot("1.20", {
-      balances: { usdcRaw: 1_000_000n, usdcUsd: 1, wethRaw: 0n, wethEth: 0 },
+      balances: {
+        usdcRaw: 1_000_000n,
+        usdcUsd: 1,
+        collateralRaw: 0n,
+        collateralAmount: 0,
+        collateralSymbol: "WETH" as const,
+      },
     });
     const { verdict } = await critic.critique(broke, proposal({ amountUsd: 5 }), THRESHOLDS, CAPS);
     expect(verdict.verdict).toBe("REJECT");

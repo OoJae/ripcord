@@ -40,6 +40,12 @@ export const DEFAULT_MODEL = "claude-sonnet-5";
 export const DEFAULT_POLL_SEC = 60;
 export const MOCK_POLL_SEC = 5;
 export const DEFAULT_DB_PATH = "data/ripcord.sqlite";
+/**
+ * Aave's permissionless testnet faucet on Base Sepolia (`isPermissioned() == false`).
+ * Mint test tokens with `mint(token, to, amount)`. Verified on-chain 2026-08-01.
+ */
+export const BASE_SEPOLIA_FAUCET = "0xD9145b5F45Ad4519c7ACcD6E0A4A82e83bB8A6Dc" as const;
+
 export const KEEPERHUB_API_BASE_URL = "https://app.keeperhub.com/api";
 
 /** Public endpoints (rate-limited; fine for the hackathon, override via env for volume). */
@@ -48,7 +54,7 @@ export const DEFAULT_RPC_URLS: Record<Chain, string> = {
   "base-sepolia": "https://sepolia.base.org",
 };
 
-export const TOKEN_DECIMALS = { USDC: 6, WETH: 18 } as const;
+export const TOKEN_DECIMALS = { USDC: 6, WETH: 18, cbETH: 18 } as const;
 
 /**
  * Allowlist — the ONLY legal source of contract addresses.
@@ -69,7 +75,9 @@ export const ADDRESS_BOOK: Record<Chain, AddressBook> = {
       verified: true,
       source: "bgd-labs/aave-address-book AaveV3Base.sol @ 2026-07-30 (native USDC, 6 dec)",
     },
-    weth: {
+    collateral: {
+      symbol: "WETH",
+      decimals: 18,
       address: "0x4200000000000000000000000000000000000006",
       verified: true,
       source: "bgd-labs/aave-address-book AaveV3Base.sol @ 2026-07-30 (OP-stack predeploy)",
@@ -86,10 +94,15 @@ export const ADDRESS_BOOK: Record<Chain, AddressBook> = {
       verified: true,
       source: "bgd-labs/aave-address-book AaveV3BaseSepolia.sol @ 2026-07-30 (Aave test USDC)",
     },
-    weth: {
-      address: "0x4200000000000000000000000000000000000006",
+    // cbETH, not WETH: the Base Sepolia WETH reserve is at its supply cap
+    // (997/1000 supplied; even 0.0001 reverts SupplyCapExceeded). cbETH has no
+    // cap, LT 84.5%, and is faucet-mintable. Verified on-chain 2026-08-01.
+    collateral: {
+      symbol: "cbETH",
+      decimals: 18,
+      address: "0xD171b9694f7A2597Ed006D41f7509aaD4B485c4B",
       verified: true,
-      source: "bgd-labs/aave-address-book AaveV3BaseSepolia.sol @ 2026-07-30 + getReservesList",
+      source: "bgd-labs/aave-address-book AaveV3BaseSepolia.sol + live supply 2026-08-01",
     },
   },
 };

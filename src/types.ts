@@ -5,7 +5,10 @@
 
 export type Chain = "base" | "base-sepolia";
 export type Band = "healthy" | "warn" | "act" | "panic";
-export type AssetSymbol = "USDC" | "WETH";
+/** Assets Ripcord may supply as collateral. Which one is live is per-chain. */
+export type CollateralSymbol = "WETH" | "cbETH";
+/** Every asset Ripcord can name. Debt is always USDC; collateral is chain-specific. */
+export type AssetSymbol = "USDC" | CollateralSymbol;
 export type Address = `0x${string}`;
 
 // ---------------------------------------------------------------------------
@@ -47,8 +50,11 @@ export interface Snapshot {
   balances: {
     usdcRaw: bigint;
     usdcUsd: number; // USDC ≈ $1 (documented simplification)
-    wethRaw: bigint;
-    wethEth: number; // no price feed in Session 1 — WETH kept in ETH units
+    /** Wallet balance of THIS chain's collateral asset, in base units. */
+    collateralRaw: bigint;
+    /** …and in whole tokens. No price feed in Session 1, so this is not USD. */
+    collateralAmount: number;
+    collateralSymbol: CollateralSymbol;
   };
   /** Δ HF per minute over the last 3 samples; null until 3 samples exist. */
   hfVelocityPerMin: number | null;
@@ -335,8 +341,19 @@ export interface KnownAddress {
   source: string;
 }
 
+/** The collateral asset for a chain, carrying its symbol and decimals. */
+export interface CollateralAsset extends KnownAddress {
+  symbol: CollateralSymbol;
+  decimals: number;
+}
+
 export interface AddressBook {
   aavePool: KnownAddress;
+  /** The debt asset. Always USDC — `repay` is Ripcord's primary defense. */
   usdc: KnownAddress;
-  weth: KnownAddress;
+  /**
+   * The collateral asset, which differs by chain: WETH on Base mainnet, cbETH on
+   * Base Sepolia, where the WETH reserve is capped out (see FRICTION.md).
+   */
+  collateral: CollateralAsset;
 }

@@ -40,10 +40,11 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 | Webhook-triggered workflow (WF-2 `defend`) | Daemon triggers the defense tx | _(Session 2)_ |
 | Scheduled workflow (WF-1 `hf-monitor`) | Redundant HF monitoring even if the daemon dies | _(Session 2)_ |
 | Run status API (`/wait`, `/status`) | Executor polls runs to terminal state | implemented in `src/executor/keeperhub.ts` |
-| MCP server + Claude Code plugin | Workflow build/debug during development | _(Session 2)_ |
+| MCP server + Claude Code plugin | Position setup and workflow build/debug | ✅ [4 txs](docs/evidence/EVIDENCE.md) via `execute_contract_call` |
 | Smart gas + retries | Defense tx reliability | _(Session 2)_ |
+| Direct contract-call execution | Faucet mint, Aave supply/borrow to open the monitored position | ✅ [`0x4cc001bf…`](https://sepolia.basescan.org/tx/0x4cc001bfaa7d268e73a71cb710f62f8d611c69aa4e8ea9f23ea4d48ba5e64be8) |
 | Private routing (mainnet defenses) | MEV protection for the rescue | _(Session 3)_ |
-| Gas sponsorship (setup txs) | Public-mempool setup txs | _(Session 3)_ |
+| Gas sponsorship (setup txs) | Public-mempool setup txs | ✅ all 4 setup txs `sponsored: true` |
 | Audit trail | Proof: trigger → simulation → tx → outcome | _(Session 2)_ |
 | Marketplace + x402 (WF-3 `risk-score`) | Paid risk scoring — Ripcord pays for itself | _(Session 4)_ |
 

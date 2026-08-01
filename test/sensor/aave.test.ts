@@ -152,7 +152,7 @@ describe("sensor: live reads via an injected client", () => {
     expect(snap.address).toBe(TEST_ADDRESS);
     expect(snap.chain).toBe("base-sepolia");
     expect(snap.balances.usdcUsd).toBe(25);
-    expect(snap.balances.wethEth).toBe(0.01);
+    expect(snap.balances.collateralAmount).toBe(0.01);
     expect(snap.hfVelocityPerMin).toBeNull(); // the daemon fills this in
   });
 

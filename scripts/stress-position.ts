@@ -51,8 +51,8 @@ export function buildStressCall(
     };
   }
   if (opts.withdrawWeth) {
-    const amount = parseUnits(opts.withdrawWeth, TOKEN_DECIMALS.WETH);
-    const args = [book.weth.address, amount, account] as const;
+    const amount = parseUnits(opts.withdrawWeth, book.collateral.decimals);
+    const args = [book.collateral.address, amount, account] as const;
     return {
       description: `withdraw ${opts.withdrawWeth} WETH collateral (pushes HF down)`,
       target: book.aavePool.address,

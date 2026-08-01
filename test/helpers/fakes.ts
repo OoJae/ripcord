@@ -79,8 +79,9 @@ export function makeSnapshot(
     balances: {
       usdcRaw: 25_000_000n, // 25 USDC
       usdcUsd: 25,
-      wethRaw: 10_000_000_000_000_000n, // 0.01 WETH
-      wethEth: 0.01,
+      collateralRaw: 10_000_000_000_000_000n, // 0.01 collateral token
+      collateralAmount: 0.01,
+      collateralSymbol: "WETH",
     },
     hfVelocityPerMin: null,
     ...partial,

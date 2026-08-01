@@ -60,9 +60,9 @@ export function buildSetupCalls(
   borrowUsdc: string,
 ): IntendedCall[] {
   const book = ADDRESS_BOOK[chain];
-  const supplyAmount = parseUnits(supplyEth, TOKEN_DECIMALS.WETH);
+  const supplyAmount = parseUnits(supplyEth, book.collateral.decimals);
   const borrowAmount = parseUnits(borrowUsdc, TOKEN_DECIMALS.USDC);
-  const supplyArgs = [book.weth.address, supplyAmount, onBehalfOf, 0] as const;
+  const supplyArgs = [book.collateral.address, supplyAmount, onBehalfOf, 0] as const;
   const borrowArgs = [book.usdc.address, borrowAmount, 2n, 0, onBehalfOf] as const; // 2 = variable rate
   return [
     {
