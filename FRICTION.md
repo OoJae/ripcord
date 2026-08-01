@@ -335,3 +335,33 @@ mean local Telegram screenshots must be captured from a different network. Keepe
 
 **Not a KeeperHub or Ripcord defect** — recorded so the empty Telegram evidence slot is not
 mistaken for a broken notifier.
+
+## 2026-08-01 — a Schedule-triggered workflow created with `enabled: true` never fires
+
+**What:** WF-1 `hf-monitor` (`8kcwzx7ycrg1zlqhox6tz`) was created through
+`create_workflow` with `enabled: true` and
+`{"triggerType":"Schedule","scheduleCron":"*/5 * * * *","scheduleTimezone":"UTC"}` —
+field-for-field identical in shape to the org's own seeded "Aave Health Factor Monitor"
+(`zz5f7urg15v83k9kiugww`, cron `0 * * * *`). `create_workflow`'s own description says
+*"pass enabled=true to make schedule/event/block/webhook triggers fire immediately."*
+
+**83 minutes later, `GET /api/workflows/{id}/executions` returned `[]`** — roughly 16
+missed firings. A manual `POST /execute` of the same workflow succeeds immediately and
+runs the full body (`read-1` ✅ → `gate-1` ✅ → alert), so the definition is valid, the
+chain reads work, and the condition evaluates. Only the scheduler never ran it.
+
+`validate_workflow` reports `valid: true` and says nothing about the schedule. No error,
+no warning, no `nextRunAt` field anywhere on the workflow object to check against — the
+failure is completely silent, and the only way to notice is to poll the executions list
+and find it empty.
+
+**Impact:** A monitoring workflow that never runs is worse than no monitoring workflow,
+because the dashboard shows it enabled. In Ripcord's case WF-1 is deliberately redundant
+— the daemon does its own sensing — so nothing was missed, but an operator relying on it
+as the backstop would have silent, invisible coverage loss.
+
+**Proposed fix:** Expose `nextRunAt` / `lastRunAt` on the workflow object so a schedule
+can be verified without waiting a full period. Surface a validation error (or at minimum
+a `validate_workflow` warning) when a Schedule trigger cannot be registered, and state
+plainly in the docs whether scheduled execution requires a plan tier — the same
+undisclosed-gating pattern already bit us with `code/run-code`.

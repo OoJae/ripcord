@@ -69,6 +69,22 @@ Definitions exported to [`workflows/`](../../workflows/). Both pin the Aave Pool
 address from Ripcord's own allowlist rather than a protocol registry — the
 `aave-v3/*` actions reject chain 84532 outright.
 
+### WF-1 detecting the below-warn condition
+
+Manual fire, execution `67jr69eego2k2f3hmtnwq`, against the position at HF 1.2266:
+
+```
+trace: trigger-1 ✅ → read-1 ✅ → gate-1 ✅ → alert-1 ❌
+       "Telegram bot token is required. Please configure it in the integration settings."
+```
+
+`gate-1` passed and handed off to the alert node, i.e. WF-1 independently read the
+chain and **correctly concluded the position is below the 1.50 warn band**. The only
+failure is the Telegram integration, a one-time UI step (see `workflows/README.md`).
+
+Its `*/5` schedule, however, has never fired — `[]` executions in 83 minutes with
+`enabled: true`. Silent, and only visible by polling the executions list. FRICTION.md.
+
 ### WF-2 refusing to defend a healthy position
 
 First live fire, execution `x8rb3lbaxyy2b6wvses82`, against the position at HF 1.9885:
