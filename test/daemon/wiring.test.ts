@@ -311,6 +311,62 @@ describe("daemon: policy suppression paths", () => {
     h.db.close();
   });
 
+  it("does NOT record a defense when WF-2 declines and sends no transaction", async () => {
+    // REGRESSION. A KeeperHub run ending "success" is not proof money moved.
+    // WF-2 re-reads the position and, if it no longer needs defending, takes the
+    // false branch of its gate and finishes successfully having sent nothing —
+    // state "success", transactionHashes []. Verified against live execution
+    // x8rb3lbaxyy2b6wvses82. Recording that as a defense announces a rescue that
+    // never happened and burns a 30-minute cooldown on the real position.
+    const h = harness({ dryRun: false, hf: "1.20" });
+    const declining = new MockKeeperHubClient({ declineNoTx: true });
+    h.deps.keeperhub = declining;
+
+    const daemon = createDaemon(h.deps);
+    await daemon.runTick("01J9DECLINED000000000000A");
+
+    // It really did reach the executor — this is not a Guard block.
+    expect(declining.receivedPayloads).toHaveLength(1);
+    expect(h.db.recentDecisions(1)[0]?.status).toBe("blocked");
+
+    const last = h.notifications.at(-1);
+    expect(last?.kind).toBe("blocked");
+    expect(last?.detail).toMatch(/declined/i);
+
+    // And the latch must stay armed, so the next eligible tick can try again.
+    expect(daemon.state.armed).toBe(true);
+    h.db.close();
+  });
+
+  it("keeps the latch armed when a defense fails, so the act band stays defensible", async () => {
+    // REGRESSION, and this one bit a real run. markDefenseFired used to disarm at
+    // trigger time. When the transaction then reverted, HF was unchanged and
+    // still in the act band — and the only branch that re-arms requires
+    // hf > 1.55, which an undefended act-band position can never reach. The
+    // position became permanently undefendable until it decayed into panic.
+    const h = harness({ dryRun: false, hf: "1.20" });
+    h.deps.keeperhub = new MockKeeperHubClient({ script: ["pending", "error"] });
+
+    const daemon = createDaemon(h.deps);
+    await daemon.runTick("01J9FAILEDDEFENSE0000000A");
+
+    expect(h.db.recentDecisions(1)[0]?.status).toBe("failed");
+    expect(daemon.state.armed).toBe(true);
+    // The cooldown is still anchored, so the retry is rate-limited not blocked.
+    expect(daemon.state.lastFiredAtMs).not.toBeNull();
+    h.db.close();
+  });
+
+  it("opens the latch only for a defense that actually landed", async () => {
+    const h = harness({ dryRun: false, hf: "1.20" });
+    const daemon = createDaemon(h.deps); // default mock: success WITH a tx hash
+    await daemon.runTick("01J9LANDEDDEFENSE0000000A");
+
+    expect(h.db.recentDecisions(1)[0]?.status).toBe("executed");
+    expect(daemon.state.armed).toBe(false);
+    h.db.close();
+  });
+
   it("blocks an unpriceable asset instead of sending a zero-amount payload", async () => {
     // Ripcord has no oracle feed, so it cannot convert USD → collateral base
     // units. Returning 0 would have POSTed a defense that supplies nothing;

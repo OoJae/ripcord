@@ -29,7 +29,7 @@ import {
 } from "./executor/keeperhub.js";
 import { checkGuard } from "./guard/guard.js";
 import { createNotifier } from "./notifier/telegram.js";
-import { evaluate, markDefenseFired } from "./policy/thresholds.js";
+import { evaluate, markDefenseAttempted, markDefenseFired } from "./policy/thresholds.js";
 import {
   computeVelocity,
   createAaveSensor,
@@ -427,7 +427,9 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       assetSymbol: payload.assetSymbol,
       amountUsdCents: usdToCents(payload.amountUsd),
     });
-    Object.assign(state, markDefenseFired(state, now));
+    // Anchor the cooldown now, but do NOT open the hysteresis latch yet — we do
+    // not know whether this defense will land. See markDefenseAttempted.
+    Object.assign(state, markDefenseAttempted(state, now));
 
     let runId: string;
     try {
@@ -454,17 +456,45 @@ export function createDaemon(deps: DaemonDeps): Daemon {
 
     try {
       const run = await waitForRun(keeperhub, runId, { sleep, clock: () => clock.now() });
+
+      // A terminal "success" is NOT proof that money moved. WF-2 re-reads the
+      // position on-chain and, if it no longer needs defending, takes the false
+      // branch of its gate and ends the run successfully having done nothing —
+      // state "success", transactionHashes []. Verified live (execution
+      // x8rb3lbaxyy2b6wvses82). Treating that as a defense would announce a
+      // rescue that never happened, corrupt the audit trail, and burn a cooldown.
+      // The transaction hash is the only honest evidence, so require it.
+      const landed = run.state === "success" && run.txHash !== undefined;
+      const declined = run.state === "success" && !landed;
+
       db.updateExecutionByDecision(decisionId, {
-        status: run.state === "success" ? "success" : "error",
+        // No "declined" value exists in the executions CHECK constraint, so a
+        // decline is recorded as "error" — fail-closed, and it still counts
+        // toward the rolling daily spend. rawRunJson carries the real trace.
+        status: landed ? "success" : "error",
         txHash: run.txHash ?? null,
         completedAtMs: clock.now(),
         rawRunJson: JSON.stringify(run.raw ?? null),
       });
-      db.updateDecision(decisionId, { status: run.state === "success" ? "executed" : "failed" });
-      if (run.state === "success") deps.onDefenseSuccess?.(payload);
+      db.updateDecision(decisionId, {
+        status: landed ? "executed" : declined ? "blocked" : "failed",
+      });
+
+      // Only a landed defense opens the hysteresis latch. A declined or failed
+      // one leaves the position exactly as it was, so the next tick must stay
+      // eligible to try again once the cooldown elapses.
+      if (landed) {
+        Object.assign(state, markDefenseFired(state, clock.now()));
+        deps.onDefenseSuccess?.(payload);
+      }
+
+      const declinedDetail =
+        "WF-2 declined: its on-chain re-check found the position no longer " +
+        "below the warn band, or the amount outside its own limits — no transaction sent";
+
       await safeNotify(
         {
-          kind: run.state === "success" ? "defense" : "error",
+          kind: landed ? "defense" : declined ? "blocked" : "error",
           chain: cfg.chain,
           band: res.band,
           decisionId,
@@ -477,10 +507,18 @@ export function createDaemon(deps: DaemonDeps): Daemon {
           expectedHfAfter: verifiedHfAfter,
           rationale: proposal.rationale,
           txHash: run.txHash,
-          detail: run.state === "success" ? undefined : (run.error ?? `run ${run.state}`),
+          detail: landed
+            ? undefined
+            : declined
+              ? declinedDetail
+              : (run.error ?? `run ${run.state}`),
         },
         log,
       );
+
+      if (declined) {
+        log.warn({ runId, decisionId }, "WF-2 gate declined the defense — no transaction sent");
+      }
     } catch (err) {
       const timedOut = err instanceof RunTimeoutError;
       log.error({ err: String(err), runId }, timedOut ? "run polling timed out" : "run poll error");

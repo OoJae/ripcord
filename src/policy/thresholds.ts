@@ -120,6 +120,37 @@ export function evaluate(
  * Record that a defense fired: disarm the hysteresis latch and anchor the
  * cooldown at `nowMs`. Pure — returns a fresh state, never mutates the input.
  */
+/**
+ * A defense LANDED: anchor the cooldown and open the hysteresis latch.
+ *
+ * Disarming is correct here and only here. A landed defense lifts the health
+ * factor to the target (1.60), comfortably above `rearm` (1.55), so the very next
+ * tick re-arms naturally. The latch exists to stop us re-firing while the health
+ * factor hovers just under `warn`, not to stop us retrying something that failed.
+ */
 export function markDefenseFired(state: PolicyState, nowMs: number): PolicyState {
   return { armed: false, lastFiredAtMs: nowMs, lastBand: state.lastBand };
+}
+
+/**
+ * A defense was ATTEMPTED but we do not yet know whether it landed: anchor the
+ * cooldown, leave the latch armed.
+ *
+ * Found by review, after it silently bit a live run. Disarming at trigger time is
+ * a trap: if the transaction reverts, the health factor is unchanged and still in
+ * the act band, so `evaluate` can never satisfy its `hfWad > rearm` re-arm
+ * condition — the only branch that sets `armed = true`. The position would then be
+ * defended again only if it decayed past `panic` (1.10), i.e. protection resumes
+ * one tick from liquidation.
+ *
+ * That is exactly what happened on 2026-08-01: the first live defense reverted on
+ * a missing allowance, the latch stayed open, and the retry succeeded only because
+ * the daemon happened to be restarted (which resets `armed` in memory).
+ *
+ * Keeping the latch armed does not risk a hot loop — `lastFiredAtMs` still
+ * anchors the full cooldown, so a failing defense retries once per cooldown
+ * period rather than every tick.
+ */
+export function markDefenseAttempted(state: PolicyState, nowMs: number): PolicyState {
+  return { armed: state.armed, lastFiredAtMs: nowMs, lastBand: state.lastBand };
 }

@@ -373,6 +373,12 @@ export interface MockKeeperHubClientOptions {
   failOnce?: boolean;
   /** getRun always reports "running" — for timeout tests. */
   neverTerminal?: boolean;
+  /**
+   * getRun reports terminal "success" with NO transaction hashes — the shape a
+   * real WF-2 run has when its on-chain gate declines and the repay node never
+   * runs. Verified against live execution x8rb3lbaxyy2b6wvses82.
+   */
+  declineNoTx?: boolean;
 }
 
 /** Deterministic fake tx hash: hex of the decisionId's chars padded to 64 nibbles. */
@@ -398,6 +404,7 @@ export class MockKeeperHubClient implements KeeperHubClient {
   private readonly failTrigger: boolean;
   private failOnceArmed: boolean;
   private readonly neverTerminal: boolean;
+  private readonly declineNoTx: boolean;
   private readonly runs = new Map<string, MockRun>();
 
   constructor(opts: MockKeeperHubClientOptions = {}) {
@@ -408,6 +415,7 @@ export class MockKeeperHubClient implements KeeperHubClient {
     this.failTrigger = opts.failTrigger ?? false;
     this.failOnceArmed = opts.failOnce ?? false;
     this.neverTerminal = opts.neverTerminal ?? false;
+    this.declineNoTx = opts.declineNoTx ?? false;
   }
 
   async triggerDefense(payload: DefensePayload): Promise<TriggerResult> {
@@ -453,7 +461,7 @@ export class MockKeeperHubClient implements KeeperHubClient {
       state,
       raw: { mock: true, step: run.step, state },
     };
-    if (state === "success") {
+    if (state === "success" && !this.declineNoTx) {
       const hash = fakeTxHashFor(run.payload.decisionId);
       status.txHash = hash;
       status.txHashes = [{ hash }];

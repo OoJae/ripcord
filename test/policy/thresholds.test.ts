@@ -6,7 +6,12 @@
 
 import { describe, expect, it } from "vitest";
 import { THRESHOLDS_WAD } from "../../src/config.js";
-import { classifyBand, evaluate, markDefenseFired } from "../../src/policy/thresholds.js";
+import {
+  classifyBand,
+  evaluate,
+  markDefenseAttempted,
+  markDefenseFired,
+} from "../../src/policy/thresholds.js";
 import type { Band, PolicyState } from "../../src/types.js";
 import {
   MAX_UINT256,
@@ -268,5 +273,40 @@ describe("purity and state transitions", () => {
     expect(next).toEqual({ armed: false, lastFiredAtMs: T0, lastBand: "act" });
     expect(state).toEqual(before);
     expect(next).not.toBe(state);
+  });
+
+  it("markDefenseAttempted anchors the cooldown but leaves the latch armed", () => {
+    const state = freshArmed("act");
+    const before = { ...state };
+    const next = markDefenseAttempted(state, T0);
+    expect(next).toEqual({ armed: true, lastFiredAtMs: T0, lastBand: "act" });
+    expect(state).toEqual(before);
+    expect(next).not.toBe(state);
+  });
+
+  it("a defense that does NOT land leaves the act band defensible after the cooldown", () => {
+    // REGRESSION. Disarming at trigger time was a trap: if the transaction
+    // reverts, the health factor is unchanged and still in the act band, so the
+    // `hfWad > rearm` branch — the only thing that sets armed = true — can never
+    // be reached. The position would then be defended only once it decayed past
+    // panic. This bit a real run on 2026-08-01 and was masked by a daemon restart.
+    const attempted = markDefenseAttempted(freshArmed("act"), T0);
+    const stillInActBand = makeSnapshot("1.2266");
+
+    // During the cooldown: suppressed, but for the cooldown — not the latch.
+    const during = evaluate(stillInActBand, THRESHOLDS_WAD, attempted, T0 + 1_799_000);
+    expect(during.shouldDefend).toBe(false);
+    expect(during.reason).toMatch(/cooldown/);
+    expect(during.reason).not.toMatch(/unarmed/);
+
+    // Once it elapses the retry is allowed, with no recovery above rearm needed.
+    const after = evaluate(stillInActBand, THRESHOLDS_WAD, attempted, T0 + 1_800_000);
+    expect(after.shouldDefend).toBe(true);
+
+    // Contrast: the old behaviour is still correct for a defense that DID land.
+    const fired = markDefenseFired(freshArmed("act"), T0);
+    expect(evaluate(stillInActBand, THRESHOLDS_WAD, fired, T0 + 1_800_000).shouldDefend).toBe(
+      false,
+    );
   });
 });
