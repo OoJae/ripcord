@@ -12,8 +12,14 @@
 
 import { describe, expect, it } from "vitest";
 import { ADDRESS_BOOK } from "../../src/config.js";
-import { MockKeeperHubClient } from "../../src/executor/keeperhub.js";
-import { createDaemon, type DaemonDeps, type DaemonLogger } from "../../src/index.js";
+import { HttpKeeperHubClient, MockKeeperHubClient } from "../../src/executor/keeperhub.js";
+import {
+  baseUnitsFor,
+  chooseExecutor,
+  createDaemon,
+  type DaemonDeps,
+  type DaemonLogger,
+} from "../../src/index.js";
 import { openDb } from "../../src/state/db.js";
 import type {
   Critic,
@@ -303,5 +309,73 @@ describe("daemon: policy suppression paths", () => {
       ADDRESS_BOOK["base-sepolia"].usdc.address,
     );
     h.db.close();
+  });
+
+  it("blocks an unpriceable asset instead of sending a zero-amount payload", async () => {
+    // Ripcord has no oracle feed, so it cannot convert USD → collateral base
+    // units. Returning 0 would have POSTed a defense that supplies nothing;
+    // the tick must record a block and leave the executor untouched.
+    const h = harness({ dryRun: false, hf: "1.20" });
+    h.deps.planner = {
+      async plan(): Promise<PlanResult> {
+        return {
+          proposal: {
+            action: "supplyCollateral",
+            asset: "cbETH",
+            amountUsd: 10,
+            expectedHfAfter: 1.6,
+            rationale: "top up collateral",
+          },
+          raw: null,
+        };
+      },
+    };
+    await createDaemon(h.deps).runTick("01J9UNPRICEABLE0000000000");
+
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+    expect(h.db.recentDecisions(1)[0]?.status).toBe("blocked");
+    expect(h.notifications.at(-1)?.kind).toBe("blocked");
+    h.db.close();
+  });
+});
+
+describe("baseUnitsFor", () => {
+  it("converts USDC exactly at 6 decimals", () => {
+    expect(baseUnitsFor("USDC", 4.02)).toBe(4_020_000n);
+    expect(baseUnitsFor("USDC", 0.01)).toBe(10_000n);
+  });
+
+  it("refuses assets it cannot price rather than returning zero", () => {
+    expect(() => baseUnitsFor("cbETH", 10)).toThrow(/cannot price cbETH/);
+    expect(() => baseUnitsFor("WETH", 10)).toThrow(/oracle/);
+  });
+});
+
+describe("chooseExecutor", () => {
+  const WEBHOOK = "https://app.keeperhub.com/api/workflows/wf2/webhook";
+
+  it("returns the live HTTP client only when the capability AND the URL are present", () => {
+    const cfg = makeTestConfig({
+      MONITORED_ADDRESS: TEST_ADDRESS,
+      KEEPERHUB_DEFEND_WEBHOOK_URL: WEBHOOK,
+    });
+    expect(cfg.capabilities.keeperhub).toBe(true);
+    expect(chooseExecutor(cfg)).toBeInstanceOf(HttpKeeperHubClient);
+  });
+
+  it("falls back to the mock with no webhook URL configured", () => {
+    expect(chooseExecutor(makeTestConfig({ MONITORED_ADDRESS: TEST_ADDRESS }))).toBeInstanceOf(
+      MockKeeperHubClient,
+    );
+  });
+
+  it("falls back to the mock if the capability flag is somehow off", () => {
+    // Defence in depth: both conditions must hold, so a future refactor that
+    // sets one without the other degrades to simulation rather than to writes.
+    const cfg = makeTestConfig(
+      { MONITORED_ADDRESS: TEST_ADDRESS, KEEPERHUB_DEFEND_WEBHOOK_URL: WEBHOOK },
+      { capabilities: { chainReads: true, llm: false, keeperhub: false, telegram: false } },
+    );
+    expect(chooseExecutor(cfg)).toBeInstanceOf(MockKeeperHubClient);
   });
 });

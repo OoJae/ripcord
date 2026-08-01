@@ -87,17 +87,42 @@ export interface Daemon {
 
 const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-/** Convert a USD amount into token base units for the defense payload. */
+/**
+ * Convert a USD amount into token base units for the defense payload.
+ *
+ * FAIL-CLOSED: only USDC can be converted. Collateral is priced in USD by the
+ * Aave oracle and Ripcord has no price feed, so there is no honest USD →
+ * collateral conversion available here. Returning 0 would have shipped a
+ * payload that quietly repays/supplies nothing, so we throw instead and let the
+ * decision be recorded as blocked. Phase 1 is the repay path only; giving
+ * supplyCollateral a real amount needs an oracle read (Phase 2).
+ */
 export function baseUnitsFor(asset: AssetSymbol, amountUsd: number): bigint {
   if (asset === "USDC") {
     // USDC ≈ $1 — exact 6-decimal conversion.
     return BigInt(Math.round(amountUsd * 10 ** TOKEN_DECIMALS.USDC));
   }
-  // Collateral is priced in USD by the Aave oracle, and Ripcord has no price
-  // feed in Session 1, so it cannot convert USD → collateral base units here.
-  // WF-2 derives the amount from amountUsd plus its own oracle read
-  // (check-and-execute). VERIFY in Session 2 when WF-2 exists.
-  return 0n;
+  throw new Error(
+    `baseUnitsFor: cannot price ${asset} without an oracle feed — ` +
+      "supplyCollateral is not executable in Phase 1 (repay path only)",
+  );
+}
+
+/**
+ * Pick the executor. This single expression is the switch between "writes are
+ * simulated" and "writes move real money", so it is exported and tested rather
+ * than buried inside main(). Both conditions must hold: the capability flag AND
+ * a webhook URL to POST to. Anything less falls back to the mock.
+ */
+export function chooseExecutor(cfg: AppConfig): KeeperHubClient {
+  if (cfg.capabilities.keeperhub && cfg.keeperhubWebhookUrl) {
+    return new HttpKeeperHubClient({
+      webhookUrl: cfg.keeperhubWebhookUrl,
+      apiKey: cfg.keeperhubApiKey,
+      apiBaseUrl: cfg.keeperhubApiBaseUrl,
+    });
+  }
+  return new MockKeeperHubClient();
 }
 
 export function buildDefensePayload(
@@ -343,7 +368,30 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       return;
     }
 
-    const payload = buildDefensePayload(cfg, proposal, snapshot, decisionId);
+    // The Guard has passed, but the payload can still be unbuildable — e.g. an
+    // asset we cannot price into base units. Treat that as a block, not a crash:
+    // a thrown tick would leave this decision stuck in "executing" forever.
+    let payload: DefensePayload;
+    try {
+      payload = buildDefensePayload(cfg, proposal, snapshot, decisionId);
+    } catch (err) {
+      const detail = `payload could not be built: ${String(err instanceof Error ? err.message : err)}`;
+      log.error({ err: detail }, "defense blocked before execution");
+      db.updateDecision(decisionId, { status: "blocked" });
+      await safeNotify(
+        {
+          kind: "blocked",
+          chain: cfg.chain,
+          band: res.band,
+          decisionId,
+          dryRun: cfg.dryRun,
+          hf: snapshot.hf,
+          detail,
+        },
+        log,
+      );
+      return;
+    }
 
     if (guard.decision === "dry-run") {
       log.info(
@@ -518,14 +566,7 @@ async function main(): Promise<void> {
     critic = createHeuristicCritic();
   }
 
-  const keeperhub: KeeperHubClient =
-    cfg.capabilities.keeperhub && cfg.keeperhubWebhookUrl
-      ? new HttpKeeperHubClient({
-          webhookUrl: cfg.keeperhubWebhookUrl,
-          apiKey: cfg.keeperhubApiKey,
-          apiBaseUrl: cfg.keeperhubApiBaseUrl,
-        })
-      : new MockKeeperHubClient();
+  const keeperhub = chooseExecutor(cfg);
 
   const notifier = createNotifier(cfg, logger);
 

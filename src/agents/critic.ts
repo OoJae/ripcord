@@ -74,8 +74,12 @@ export function createHeuristicCritic(): Critic {
       if (proposal.action === "repay" && proposal.asset !== "USDC") {
         return reject("invalid pairing: repay requires USDC");
       }
-      if (proposal.action === "supplyCollateral" && proposal.asset !== "WETH") {
-        return reject("invalid pairing: supplyCollateral requires WETH");
+      // The collateral asset is per-chain (WETH on Base, cbETH on Base Sepolia),
+      // so the valid pairing comes from the snapshot, never a hardcoded symbol.
+      // Must stay in step with the Guard's allowlist rule (guard.ts:152-155).
+      const collateralSymbol = snapshot.balances.collateralSymbol;
+      if (proposal.action === "supplyCollateral" && proposal.asset !== collateralSymbol) {
+        return reject(`invalid pairing: supplyCollateral requires ${collateralSymbol}`);
       }
       if (!(proposal.amountUsd > 0) || !Number.isFinite(proposal.amountUsd)) {
         return reject(`amount ${proposal.amountUsd} is not a positive finite number`);

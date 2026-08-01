@@ -1,6 +1,6 @@
 /**
  * stress-position — push the monitored position's HF down for demos
- * (borrow more USDC, or withdraw some WETH collateral).
+ * (borrow more USDC, or withdraw some collateral).
  *
  * INTENT: executed via the KeeperHub contract-call surface in Session 2 —
  * this script never signs or sends; it prints the exact intended call.
@@ -10,7 +10,7 @@
  * 2026-07-30 the Sepolia market is live (6 reserves), so this is unlikely.
  *
  * Usage: pnpm exec tsx scripts/stress-position.ts --borrow-usdc 5
- *        pnpm exec tsx scripts/stress-position.ts --withdraw-weth 0.002
+ *        pnpm exec tsx scripts/stress-position.ts --withdraw-collateral 0.002
  */
 
 import { pathToFileURL } from "node:url";
@@ -36,7 +36,7 @@ export const WITHDRAW_ABI = [
 export function buildStressCall(
   chain: Chain,
   account: Address,
-  opts: { borrowUsdc?: string; withdrawWeth?: string },
+  opts: { borrowUsdc?: string; withdrawCollateral?: string },
 ): IntendedCall {
   const book = ADDRESS_BOOK[chain];
   if (opts.borrowUsdc) {
@@ -50,18 +50,18 @@ export function buildStressCall(
       calldata: encodeFunctionData({ abi: POOL_ABI, functionName: "borrow", args }),
     };
   }
-  if (opts.withdrawWeth) {
-    const amount = parseUnits(opts.withdrawWeth, book.collateral.decimals);
+  if (opts.withdrawCollateral) {
+    const amount = parseUnits(opts.withdrawCollateral, book.collateral.decimals);
     const args = [book.collateral.address, amount, account] as const;
     return {
-      description: `withdraw ${opts.withdrawWeth} WETH collateral (pushes HF down)`,
+      description: `withdraw ${opts.withdrawCollateral} ${book.collateral.symbol} collateral (pushes HF down)`,
       target: book.aavePool.address,
       functionName: "withdraw",
       args,
       calldata: encodeFunctionData({ abi: WITHDRAW_ABI, functionName: "withdraw", args }),
     };
   }
-  throw new Error("pass --borrow-usdc <amount> or --withdraw-weth <amount>");
+  throw new Error("pass --borrow-usdc <amount> or --withdraw-collateral <amount>");
 }
 
 function argOf(flag: string): string | undefined {
@@ -78,7 +78,7 @@ async function main(): Promise<void> {
   }
   const call = buildStressCall(cfg.chain, cfg.monitoredAddress, {
     borrowUsdc: argOf("--borrow-usdc"),
-    withdrawWeth: argOf("--withdraw-weth"),
+    withdrawCollateral: argOf("--withdraw-collateral"),
   });
   console.log(
     `# stress-position — intended call on ${cfg.chain} (NOT sent; execute via KeeperHub)`,

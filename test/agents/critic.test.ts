@@ -126,4 +126,49 @@ describe("critic: heuristic verifier recomputes independently", () => {
     );
     expect(verdict.verdict).toBe("REJECT");
   });
+
+  // The collateral asset is per-chain. A hardcoded "WETH" here silently vetoed
+  // every legitimate cbETH supply on Base Sepolia; the pairing must be read from
+  // the snapshot, exactly as the Guard reads it from the address book.
+  it("accepts supplyCollateral paired with the chain's own collateral symbol", async () => {
+    const onSepolia = makeSnapshot("1.20", {
+      totalCollateralUsd: 30,
+      totalDebtUsd: 20,
+      balances: {
+        usdcRaw: 25_000_000n,
+        usdcUsd: 25,
+        collateralRaw: 10_000_000_000_000_000_000n,
+        collateralAmount: 10,
+        collateralSymbol: "cbETH" as const,
+      },
+    });
+    // (30 + 10) x 0.80 / 20 = 1.60 → exactly the target.
+    const { verdict } = await critic.critique(
+      onSepolia,
+      proposal({ action: "supplyCollateral", asset: "cbETH", amountUsd: 10 }),
+      THRESHOLDS,
+      CAPS,
+    );
+    expect(verdict.verdict).toBe("APPROVE");
+  });
+
+  it("REJECTs supplyCollateral paired with the other chain's collateral symbol", async () => {
+    const onSepolia = makeSnapshot("1.20", {
+      balances: {
+        usdcRaw: 25_000_000n,
+        usdcUsd: 25,
+        collateralRaw: 10_000_000_000_000_000_000n,
+        collateralAmount: 10,
+        collateralSymbol: "cbETH" as const,
+      },
+    });
+    const { verdict } = await critic.critique(
+      onSepolia,
+      proposal({ action: "supplyCollateral", asset: "WETH", amountUsd: 10 }),
+      THRESHOLDS,
+      CAPS,
+    );
+    expect(verdict.verdict).toBe("REJECT");
+    expect(verdict.reason).toMatch(/requires cbETH/);
+  });
 });
