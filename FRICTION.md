@@ -436,3 +436,25 @@ cooldown rather than blocked forever by the latch.
 **Lesson:** an irreversible state change made in anticipation of success is a bet. Both of
 today's daemon bugs were the same mistake in different clothes — treating an intention to
 act, or a workflow's own success, as evidence that the world changed.
+
+## 2026-08-01 — Idempotency-Key works on workflow execute, but only direct-execution documents it
+
+**What:** The docs describe the `Idempotency-Key` header only for `/api/execute/*`
+(direct execution); `/api/workflows/{id}/execute` documents no headers beyond auth. We
+probed it live: two POSTs to the workflow-execute endpoint with the same key returned the
+**same executionId** — replay dedup works there too, it just isn't written down anywhere.
+
+Also newly verified while here: **`PATCH /api/workflows/{id}`** accepts a partial
+`{nodes, edges}` update with the org `kh_` key (PUT is 405), and
+**`GET /api/workflows/executions/{id}/logs`** returns full per-node logs — both used by
+this project, neither on the API docs page.
+
+**Impact:** Positive surprise, adopted: Ripcord now sends `Idempotency-Key: decisionId`
+on every defense trigger, so a network-layer retry of the same decision returns the
+original execution instead of firing a second defense. But we are now depending on
+undocumented behaviour, which the project's own truth policy discourages — hence this
+entry. The daemon-side Guard idempotency + DB UNIQUE remain the real protection if the
+header ever stops working.
+
+**Proposed fix:** Document Idempotency-Key on the workflow-execute endpoint (plus the
+PATCH and logs routes). One line each; all three already work.

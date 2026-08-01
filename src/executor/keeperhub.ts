@@ -200,7 +200,12 @@ export class HttpKeeperHubClient implements KeeperHubClient {
     const url = this.triggerUrl;
     const res = await this.fetchImpl(url, {
       method: "POST",
-      headers: this.headers({ json: true }),
+      // Idempotency-Key: verified honored on /workflows/{id}/execute on
+      // 2026-08-01 (replayed POST returned the same executionId), though the
+      // docs only state it for direct execution — FRICTION.md asks for docs.
+      // Belt and suspenders: the daemon's Guard + DB UNIQUE remain the real
+      // idempotency; this dedupes network-layer retries of the same decision.
+      headers: this.headers({ json: true, idempotencyKey: payload.decisionId }),
       body: JSON.stringify({ input: payload }),
     });
     const body = await readBody(res);
@@ -292,10 +297,11 @@ export class HttpKeeperHubClient implements KeeperHubClient {
     return "running";
   }
 
-  private headers(opts: { json: boolean }): Record<string, string> {
+  private headers(opts: { json: boolean; idempotencyKey?: string }): Record<string, string> {
     const h: Record<string, string> = {};
     if (opts.json) h["content-type"] = "application/json";
     if (this.apiKey !== undefined) h.authorization = `Bearer ${this.apiKey}`;
+    if (opts.idempotencyKey !== undefined) h["idempotency-key"] = opts.idempotencyKey;
     return h;
   }
 }

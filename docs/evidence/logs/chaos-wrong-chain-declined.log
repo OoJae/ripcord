@@ -1,0 +1,3 @@
+gate-1 values : {"Trigger.chain": "base", "Trigger.amountBaseUnits": "10000", "Re-read Position.result.healthFactor": "1603396188091053913"}
+gate-1 output : {"condition": false}
+resolved      : "base" == "base-sepolia" && "1603396188091053913" < 1500000000000000000 && "10000" <= 60000000

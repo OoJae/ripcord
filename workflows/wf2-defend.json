@@ -48,13 +48,19 @@
         "type": "action",
         "label": "Still Below Warn 1.50",
         "config": {
-          "condition": "{{@verify-1:Re-read Position.result.healthFactor}} < 1500000000000000000",
+          "condition": "{{@trigger-1:Trigger.chain}} == base-sepolia && {{@verify-1:Re-read Position.result.healthFactor}} < 1500000000000000000",
           "actionType": "Condition",
           "conditionConfig": {
             "group": {
               "id": "grp-stale",
               "logic": "AND",
               "rules": [
+                {
+                  "id": "rule-chain-binding",
+                  "operator": "==",
+                  "leftOperand": "{{@trigger-1:Trigger.chain}}",
+                  "rightOperand": "base-sepolia"
+                },
                 {
                   "id": "rule-hf-still-below-warn",
                   "operator": "<",

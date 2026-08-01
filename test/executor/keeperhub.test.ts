@@ -44,6 +44,10 @@ describe("HttpKeeperHubClient.triggerDefense", () => {
     expect(init.method).toBe("POST");
     expect((init.headers as Record<string, string>).authorization).toBe("Bearer kh_secret");
     expect((init.headers as Record<string, string>)["content-type"]).toBe("application/json");
+    // Replay dedup at the API layer: the decisionId travels as the
+    // Idempotency-Key, so a network-level retry of the same decision returns
+    // the original execution instead of firing a second defense.
+    expect((init.headers as Record<string, string>)["idempotency-key"]).toBe(PAYLOAD.decisionId);
 
     // VERIFIED 2026-08-01: /execute requires the {"input": {...}} envelope. A
     // bare body still returns 200 but its fields never reach the trigger node,
