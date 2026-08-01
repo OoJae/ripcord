@@ -42,3 +42,49 @@
     [35mhasDebt[39m: true
     [35mshouldDefend[39m: false
     [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
+[14:01:17.074] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPM82EWNQ43HVMS8RZ8Y74"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
+[14:02:17.412] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPP2ZMM53HMAG3R39Y7YM2"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
+[14:03:17.820] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPQXX5B9ZRV2DWX5MVR90J"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
+[14:04:18.145] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPSRWXQTKR6N9B2S6J0A1K"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
+[14:05:18.705] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPVKT278YFTFYAK5H8GWBJ"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
+[14:06:18.995] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPXEYKJC1F94DT7ATD4PXT"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
+72
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"

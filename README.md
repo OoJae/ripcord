@@ -37,16 +37,19 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 
 | Surface | Where Ripcord uses it | Evidence |
 |---|---|---|
-| Webhook-triggered workflow (WF-2 `defend`) | Daemon triggers the defense tx | _(Session 2)_ |
-| Scheduled workflow (WF-1 `hf-monitor`) | Redundant HF monitoring even if the daemon dies | _(Session 2)_ |
-| Run status API (`/wait`, `/status`) | Executor polls runs to terminal state | implemented in `src/executor/keeperhub.ts` |
+| Webhook-triggered workflow (WF-2 `defend`) | The only path by which Ripcord moves money | ✅ [`rk20tp8ucuf3caxjrdpfe`](workflows/wf2-defend.json) |
+| Scheduled workflow (WF-1 `hf-monitor`) | Redundant HF monitoring even if the daemon dies | ✅ [`8kcwzx7ycrg1zlqhox6tz`](workflows/wf1-hf-monitor.json) |
+| Workflow execution API | Daemon triggers WF-2 via `POST /workflows/{id}/execute` | ✅ `src/executor/keeperhub.ts` |
+| Run status API (`/status`, `/wait`) | Executor polls runs to a terminal state | ✅ every defense in [EVIDENCE.md](docs/evidence/EVIDENCE.md) |
+| `web3/read-contract` in-workflow | WF-2 re-reads the position before it will write | ✅ [stale-decision refusal](docs/evidence/EVIDENCE.md) |
+| `Condition` branching | The on-chain gate that decides whether the repay node runs | ✅ `sourceHandle: "true"` edge only |
+| `web3/write-contract` | The defensive `Pool.repay` itself | ✅ [EVIDENCE.md](docs/evidence/EVIDENCE.md) |
 | MCP server + Claude Code plugin | Position setup and workflow build/debug | ✅ [4 txs](docs/evidence/EVIDENCE.md) via `execute_contract_call` |
-| Smart gas + retries | Defense tx reliability | _(Session 2)_ |
-| Direct contract-call execution | Faucet mint, Aave supply/borrow to open the monitored position | ✅ [`0x4cc001bf…`](https://sepolia.basescan.org/tx/0x4cc001bfaa7d268e73a71cb710f62f8d611c69aa4e8ea9f23ea4d48ba5e64be8) |
-| Private routing (mainnet defenses) | MEV protection for the rescue | _(Session 3)_ |
-| Gas sponsorship (setup txs) | Public-mempool setup txs | ✅ all 4 setup txs `sponsored: true` |
-| Audit trail | Proof: trigger → simulation → tx → outcome | _(Session 2)_ |
-| Marketplace + x402 (WF-3 `risk-score`) | Paid risk scoring — Ripcord pays for itself | _(Session 4)_ |
+| Direct contract-call execution | Faucet mint, supply/borrow, right-sizing, capped approval | ✅ [`0x4cc001bf…`](https://sepolia.basescan.org/tx/0x4cc001bfaa7d268e73a71cb710f62f8d611c69aa4e8ea9f23ea4d48ba5e64be8) |
+| Gas sponsorship | Every setup and defense tx, `sponsored: true` | ✅ all setup txs sponsored |
+| Audit trail | `decisionId` threads log → SQLite → payload → execution → tx | ✅ one ULID end to end |
+| Private routing (mainnet defenses) | MEV protection for the rescue | ⬜ Phase 2 — `usePrivateMempool` wired, off on testnet |
+| Marketplace + x402 (WF-3 `risk-score`) | Paid risk scoring — Ripcord pays for itself | ⬜ Phase 3 |
 
 ## Transactions
 

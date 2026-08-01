@@ -196,3 +196,142 @@ that summarises can silently invert a pass/fail signal.
 
 **What:** `pnpm test` crashed in `runDepsStatusCheck` (recursive `pnpm install` spawn) because better-sqlite3/esbuild build scripts were unapproved; the `package.json` `pnpm.onlyBuiltDependencies` field was not honored — this pnpm reads `allowBuilds` from `pnpm-workspace.yaml`.
 **Fix applied:** `pnpm-workspace.yaml` with `allowBuilds: {better-sqlite3: true, esbuild: true}` + `.npmrc` `verify-deps-before-run=false`. Noting here because any starter-template consumer will hit the same wall.
+
+## 2026-08-01 — Aave V3 protocol actions silently exclude Base Sepolia
+
+**What:** Every `aave-v3/*` action rejects chain 84532 at save time:
+`{"code":"INVALID_FIELD_TYPE","field":"network","expected":"1 | 10 | 8453 | 42161 | 11155111","received":"84532"}`.
+Nothing in `search_protocol_actions`, `list_action_schemas`, or the action docs states a
+supported-chain list — the `network` field is described only as "chain ID string", and
+`get_plugin("triggers").chains` separately advertises Base Sepolia as `status: "stable"`.
+So the platform tells you the chain is stable and the action takes a chain id, and you only
+discover the intersection is empty by trying to save a workflow.
+
+**Impact:** The obvious way to build an Aave keeper on a testnet — the purpose-built
+`aave-v3/repay` and `aave-v3/get-user-account-data` nodes — is unavailable exactly where
+you would rehearse it. We rebuilt both workflows on `web3/read-contract` and
+`web3/write-contract` with the Pool address pinned from our own allowlist. That turned out
+better for us (explicit addresses, `usePrivateMempool` is only available on
+`web3/write-contract` anyway), but it was an hour of rework driven by a discoverable fact.
+
+**Proposed fix:** Publish `supportedChains` per protocol action in `list_action_schemas`
+and in `search_protocol_actions` output, and grey out unsupported chains in the builder.
+Failing that, make the error name the action's supported set *and* suggest the
+`web3/*` fallback.
+
+## 2026-08-01 — the webhook trigger's `{"input": …}` envelope fails open, not closed
+
+**What:** `POST /api/workflows/{id}/execute` accepts a bare JSON body with `200 OK` and a
+real `executionId`, but the fields never reach the trigger node. `execution.input` is `{}`
+and the first templated action dies with `Unresolved template reference(s)`. The payload is
+only delivered when wrapped as `{"input": {...}}`. `{"triggerData": …}` and `{"data": …}`
+fail the same silent way.
+
+**Impact:** The failure looks like a workflow-definition bug, not a request-shape bug — we
+spent a probe cycle rewriting template references before realising the body was being
+dropped. An agent that trusts the 200 would record the defense as triggered and never
+notice nothing ran.
+
+**Proposed fix:** Reject a body with no recognised envelope with `400`, naming the expected
+shape. Or accept a bare body as the input. Either is fine; returning `200` for a request
+whose payload was discarded is the problem.
+
+## 2026-08-01 — `kh_` org keys cannot call the webhook endpoint, and the docs do not say so
+
+**What:** `POST /api/workflows/{id}/webhook` requires a **user webhook key** (`wfb_*`);
+the org API key (`kh_*`) returns 401 `wrong_key_type`. The API docs page names the webhook
+endpoint without mentioning that a second, differently-provisioned key class is required,
+and there is no MCP tool to mint one — it is a web-UI-only step.
+
+**Credit where due:** the 401 body is genuinely excellent — it names the expected prefix,
+explains what the presented key *is* for, and gives the exact UI path to generate the right
+one. More errors should look like this.
+
+**Impact:** Automated setup stalls at a manual step. We used `/api/workflows/{id}/execute`
+with the org key instead, which is documented and works.
+
+**Proposed fix:** Note the `wfb_*` requirement on the webhook docs page, and expose webhook
+key creation over the API/MCP so a workflow can be provisioned end-to-end headlessly.
+
+## 2026-08-01 — `telegram/send-message` claims `requiresCredentials: false` but needs an integration
+
+**What:** The action schema reports `requiresCredentials: false` for
+`telegram/send-message` (identical to `discord/send-message` and `slack/send-message`), and
+the node exposes no token field. At runtime it fails with *"Telegram bot token is required.
+Please configure it in the integration settings."*
+
+**Second-order impact, and the reason this matters:** a failing notify node marks the
+**entire execution** `error`. Wire notification into a workflow that also writes on-chain
+and a landed transaction gets reported as a failed run — the caller's status polling then
+records a successful defense as a failure. We removed the notify node from WF-2 entirely and
+let the daemon own notification.
+
+**Proposed fix:** Make `requiresCredentials` accurate for the messaging actions, and
+surface missing-integration as a validation error at save time rather than a runtime one.
+Separately: consider letting a workflow mark a node non-fatal, so notification failures
+cannot misreport the outcome of a write.
+
+## 2026-08-01 — `code/run-code` is a paid-plan feature, discovered at save time
+
+**What:** `code/run-code` appears in `list_action_schemas` with full field documentation and
+no plan annotation, and it is used by public templates the search surface returns. Saving a
+workflow that contains it fails with `402 upgrade_required`,
+`featureId: "action.code"`, `requiredPlan: "pro"`.
+
+**Impact:** We had designed WF-2's health-factor gate around a `run-code` node to normalise
+the raw 1e18 health factor before comparing. Rebuilt it as a direct wad comparison in a
+`Condition` — which is simpler and turned out fine — but the design was chosen from a
+catalogue that did not disclose the gate.
+
+**Proposed fix:** Include a `requiredPlan` field in `list_action_schemas` output and flag
+plan-gated actions in template listings.
+
+## 2026-08-01 — our own bug: the verified figure was rounded the wrong way
+
+**What:** `repayNeededForTarget` returned the mathematically exact repayment ($4.2295) and
+`prompts.ts` rendered it into the VERIFIED FIGURES block with `.toFixed(2)`. The Planner
+proposed the rounded number, the deterministic recompute landed at HF **1.5999**, and the
+Critic correctly REJECTed it for missing the 1.60 target. Every tick would have done the
+same: a permanently stalled agent, failing safe but never defending.
+
+**Why it is interesting:** this is the second time our own arithmetic — not the model — was
+the defect, and the second time an independent checker caught it. The layered design worked;
+the bug was in the layer we trusted most.
+
+**Fix:** ceil to whole cents in the shared arithmetic. Provably sufficient: with
+E = effective collateral, D = debt, T = target, the requirement is `r >= D - E/T`, so any
+`r` above it yields `E/(D-r) >= T`. Also guarded against binary-float error, because
+`Math.ceil(x*100)/100` is **not idempotent** — `4.23 * 100 === 423.00000000000006` ceils to
+4.24 and would silently over-repay a cent. Pinned by `test/agents/hf-math.test.ts`.
+
+## 2026-08-01 — known gap: the Guard bounds damage, it does not second-guess sizing
+
+**What:** During the first armed run the LLM Critic REJECTed a proposal landing at HF 1.5999
+on one tick, then APPROVEd one landing at ~1.5965 on the next. Only the Critic enforces
+"reaches the target health factor" — the Guard's twelve rules enforce the allowlist, caps,
+daily spend, idempotency, arming, provenance and a *minimum improvement*, but not the target.
+
+**Why we did not simply add a thirteenth rule:** a hard `hfAfter >= targetHf` would break the
+legitimate capped defense. When `MAX_TX_USD` or the wallet balance binds, the Planner
+correctly proposes the largest affordable repayment even though it falls short of 1.60 — and
+blocking that would leave a position undefended in exactly the situation that matters most.
+The honest description of the current design is: **the Guard bounds the blast radius, the
+Critic judges sufficiency.** An inconsistent Critic can therefore cause a defense that is
+smaller than ideal, but never one that is unsafe, unaffordable, or off-allowlist.
+
+**Proposed follow-up (post-hackathon):** a rule of the form
+`hfAfter >= targetHf OR amountUsd is at a binding limit`, which keeps the capped case legal
+while closing the inconsistency window.
+
+## 2026-08-01 — environment: api.telegram.org unreachable from the build network
+
+**What:** `curl https://api.telegram.org/bot…/getMe` times out after 15s from this machine,
+though the same bot and chat id resolved successfully earlier in the project.
+
+**Impact:** None on correctness — the notifier is explicitly built never to throw into the
+loop, and the daemon logged `telegram sendMessage threw; continuing` and carried on. It does
+mean local Telegram screenshots must be captured from a different network. KeeperHub's own
+`telegram/send-message` runs server-side and is unaffected by this.
+
+**Not a KeeperHub or Ripcord defect** — recorded so the empty Telegram evidence slot is not
+mistaken for a broken notifier.

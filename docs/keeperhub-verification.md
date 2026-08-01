@@ -145,26 +145,80 @@ Execution object fields: `id`, `workflowId`, `status`, `input`, `output`,
 Note it is `error`, **not** `failed` — `src/types.ts` `RunState` matches this
 exactly, and `TERMINAL_RUN_STATES` is `{success, error, cancelled}`.
 
-## 3. Webhook trigger — PARTIAL, the one remaining unknown
+## 3. Webhook trigger — RESOLVED 2026-08-01 by direct probing
 
-Webhook is one of five trigger types (Manual, Schedule, Webhook, Event, Block),
-with an auto-generated URL and optional auth headers
-(`/keepers/overview`, `/keepers/configuration`). `POST /api/workflows/{workflowId}/webhook`
-is named on the API page and requires API-key auth.
+Previously the one remaining unknown. Settled empirically with two throwaway
+probe workflows (`c59sy9julvftyzeyz8gdi`, `lemzd7pw3pxo9ddw08fa0`, both since
+disabled) rather than guessed. Every point below was observed on the live API.
 
-**NOT documented anywhere:** the auto-generated URL pattern, the accepted POST
-body schema, and the response body (whether it returns an execution id).
-`/keepers/webhook`, `/keepers/triggers/webhook`, and `/workflows/webhook` all 404.
+### The trigger endpoint Ripcord actually uses
 
-**How the code copes** (`src/executor/keeperhub.ts`):
-- Posts the `DefensePayload` to `KEEPERHUB_DEFEND_WEBHOOK_URL` with
-  `Authorization: Bearer kh_…` — header name carries a `// VERIFY:` (could be `x-api-key`).
-- Parses the response permissively for `executionId | runId | id`, at the top
-  level or under the `data` envelope.
-- **Fails closed:** a 2xx with no extractable run id throws rather than
-  reporting a successful-but-untrackable trigger.
-- Documented fallback if the webhook contract diverges: the verified
-  `POST /api/workflows/{workflowId}/execute`.
+```
+POST https://app.keeperhub.com/api/workflows/{workflowId}/execute
+Authorization: Bearer kh_…
+Content-Type: application/json
+
+{"input": { …payload fields… }}
+→ 200 {"executionId": "...", "status": "running"}
+```
+
+**The `{"input": …}` envelope is mandatory and silently load-bearing.** A bare
+body returns `200` with an `executionId` — it *looks* fine — but the fields never
+reach the trigger node, `execution.input` is `{}`, and the first action fails
+with `Unresolved template reference(s)`. Two other envelopes were tried and also
+fail: `{"triggerData": …}` and `{"data": …}`.
+
+### `/webhook` needs a different key class
+
+`POST /api/workflows/{id}/webhook` exists, but the org `kh_` key is rejected:
+
+```json
+{"error":"Wrong API key type. This endpoint requires a user webhook key (wfb_*).
+  The kh_* prefix is an org API key for /api/execute/* and /mcp.",
+ "code":"wrong_key_type","expected":"wfb_*","received":"kh_*"}
+```
+
+`x-api-key` is not accepted on either endpoint — the server answers `Missing
+Authorization header`. So: **auth is `Authorization: Bearer`, and the key class
+selects the endpoint.** Ripcord uses `/execute` with the org key it already has;
+a `wfb_` key would have to be minted by hand in the web UI.
+
+### Template reference form — the docs/templates conflict was moot
+
+All four candidate forms resolve to the same value:
+
+| Form | Resolved |
+|---|---|
+| `{{@trigger-1:Trigger.decisionId}}` | ✅ |
+| `{{@trigger-1:Trigger.data.decisionId}}` | ✅ |
+| `{{@trigger-1:Manual.decisionId}}` | ✅ |
+| `{{@trigger-1:Manual.data.decisionId}}` | ✅ |
+
+The resolver keys off the **nodeId** and tolerates both the label segment and an
+optional `data.` hop. We use the documented `{{@nodeId:Trigger.field}}`.
+
+Trigger output shape is `{success: true, data: {…payload…, timestamp, triggered,
+triggeredAt}}` — the posted fields are spread at the top level of `data`.
+
+### Unresolved references abort the action (a good default)
+
+> *"The action was aborted to prevent silently writing empty or literal values."*
+
+A missing field kills the node rather than sending `"undefined"` on-chain. This is
+fail-closed behaviour we get for free and should not be worked around.
+
+### Conditions compare numerically
+
+`950000000000000000 < 1500000000000000000` evaluates **true**, so raw 1e18 wads
+can be compared directly against literal thresholds — the 18-vs-19-digit
+lexicographic hazard does not exist. Confirmed again in WF-2 with a real read:
+`"1988482751559923150" < 1500000000000000000` → `false`.
+
+### Response parsing in code
+
+`src/executor/keeperhub.ts` still parses permissively (`executionId | runId | id`,
+with or without a `data` envelope) and **fails closed** — a 2xx with no
+extractable run id throws rather than reporting an untrackable trigger.
 
 ## 4. Gas sponsorship and private routing
 
