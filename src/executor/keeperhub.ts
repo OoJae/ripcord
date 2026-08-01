@@ -148,7 +148,8 @@ function extractErrorDetail(rec: Record<string, unknown>): string | undefined {
 // HTTP client
 
 export interface HttpKeeperHubClientOptions {
-  webhookUrl: string;
+  /** WF-2's trigger endpoint (KEEPERHUB_DEFEND_WEBHOOK_URL). */
+  triggerUrl: string;
   apiKey?: string;
   /** REST base for execution status reads. */
   apiBaseUrl?: string;
@@ -159,14 +160,14 @@ export interface HttpKeeperHubClientOptions {
 export const DEFAULT_KEEPERHUB_API_BASE_URL = "https://app.keeperhub.com/api";
 
 export class HttpKeeperHubClient implements KeeperHubClient {
-  private readonly webhookUrl: string;
+  private readonly triggerUrl: string;
   private readonly apiKey: string | undefined;
   private readonly apiBaseUrl: string;
   private readonly fetchImpl: typeof fetch;
   private readonly logger: KeeperHubLogger | undefined;
 
   constructor(opts: HttpKeeperHubClientOptions) {
-    this.webhookUrl = opts.webhookUrl;
+    this.triggerUrl = opts.triggerUrl;
     this.apiKey = opts.apiKey;
     this.apiBaseUrl = opts.apiBaseUrl ?? DEFAULT_KEEPERHUB_API_BASE_URL;
     this.fetchImpl = opts.fetchImpl ?? fetch;
@@ -174,33 +175,42 @@ export class HttpKeeperHubClient implements KeeperHubClient {
   }
 
   /**
-   * Fire the WF-2 defense workflow via its webhook trigger.
+   * Fire the WF-2 defense workflow.
    *
-   * VERIFY: the webhook payload/response shape is undocumented (confirmed missing
-   * from docs.keeperhub.com 2026-07-30), and the auth header name is unverified
-   * (Authorization: Bearer vs x-api-key — we send Bearer). We therefore parse the
-   * response permissively (executionId | runId | id, optionally { data: {...} }
-   * enveloped) and FAIL CLOSED when no run id can be found: without an id we
-   * cannot track the execution, so we refuse to report a successful trigger.
+   * VERIFIED end-to-end against the live API on 2026-08-01 (probe workflows
+   * c59sy9julvftyzeyz8gdi / lemzd7pw3pxo9ddw08fa0, then WF-2 itself):
+   *  - Endpoint: POST {apiBaseUrl}/workflows/{workflowId}/execute.
+   *  - Auth: `Authorization: Bearer kh_…`. `x-api-key` is rejected outright
+   *    ("Missing Authorization header").
+   *  - Body: the payload MUST be wrapped as {"input": {...}}. A bare body is
+   *    accepted with 200 but its fields never reach the trigger node, and every
+   *    {{@trigger-1:Trigger.<field>}} reference then fails to resolve.
+   *  - Response: {"executionId": "...", "status": "running"} — top level.
    *
-   * Session-2 fallback if the webhook contract diverges: the documented
-   * POST {apiBaseUrl}/workflows/{workflowId}/execute endpoint.
+   * The sibling POST /api/workflows/{id}/webhook endpoint also exists but
+   * requires a separate user webhook key (wfb_*); the org kh_* key is rejected
+   * there with 401 wrong_key_type. See docs/keeperhub-verification.md.
+   *
+   * We still parse the response permissively (executionId | runId | id, with or
+   * without a { data: {...} } envelope) and FAIL CLOSED when no run id is found:
+   * without an id we cannot track the execution, so we refuse to report a
+   * successful trigger.
    */
   async triggerDefense(payload: DefensePayload): Promise<TriggerResult> {
-    const url = this.webhookUrl;
+    const url = this.triggerUrl;
     const res = await this.fetchImpl(url, {
       method: "POST",
       headers: this.headers({ json: true }),
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ input: payload }),
     });
     const body = await readBody(res);
 
     if (!res.ok) {
-      this.logger?.error("KeeperHub webhook trigger failed", {
+      this.logger?.error("KeeperHub defense trigger failed", {
         status: res.status,
         decisionId: payload.decisionId,
       });
-      throw new KeeperHubHttpError(`KeeperHub webhook trigger failed: HTTP ${res.status}`, {
+      throw new KeeperHubHttpError(`KeeperHub defense trigger failed: HTTP ${res.status}`, {
         status: res.status,
         body,
         url,
@@ -211,7 +221,7 @@ export class HttpKeeperHubClient implements KeeperHubClient {
     if (runId === undefined) {
       // 2xx but untrackable — fail closed rather than pretend the run is known.
       throw new KeeperHubHttpError(
-        "KeeperHub webhook returned 2xx but no run id was found " +
+        "KeeperHub trigger returned 2xx but no run id was found " +
           "(looked for executionId|runId|id at the top level and under a data envelope); " +
           "refusing to treat the trigger as tracked",
         { status: res.status, body, url },

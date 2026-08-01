@@ -117,7 +117,7 @@ export function baseUnitsFor(asset: AssetSymbol, amountUsd: number): bigint {
 export function chooseExecutor(cfg: AppConfig): KeeperHubClient {
   if (cfg.capabilities.keeperhub && cfg.keeperhubWebhookUrl) {
     return new HttpKeeperHubClient({
-      webhookUrl: cfg.keeperhubWebhookUrl,
+      triggerUrl: cfg.keeperhubWebhookUrl,
       apiKey: cfg.keeperhubApiKey,
       apiBaseUrl: cfg.keeperhubApiBaseUrl,
     });

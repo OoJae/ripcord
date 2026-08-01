@@ -1,0 +1,117 @@
+{
+  "id": "8kcwzx7ycrg1zlqhox6tz",
+  "name": "Ripcord WF-1 hf-monitor",
+  "description": "Independent KeeperHub-side watch on the Ripcord Aave V3 position (Base Sepolia). Reads the health factor every 5 minutes and alerts on Telegram when it falls below the warn band 1.50. Runs whether or not the Ripcord daemon is up \u2014 a second pair of eyes, not the executor.",
+  "nodes": [
+    {
+      "id": "trigger-1",
+      "data": {
+        "type": "trigger",
+        "label": "Every 5 Minutes",
+        "config": {
+          "triggerType": "Schedule",
+          "scheduleCron": "*/5 * * * *",
+          "scheduleTimezone": "UTC"
+        },
+        "status": "idle"
+      },
+      "type": "trigger",
+      "position": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "read-1",
+      "data": {
+        "type": "action",
+        "label": "Read Health Factor",
+        "config": {
+          "abi": "[{\"type\":\"function\",\"name\":\"getUserAccountData\",\"stateMutability\":\"view\",\"inputs\":[{\"name\":\"user\",\"type\":\"address\"}],\"outputs\":[{\"name\":\"totalCollateralBase\",\"type\":\"uint256\"},{\"name\":\"totalDebtBase\",\"type\":\"uint256\"},{\"name\":\"availableBorrowsBase\",\"type\":\"uint256\"},{\"name\":\"currentLiquidationThreshold\",\"type\":\"uint256\"},{\"name\":\"ltv\",\"type\":\"uint256\"},{\"name\":\"healthFactor\",\"type\":\"uint256\"}]}]",
+          "network": "84532",
+          "actionType": "web3/read-contract",
+          "abiFunction": "getUserAccountData",
+          "functionArgs": "[\"0x30C8A36e99f0708c3e3301b1Ed99cf418BDCf27a\"]",
+          "contractAddress": "0x8bAB6d1b75f19e9eD9fCe8b9BD338844fF79aE27"
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 280,
+        "y": 0
+      }
+    },
+    {
+      "id": "gate-1",
+      "data": {
+        "type": "action",
+        "label": "HF Below Warn 1.50",
+        "config": {
+          "condition": "{{@read-1:Read Health Factor.result.healthFactor}} < 1500000000000000000",
+          "actionType": "Condition",
+          "conditionConfig": {
+            "group": {
+              "id": "grp-warn",
+              "logic": "AND",
+              "rules": [
+                {
+                  "id": "rule-hf-below-warn",
+                  "operator": "<",
+                  "leftOperand": "{{@read-1:Read Health Factor.result.healthFactor}}",
+                  "rightOperand": "1500000000000000000"
+                }
+              ]
+            }
+          }
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 560,
+        "y": 0
+      }
+    },
+    {
+      "id": "alert-1",
+      "data": {
+        "type": "action",
+        "label": "Telegram Alert",
+        "config": {
+          "chatId": "1552207454",
+          "message": "RIPCORD WF-1: Aave V3 health factor is below the 1.50 warn band.\n\nhealthFactor (raw 1e18): {{@read-1:Read Health Factor.result.healthFactor}}\ncollateral (8dp USD):    {{@read-1:Read Health Factor.result.totalCollateralBase}}\ndebt (8dp USD):          {{@read-1:Read Health Factor.result.totalDebtBase}}\nliquidation threshold:   {{@read-1:Read Health Factor.result.currentLiquidationThreshold}} bps\n\nThis is KeeperHub's independent watch. The Ripcord daemon defends separately via WF-2.",
+          "parseMode": "none",
+          "actionType": "telegram/send-message"
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 840,
+        "y": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-read",
+      "source": "trigger-1",
+      "target": "read-1"
+    },
+    {
+      "id": "e-read-gate",
+      "source": "read-1",
+      "target": "gate-1"
+    },
+    {
+      "id": "e-gate-alert",
+      "source": "gate-1",
+      "target": "alert-1",
+      "sourceHandle": "true"
+    }
+  ],
+  "enabled": true,
+  "visibility": "private",
+  "workflowType": "read"
+}

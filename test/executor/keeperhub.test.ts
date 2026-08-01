@@ -31,7 +31,7 @@ describe("HttpKeeperHubClient.triggerDefense", () => {
       jsonResponse({ executionId: "exec_123", status: "running" }),
     );
     const client = new HttpKeeperHubClient({
-      webhookUrl: "https://app.keeperhub.com/hook/wf2",
+      triggerUrl: "https://app.keeperhub.com/hook/wf2",
       apiKey: "kh_secret",
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
@@ -45,16 +45,23 @@ describe("HttpKeeperHubClient.triggerDefense", () => {
     expect((init.headers as Record<string, string>).authorization).toBe("Bearer kh_secret");
     expect((init.headers as Record<string, string>)["content-type"]).toBe("application/json");
 
-    // The wire payload carries exactly the DefensePayload keys — nothing extra,
-    // and the only address present is the one resolved from the config allowlist.
+    // VERIFIED 2026-08-01: /execute requires the {"input": {...}} envelope. A
+    // bare body still returns 200 but its fields never reach the trigger node,
+    // so every {{@trigger-1:Trigger.<field>}} reference silently fails to
+    // resolve. The envelope is load-bearing, not cosmetic.
     const sent = JSON.parse(init.body as string) as Record<string, unknown>;
-    expect(Object.keys(sent).sort()).toEqual(Object.keys(PAYLOAD).sort());
-    expect(sent.assetAddress).toBe(PAYLOAD.assetAddress);
+    expect(Object.keys(sent)).toEqual(["input"]);
+
+    // Inside the envelope: exactly the DefensePayload keys — nothing extra, and
+    // the only address present is the one resolved from the config allowlist.
+    const input = sent.input as Record<string, unknown>;
+    expect(Object.keys(input).sort()).toEqual(Object.keys(PAYLOAD).sort());
+    expect(input.assetAddress).toBe(PAYLOAD.assetAddress);
   });
 
   it("parses a run id from the documented { data: … } envelope", async () => {
     const client = new HttpKeeperHubClient({
-      webhookUrl: "https://x/hook",
+      triggerUrl: "https://x/hook",
       fetchImpl: (async () => jsonResponse({ data: { id: "exec_from_envelope" } })) as typeof fetch,
     });
     expect((await client.triggerDefense(PAYLOAD)).runId).toBe("exec_from_envelope");
@@ -62,7 +69,7 @@ describe("HttpKeeperHubClient.triggerDefense", () => {
 
   it("throws KeeperHubHttpError on a non-2xx response", async () => {
     const client = new HttpKeeperHubClient({
-      webhookUrl: "https://x/hook",
+      triggerUrl: "https://x/hook",
       fetchImpl: (async () => jsonResponse({ error: "nope" }, 502)) as typeof fetch,
     });
     await expect(client.triggerDefense(PAYLOAD)).rejects.toMatchObject({
@@ -73,7 +80,7 @@ describe("HttpKeeperHubClient.triggerDefense", () => {
 
   it("FAILS CLOSED on a 2xx with no run id rather than reporting a phantom trigger", async () => {
     const client = new HttpKeeperHubClient({
-      webhookUrl: "https://x/hook",
+      triggerUrl: "https://x/hook",
       fetchImpl: (async () => jsonResponse({ ok: true })) as typeof fetch,
     });
     await expect(client.triggerDefense(PAYLOAD)).rejects.toBeInstanceOf(KeeperHubHttpError);
@@ -95,7 +102,7 @@ describe("HttpKeeperHubClient.getRun", () => {
       return jsonResponse(body);
     }) as unknown as typeof fetch;
     const client = new HttpKeeperHubClient({
-      webhookUrl: "https://x/hook",
+      triggerUrl: "https://x/hook",
       apiBaseUrl: "https://api.test/api",
       fetchImpl,
     });
@@ -111,7 +118,7 @@ describe("HttpKeeperHubClient.getRun", () => {
   it("treats an unknown status as NON-terminal and preserves it in raw", async () => {
     const warn = vi.fn();
     const client = new HttpKeeperHubClient({
-      webhookUrl: "https://x/hook",
+      triggerUrl: "https://x/hook",
       fetchImpl: (async () => jsonResponse({ status: "quantum-superposition" })) as typeof fetch,
       logger: { info: vi.fn(), warn, error: vi.fn() },
     });
@@ -123,7 +130,7 @@ describe("HttpKeeperHubClient.getRun", () => {
 
   it("surfaces an error state instead of swallowing it", async () => {
     const client = new HttpKeeperHubClient({
-      webhookUrl: "https://x/hook",
+      triggerUrl: "https://x/hook",
       fetchImpl: (async () =>
         jsonResponse({ status: "error", error: "execution reverted" })) as typeof fetch,
     });
