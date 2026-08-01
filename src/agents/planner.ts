@@ -28,17 +28,14 @@ export function createLlmPlanner(llm: LlmClient): Planner {
   };
 }
 
-/** Round up to whole cents — rounding down could land just under the target HF. */
-function ceilCents(usd: number): number {
-  return Math.ceil(usd * 100) / 100;
-}
-
 export function createHeuristicPlanner(): Planner {
   return {
     async plan(ctx: PlannerContext): Promise<PlanResult> {
       const { snapshot, thresholds, caps } = ctx;
 
-      const needed = ceilCents(repayNeededForTarget(snapshot, thresholds.targetHf));
+      // Already rounded up to whole cents by repayNeededForTarget — rounding
+      // down would land just under the target and be refused by the Critic.
+      const needed = repayNeededForTarget(snapshot, thresholds.targetHf);
       const affordable = Math.min(
         caps.maxTxUsd,
         snapshot.balances.usdcUsd * 0.9, // leave a buffer; never drain the wallet
@@ -62,7 +59,11 @@ export function createHeuristicPlanner(): Planner {
         };
       }
 
-      const rounded = ceilCents(amountUsd);
+      // Round in whichever direction stays safe. When the requirement drives the
+      // amount it is already ceiled to the cent and clears the target. When a cap
+      // or the wallet balance drives it, round DOWN — rounding up there could
+      // push the proposal past MAX_TX_USD or past what we actually hold.
+      const rounded = amountUsd === needed ? needed : Math.floor(amountUsd * 100) / 100;
       return {
         proposal: {
           action: "repay",

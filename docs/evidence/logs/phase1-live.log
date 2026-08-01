@@ -1,0 +1,44 @@
+[13:56:52.510] [32mINFO[39m (41611): [36m🪂 RIPCORD starting — chain: base-sepolia · chain reads: LIVE (https://sepolia.base.org) · brain: LLM mimo-v2.5-pro @ https://token-plan-sgp.xiaomimimo.com/… · executor: KeeperHub webhook · alerts: Telegram · DRY_RUN: off · RIPCORD_ARM: 0 · caps: $15/tx · $30/24h[39m
+[13:56:53.490] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPC60Z0EG9C4AKD7DPM40M"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: true
+    [35mreason[39m: "act: armed and cooldown elapsed — defend"
+[13:57:03.704] [32mINFO[39m (41611): [36mguard evaluated[39m
+    [35mdecisionId[39m: "01KYYPC60Z0EG9C4AKD7DPM40M"
+    [35mguard[39m: "blocked"
+    [35mviolations[39m: [
+      {
+        "rule": "critic-approval",
+        "detail": "critic verdict \"REJECT\" is not APPROVE — critic reason: VERIFIED hfAfter 1.5999 is below the target health factor of 1.6"
+      }
+    ]
+    [35mchecks[39m: 12
+[13:58:04.928] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPEBXHGD2DQJ3BKXM0BQBA"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: true
+    [35mreason[39m: "act: armed and cooldown elapsed — defend"
+[13:58:10.576] [32mINFO[39m (41611): [36mguard evaluated[39m
+    [35mdecisionId[39m: "01KYYPEBXHGD2DQJ3BKXM0BQBA"
+    [35mguard[39m: "execute"
+    [35mviolations[39m: []
+    [35mchecks[39m: 12
+[13:59:15.569] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPGHA2EPTQAF792A4S0279"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
+[14:00:16.748] [32mINFO[39m (41611): [36mtick[39m
+    [35mdecisionId[39m: "01KYYPJCAJX13QKJ27QEX44YMS"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226572
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — unarmed (hysteresis latch open; re-arms only when hf > rearm); cooldown active since last defense"
