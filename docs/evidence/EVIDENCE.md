@@ -194,3 +194,31 @@ Position: **HF 1.2266 → 1.6010**, debt $18.00 → $13.79. It cleared the 1.60 
 | SIGKILL / orphan / stale-takeover chaos | `logs/chaos-sigkill-restart.log` |
 
 Full chaos table with per-scenario links: README § Chaos matrix.
+
+## Phase 2 — mainnet position opened (2026-08-01, Base 8453, REAL FUNDS)
+
+User funded the Turnkey wallet with 0.03353 ETH (~$61.68). All five setup calls
+were simulated first (`simulate:true`, `wouldRevert:false`), executed with
+idempotency keys, and **gas-sponsored — `from` is a Gas Station relayer via the
+same paymaster `0x5af5194b…f07d` as testnet, even for the value-bearing wrap**:
+
+| # | Call | Tx | KeeperHub execution |
+|---|---|---|---|
+| 1 | `WETH.deposit()` value 0.024465 ETH (~$45.00) | [`0x1d43a6bc…1a29`](https://basescan.org/tx/0x1d43a6bc19684d7e68f045a88a4a390c539df9acdc90b3a4f17b197f8a8b1a29) | `847u9qi44vbz29ra9700t` |
+| 2 | `WETH.approve(Pool, 0.024465)` | [`0xa6fa6297…2f31`](https://basescan.org/tx/0xa6fa6297173ae3c43aeb254bfd9bf9c94979182016f2594e94114f843dd82f31) | `bwgra93adyl72ntyrwm2a` |
+| 3 | `Pool.supply(WETH, 0.024465)` | [`0x7b903962…c87c`](https://basescan.org/tx/0x7b90396287d0d00f7cb250dec16b799101d18fa2aab316773342782ed9c6c87c) | `jm6ajcebuowb7j747an5y` |
+| 4 | `Pool.borrow(USDC, 26.68, variable)` | [`0x73234b9d…e6a6`](https://basescan.org/tx/0x73234b9d4f27bc99f9ff6c29175466ce23f6d2ed24d622c56da120489aa5e6a6) | `4998mg6mfil8cj6b8hnp3` |
+| 5 | `USDC.approve(Pool, 60)` — capped, revocable | [`0xee860f7c…26ef`](https://basescan.org/tx/0xee860f7cb7c1ef0559208d8e2e0b4b4acdc33ddb98cc8368e4a64e11c13026ef) | `qe6i0y8bkrm5ubeo7wktq` |
+
+Resulting live position (design target HF 1.400):
+
+```
+collateral $45.0001 (0.024465 WETH) · debt $26.6766 USDC · LT 83% · HF 1.4001
+wallet: 26.68 USDC (repay budget) · 0.00907 ETH (buffer)
+```
+
+Supervised mainnet DRY_RUN: banner `chain: base · DRY_RUN: ON · ARM: 0`, first
+tick `band=warn hf=1.400106 shouldDefend=false` — the warn band is real, and the
+daemon correctly holds. Mainnet history lives in its own DB
+(`data/ripcord-mainnet.sqlite`) so testnet spend/cooldown never leak into
+mainnet accounting.
