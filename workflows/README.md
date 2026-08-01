@@ -83,6 +83,31 @@ Proven live on first fire (execution `x8rb3lbaxyy2b6wvses82`, HF 1.9885): resolv
 `"1988482751559923150" < 1500000000000000000 && "10000" <= 60000000` → `false`, trace
 stopped at `gate-1`. A healthy position was **not** repaid.
 
+### A declined run is not a failed run, and it is not a defense
+
+This is the subtlest part of the contract, and it was a live bug before review
+caught it. When `gate-1` is false the run ends **`success`** — nothing errored,
+the workflow did exactly what it was asked to do — but `transactionHashes` is
+empty and no money moved. Three outcomes therefore have to be told apart:
+
+| Outcome | run state | txHashes | Decision recorded |
+|---|---|---|---|
+| Defended | `success` | 1 hash | `executed` |
+| Declined by the gate | `success` | `[]` | `blocked` |
+| Reverted / errored | `error` | `[]` | `failed` |
+
+**The transaction hash is the only honest evidence a defense happened**, so
+`src/index.ts` requires it rather than trusting `run.state`. A declined run
+leaves the hysteresis latch armed and does not call `onDefenseSuccess` — the
+position was never rescued, so the next eligible tick must be free to try again.
+
+We deliberately did **not** add a node on `gate-1`'s false branch to make the
+decline more visible workflow-side. Any node that succeeds is indistinguishable
+from the declined path anyway, and any node that fails would mark the whole
+execution `error` — which is exactly the misreporting the missing notify node
+was removed to avoid. The daemon-side `txHash` check is the reliable
+discriminator and it is the half fully under our control.
+
 ### Design notes
 
 - **`web3/write-contract`, not `aave-v3/repay`.** The Aave protocol actions reject

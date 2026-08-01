@@ -391,3 +391,48 @@ before the next defense window.
 row carrying pid + heartbeat, or an O_EXCL pidfile — and refuse to start when another
 live instance holds it, the same fail-closed posture as the half-armed mainnet check in
 `loadConfig`. Cheap, and it turns a silent double-spend window into a startup error.
+
+## 2026-08-01 — our own bug: a workflow that succeeds is not a workflow that acted
+
+**What:** WF-2 re-reads the position on-chain and, if it no longer needs defending, takes
+the false branch of its gate and finishes. The run ends **`success`** — correctly, nothing
+went wrong — with `transactionHashes: []`. The daemon branched on `run.state === "success"`
+alone, so it recorded the decision as `executed`, called `onDefenseSuccess`, and sent an
+alert announcing a rescue that never happened, while burning a 30-minute cooldown and
+charging the daily cap for zero spend.
+
+**Why we missed it:** we had reasoned carefully about the *opposite* direction — an earlier
+entry in this log records removing WF-2's notify node precisely because a failing notify
+would mark a landed repay as `error`. Having thought hard about "success misreported as
+failure", we never asked about "did-nothing misreported as success". The asymmetry is the
+lesson: a terminal state describes the *workflow's* outcome, not the *world's*.
+
+**Fix:** require the transaction hash. `landed = state === "success" && txHash !== undefined`.
+A declined run is recorded `blocked`, notified as a decline, and leaves the hysteresis latch
+armed so the next tick can retry.
+
+**Generalisable to anyone building on KeeperHub:** if your workflow has a conditional write,
+the run state cannot tell you whether the write happened. Check `transactionHashes`.
+
+## 2026-08-01 — our own bug: disarming before knowing the defense landed
+
+**What:** `markDefenseFired` ran *before* `triggerDefense` and set `armed = false`. When the
+transaction reverted, the health factor was unchanged and still in the act band — and the
+only branch that re-arms the latch requires `hf > rearm` (1.55), which an undefended
+act-band position can never reach. The position would then be defended again only after
+decaying past `panic` (1.10): protection silently resumes one tick from liquidation.
+
+**How close this came to shipping unnoticed:** it fired for real. The first live defense
+reverted on the missing allowance at 13:58 and left the latch open. The retry at 14:28
+succeeded — but only because the daemon happened to be restarted in between, which resets
+`armed` in memory. The acceptance criterion passed by accident, and the green result hid
+the bug. Without that restart the position would have sat undefended.
+
+**Fix:** split the two things the function was conflating. `markDefenseAttempted` anchors
+the cooldown at trigger time and leaves the latch armed; `markDefenseFired` also disarms,
+and is now called only once a defense has actually landed. Retries stay rate-limited by the
+cooldown rather than blocked forever by the latch.
+
+**Lesson:** an irreversible state change made in anticipation of success is a bet. Both of
+today's daemon bugs were the same mistake in different clothes — treating an intention to
+act, or a workflow's own success, as evidence that the world changed.

@@ -522,3 +522,10 @@
     [35mhasDebt[39m: true
     [35mshouldDefend[39m: false
     [35mreason[39m: "healthy: no defense needed"
+[15:02:25.983] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYT4702JXEC7EFPEM8D5QYD"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226633
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense [hf velocity -0.1829/min]"
