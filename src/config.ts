@@ -48,6 +48,17 @@ export const BASE_SEPOLIA_FAUCET = "0xD9145b5F45Ad4519c7ACcD6E0A4A82e83bB8A6Dc" 
 
 export const KEEPERHUB_API_BASE_URL = "https://app.keeperhub.com/api";
 
+/**
+ * WF-2's own per-defense ceiling, in USD, mirrored from the deployed workflow —
+ * `gate-1` → `rule-amount-hard-cap-60-usdc` in workflows/wf2-defend.json.
+ *
+ * The workflow enforces this independently of anything Ripcord sends, which is
+ * the point: it is a limit the daemon cannot talk its way past. Kept here only
+ * so `loadConfig` can refuse a MAX_TX_USD the workflow would silently decline.
+ * If you change one, change the other.
+ */
+export const WF2_AMOUNT_CEILING_USD = 60;
+
 /** Public endpoints (rate-limited; fine for the hackathon, override via env for volume). */
 export const DEFAULT_RPC_URLS: Record<Chain, string> = {
   base: "https://mainnet.base.org",
@@ -249,6 +260,21 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
         "(KEEPERHUB_DEFEND_WEBHOOK_URL) with DRY_RUN=false, but MONITORED_ADDRESS is unset " +
         "so chain reads would come from the MOCK sensor. A simulated position must never " +
         "drive real transactions. Set MONITORED_ADDRESS, or keep DRY_RUN=true.",
+    );
+  }
+
+  // Refuse a per-transaction cap the defense workflow would reject anyway.
+  // WF-2's gate carries its own hard ceiling (rule-amount-hard-cap-60-usdc), so
+  // raising MAX_TX_USD above it does not buy a bigger defense — it makes every
+  // defense get declined by the workflow instead. That failure is quiet: the
+  // run still ends "success", just with no transaction. Fail loudly at startup
+  // rather than discover it when a position actually needs defending.
+  if (liveExecutor && e.MAX_TX_USD > WF2_AMOUNT_CEILING_USD) {
+    throw new Error(
+      `Refusing to start: MAX_TX_USD=${e.MAX_TX_USD} exceeds WF-2's own ` +
+        `$${WF2_AMOUNT_CEILING_USD} per-defense ceiling, so every defense would be declined ` +
+        "by the workflow with no transaction sent. Lower MAX_TX_USD, or raise the ceiling in " +
+        "workflows/wf2-defend.json (rule-amount-hard-cap-60-usdc) and redeploy it first.",
     );
   }
 

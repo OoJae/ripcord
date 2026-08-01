@@ -87,6 +87,22 @@ describe("config: safety-critical strictness", () => {
     ).not.toThrow();
   });
 
+  it("refuses a MAX_TX_USD above WF-2's own ceiling, which would decline every defense", () => {
+    // WF-2's gate carries a hard 60-USDC rule. Above it the workflow declines
+    // and the run still ends "success" with no transaction — a silent no-op
+    // exactly when a position needs defending. Fail at startup instead.
+    const live = {
+      ...base,
+      MONITORED_ADDRESS: "0x1111111111111111111111111111111111111111",
+      KEEPERHUB_DEFEND_WEBHOOK_URL: "https://app.keeperhub.com/api/workflows/wf2/execute",
+    };
+    expect(() => loadConfig({ ...live, MAX_TX_USD: "61" })).toThrow(/exceeds WF-2/);
+    expect(() => loadConfig({ ...live, MAX_TX_USD: "60" })).not.toThrow();
+
+    // Only relevant when a live executor is wired — the mock has no ceiling.
+    expect(() => loadConfig({ ...base, MAX_TX_USD: "500" })).not.toThrow();
+  });
+
   it("rejects a malformed MONITORED_ADDRESS", () => {
     expect(() => loadConfig({ ...base, MONITORED_ADDRESS: "0x123" })).toThrow(/address/);
   });

@@ -480,3 +480,31 @@
     [35mhasDebt[39m: true
     [35mshouldDefend[39m: false
     [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:56:54.915] [32mINFO[39m (44662): [36mSIGTERM received — finishing in-flight tick, then exiting[39m
+[14:56:56.969] [32mINFO[39m (57117): [36m🪂 RIPCORD starting — chain: base-sepolia · chain reads: LIVE (https://sepolia.base.org) · brain: LLM mimo-v2.5-pro @ https://token-plan-sgp.xiaomimimo.com/… · executor: KeeperHub webhook · alerts: Telegram · DRY_RUN: off · RIPCORD_ARM: 0 · caps: $15/tx · $30/24h[39m
+[14:57:02.226] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYST60A80W0SZ90BP6MH0ME"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226633
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:58:05.784] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYSW8R4GFMRAA1QYMRE26EM"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226633
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "act: defense suppressed — cooldown active since last defense"
+[14:59:06.055] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYSY3ST32EQJ70HM5DQD9R5"
+    [35mband[39m: "act"
+    [35mhf[39m: 1.226633
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: true
+    [35mreason[39m: "act: armed and cooldown elapsed — defend"
+[14:59:14.074] [32mINFO[39m (57117): [36mguard evaluated[39m
+    [35mdecisionId[39m: "01KYYSY3ST32EQJ70HM5DQD9R5"
+    [35mguard[39m: "execute"
+    [35mviolations[39m: []
+    [35mchecks[39m: 12
