@@ -1,0 +1,158 @@
+{
+  "id": "wjp3tis90y1nn4e57t817",
+  "name": "Ripcord WF-2 defend-mainnet",
+  "description": "Ripcord's mainnet defensive execution workflow (Base 8453). Same shape as the proven testnet WF-2: re-reads the position on-chain and only repays if the health factor is genuinely below the warn band, the amount is within the 60-USDC hard ceiling, and the payload's chain field is 'base'. Enabled only during supervised armed sessions.",
+  "nodes": [
+    {
+      "id": "trigger-1",
+      "data": {
+        "type": "trigger",
+        "label": "Defense Request",
+        "config": {
+          "triggerType": "Webhook",
+          "webhookSchema": "{\"type\":\"object\",\"required\":[\"decisionId\",\"chain\",\"action\",\"assetSymbol\",\"assetAddress\",\"amountBaseUnits\",\"amountUsd\",\"minHfAfter\",\"monitoredAddress\"],\"properties\":{\"decisionId\":{\"type\":\"string\"},\"chain\":{\"type\":\"string\"},\"action\":{\"type\":\"string\"},\"assetSymbol\":{\"type\":\"string\"},\"assetAddress\":{\"type\":\"string\"},\"amountBaseUnits\":{\"type\":\"string\"},\"amountUsd\":{\"type\":\"number\"},\"minHfAfter\":{\"type\":\"number\"},\"monitoredAddress\":{\"type\":\"string\"}}}",
+          "webhookMockRequest": "{\"decisionId\": \"01MOCK\", \"chain\": \"base\", \"action\": \"repay\", \"assetSymbol\": \"USDC\", \"assetAddress\": \"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913\", \"amountBaseUnits\": \"10000\", \"amountUsd\": 0.01, \"minHfAfter\": 1.6, \"monitoredAddress\": \"0x30C8A36e99f0708c3e3301b1Ed99cf418BDCf27a\"}"
+        },
+        "status": "idle"
+      },
+      "type": "trigger",
+      "position": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "verify-1",
+      "data": {
+        "type": "action",
+        "label": "Re-read Position",
+        "config": {
+          "abi": "[{\"type\":\"function\",\"name\":\"getUserAccountData\",\"stateMutability\":\"view\",\"inputs\":[{\"name\":\"user\",\"type\":\"address\"}],\"outputs\":[{\"name\":\"totalCollateralBase\",\"type\":\"uint256\"},{\"name\":\"totalDebtBase\",\"type\":\"uint256\"},{\"name\":\"availableBorrowsBase\",\"type\":\"uint256\"},{\"name\":\"currentLiquidationThreshold\",\"type\":\"uint256\"},{\"name\":\"ltv\",\"type\":\"uint256\"},{\"name\":\"healthFactor\",\"type\":\"uint256\"}]}]",
+          "network": "8453",
+          "actionType": "web3/read-contract",
+          "abiFunction": "getUserAccountData",
+          "functionArgs": "[\"{{@trigger-1:Trigger.monitoredAddress}}\"]",
+          "contractAddress": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 280,
+        "y": 0
+      }
+    },
+    {
+      "id": "gate-1",
+      "data": {
+        "type": "action",
+        "label": "Still Below Warn 1.50",
+        "config": {
+          "condition": "{{@trigger-1:Trigger.chain}} == base && {{@verify-1:Re-read Position.result.healthFactor}} < 1500000000000000000",
+          "actionType": "Condition",
+          "conditionConfig": {
+            "group": {
+              "id": "grp-stale",
+              "logic": "AND",
+              "rules": [
+                {
+                  "id": "rule-chain-binding",
+                  "operator": "==",
+                  "leftOperand": "{{@trigger-1:Trigger.chain}}",
+                  "rightOperand": "base"
+                },
+                {
+                  "id": "rule-hf-still-below-warn",
+                  "operator": "<",
+                  "leftOperand": "{{@verify-1:Re-read Position.result.healthFactor}}",
+                  "rightOperand": "1500000000000000000"
+                },
+                {
+                  "id": "rule-amount-hard-cap-60-usdc",
+                  "operator": "<=",
+                  "leftOperand": "{{@trigger-1:Trigger.amountBaseUnits}}",
+                  "rightOperand": "60000000"
+                }
+              ]
+            }
+          }
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 560,
+        "y": 0
+      }
+    },
+    {
+      "id": "repay-1",
+      "data": {
+        "type": "action",
+        "label": "Repay Aave Debt",
+        "config": {
+          "abi": "[{\"type\":\"function\",\"name\":\"repay\",\"stateMutability\":\"nonpayable\",\"inputs\":[{\"name\":\"asset\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"interestRateMode\",\"type\":\"uint256\"},{\"name\":\"onBehalfOf\",\"type\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}]}]",
+          "network": "8453",
+          "actionType": "web3/write-contract",
+          "abiFunction": "repay",
+          "functionArgs": "[\"{{@trigger-1:Trigger.assetAddress}}\",\"{{@trigger-1:Trigger.amountBaseUnits}}\",\"2\",\"{{@trigger-1:Trigger.monitoredAddress}}\"]",
+          "contractAddress": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+          "gasLimitMultiplier": "1.5"
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 840,
+        "y": 0
+      }
+    },
+    {
+      "id": "confirm-1",
+      "data": {
+        "type": "action",
+        "label": "Confirm Position",
+        "config": {
+          "abi": "[{\"type\":\"function\",\"name\":\"getUserAccountData\",\"stateMutability\":\"view\",\"inputs\":[{\"name\":\"user\",\"type\":\"address\"}],\"outputs\":[{\"name\":\"totalCollateralBase\",\"type\":\"uint256\"},{\"name\":\"totalDebtBase\",\"type\":\"uint256\"},{\"name\":\"availableBorrowsBase\",\"type\":\"uint256\"},{\"name\":\"currentLiquidationThreshold\",\"type\":\"uint256\"},{\"name\":\"ltv\",\"type\":\"uint256\"},{\"name\":\"healthFactor\",\"type\":\"uint256\"}]}]",
+          "network": "8453",
+          "actionType": "web3/read-contract",
+          "abiFunction": "getUserAccountData",
+          "functionArgs": "[\"{{@trigger-1:Trigger.monitoredAddress}}\"]",
+          "contractAddress": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 1120,
+        "y": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-trigger-verify",
+      "source": "trigger-1",
+      "target": "verify-1"
+    },
+    {
+      "id": "e-verify-gate",
+      "source": "verify-1",
+      "target": "gate-1"
+    },
+    {
+      "id": "e-gate-repay",
+      "source": "gate-1",
+      "target": "repay-1",
+      "sourceHandle": "true"
+    },
+    {
+      "id": "e-repay-confirm",
+      "source": "repay-1",
+      "target": "confirm-1"
+    }
+  ],
+  "enabled": false,
+  "visibility": "private",
+  "workflowType": "read"
+}
