@@ -130,6 +130,25 @@ so the first defense that cleared Planner + Critic + Guard reverted on-chain.
 | 1 | 13:58:04 | `7wnw3uuchs8gpto51vm8u` | 4.20 | **error** | `Contract call failed: Error(ERC20: transfer amount exceeds allowance)` |
 | 2 | 14:28:36 | `zfv7imdpw0ucrvv7g2toy` | 4.21 | **success** | [`0xf1f52639…aab176`](https://sepolia.basescan.org/tx/0xf1f526390d4c2bee7cf8bc16fe103f35563d72cc40e92ccfc0b7ded8b8aab176) |
 | 3 | 14:59:05 | `ni3gbbfz5q5bwj8s3j9mc` | 4.20 | **success** | [`0xbeccc0d4…a27e`](https://sepolia.basescan.org/tx/0xbeccc0d431f7ebb5b41f80d0f1612de9e63c2197d7f43ef00c75e642ded7a27e) |
+| 4 | 15:29:35 | `l9rpksmy73bm4oam7hmkh` | 4.20 | **success** | [`0x49283fc2…6db2`](https://sepolia.basescan.org/tx/0x49283fc255ae69d5731cd3e0124e5a789e4bfcafbd4233f552695260311f6db2) |
+
+## Phase 1 — AC-1: three consecutive hands-off defenses ✅
+
+Defenses #2, #3 and #4 each ran the complete loop with no human in it: sensor read →
+act band → LLM Planner → independent LLM Critic APPROVE → Guard `execute` (12/12
+checks) → WF-2 re-verified on-chain → `Pool.repay` → confirm read → HF restored to
+1.60 → hysteresis latch re-armed on the next tick. Each cycle was spaced by the real
+1800-second cooldown — no overrides, no config tuning for the demo. The only manual
+steps between cycles were the deliberate re-stress borrows
+(`kiypnfqnlar9l2f1kp7dm`, `jh5yxdz80pvqvg1527xh4`), which push HF back down; the
+defenses themselves were fully autonomous.
+
+Defense #4 additionally ran on the post-review code: it is the first defense where
+the latch was opened *by the landed transaction* (markDefenseFired on txHash
+evidence) rather than at trigger time.
+
+Total spend across the run: $12.61 of the $30 rolling daily cap. Every transaction
+gas-sponsored by KeeperHub.
 
 On run 1 the node trace was `trigger-1 → verify-1 → gate-1 → repay-1(error)` — the gate
 **passed** (the position genuinely was below warn) and the write reverted at the token
@@ -154,10 +173,10 @@ Position: **HF 1.2266 → 1.6010**, debt $18.00 → $13.79. It cleared the 1.60 
 
 ## Still to capture
 
-- [ ] Retry after the allowance fix landing successfully (AC-2 part 2)
-- [ ] 3 consecutive successful defenses (AC-1)
 - [ ] Telegram screenshot — `api.telegram.org` is unreachable from the build
-      network (times out); the notifier degrades correctly, see FRICTION.md
+      network (times out); the notifier degrades correctly, see FRICTION.md.
+      Also configure the KeeperHub Telegram integration (web UI) so WF-1's
+      alert node stops erroring.
 - [ ] **Hero tx:** private-routed mainnet defensive repay (Phase 2)
 - [ ] Chaos matrix, one artifact per scenario (§7.6)
 - [ ] x402 paid call on x402scan (Phase 3, stretch)
