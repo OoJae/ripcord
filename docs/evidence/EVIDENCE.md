@@ -180,3 +180,17 @@ Position: **HF 1.2266 → 1.6010**, debt $18.00 → $13.79. It cleared the 1.60 
 - [ ] **Hero tx:** private-routed mainnet defensive repay (Phase 2)
 - [ ] Chaos matrix, one artifact per scenario (§7.6)
 - [ ] x402 paid call on x402scan (Phase 3, stretch)
+
+## Phase 2 — hardening + chaos matrix (2026-08-01, all on testnet)
+
+| What | Evidence |
+|---|---|
+| Single-instance lock refuses a 2nd daemon (live) | `logs/chaos-single-instance-lock.log` |
+| Wrong-chain payload declined by WF-2's own gate | `logs/chaos-wrong-chain-declined.log` — `"base" == "base-sepolia" → false`, no tx |
+| Idempotency-Key replay → same executionId | run `lsljnilzwbbl9b9zn01ou` returned twice for one key |
+| WF-2-mainnet preflight vs empty wallet | run `jb7kyiqx675tupt1bn7zn` — mainnet Pool read OK, HF = maxUint sentinel, gate declined, no tx |
+| Planner garbage-JSON chaos (incl. panic band) | `logs/chaos-planner-invalid-json.log` |
+| RPC unreachable chaos | `logs/chaos-rpc-unreachable.log` |
+| SIGKILL / orphan / stale-takeover chaos | `logs/chaos-sigkill-restart.log` |
+
+Full chaos table with per-scenario links: README § Chaos matrix.

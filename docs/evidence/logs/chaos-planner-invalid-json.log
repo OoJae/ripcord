@@ -1,0 +1,10 @@
+# chaos 2: Planner emits invalid JSON -> schema reject -> no action (2026-08-01)
+# setup: live daemon, mock HF descent, LLM endpoint stubbed to return prose ('Sure! I think you should probably repay ... {not json at all')
+# note: the descent reached PANIC (bypasses latch+cooldown) and still nothing executed.
+   2 "band":"act"
+   3 "band":"healthy"
+   6 "band":"panic"
+   3 "band":"warn"
+{"level":50,"time":1785598758425,"pid":70243,"hostname":"Oluwademilades-MacBook-Pro.local","decisionId":"01KYYZNK4N6QV15D1K8S08F636","err":"SchemaValidationError: LLM output failed validation after 3 attempt(s): Unexpected token 'S', \"Sure! I th\"... is not valid JSON","msg":"planner output invalid — fail-safe no-action"}
+{"level":50,"time":1785598763703,"pid":70243,"hostname":"Oluwademilades-MacBook-Pro.local","decisionId":"01KYYZNRNCVTGEN8TTVWYZWZV0","err":"SchemaValidationError: LLM output failed validation after 3 attempt(s): Unexpected token 'S', \"Sure! I th\"... is not valid JSON","msg":"planner output invalid — fail-safe no-action"}
+{"level":50,"time":1785598769367,"pid":70243,"hostname":"Oluwademilades-MacBook-Pro.local","decisionId":"01KYYZNXTBBW1JYQ4FYE3P3WHZ","err":"SchemaValidationError: LLM output failed validation after 3 attempt(s): Unexpected token 'S', \"Sure! I th\"... is not valid JSON","msg":"planner output invalid — fail-safe no-action"}

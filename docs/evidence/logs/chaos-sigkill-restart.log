@@ -1,0 +1,17 @@
+# chaos 6: SIGKILL mid-cycle -> restart resumes cleanly from SQLite (2026-08-01)
+
+## 1. SIGKILL the tsx wrapper (pid 70528) — the daemon CHILD survived as an orphan
+##    and the single-instance lock correctly REFUSED a new daemon while it lived:
+Error: Refusing to start: another Ripcord daemon (pid 70535) holds the
+single-instance lock (heartbeat 8s ago). Stop it first — running two daemons can
+defend the same position twice. A dead holder's lock goes stale and is taken
+over after 180s.
+
+## 2. SIGKILL the real daemon process (70535) — no graceful shutdown, lock NOT
+##    released. After the stale window the restart took the lock over and resumed
+##    against the same SQLite state:
+##    - cooldown anchor rehydrated: lastDefenseAt = 2026-08-01T14:29:35.067Z
+##      (defense #4, written before the kill)
+##    - ticks resumed immediately, no double-fire, no corruption
+{"time":1785598935145,"msg":"RIPCORD starting — chain: base-sepolia · reads LIVE · DRY_RUN: ON"}
+{"time":1785598936092,"decisionId":"01KYYZV03A9T1CGQJZGY1A67ED","band":"healthy","hf":1.603395,"reason":"healthy: no defense needed","msg":"tick"}

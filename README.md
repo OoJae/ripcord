@@ -129,7 +129,17 @@ The safety design was reviewed adversarially: 22 candidate findings across four 
 
 ## Chaos matrix
 
-_(populated in Session 3 — scenarios: forced revert, invalid planner JSON, Critic reject, duplicate trigger, RPC timeout, daemon kill/resume, KeeperHub retry visibility)_
+Every scenario from build guide §7.6, run against the real daemon on Base Sepolia (never rehearsed in prod). Each ✅ links to a captured artifact.
+
+| # | Scenario | Result | Evidence |
+|---|---|---|---|
+| 1 | Forced on-chain revert → recorded `error`, later retry succeeds | ✅ real, unstaged | [EVIDENCE.md](docs/evidence/EVIDENCE.md) — allowance revert `7wnw3uuch…` → retry [`0xf1f52639…`](https://sepolia.basescan.org/tx/0xf1f526390d4c2bee7cf8bc16fe103f35563d72cc40e92ccfc0b7ded8b8aab176) |
+| 2 | Planner emits invalid JSON → schema reject → **no tx even in panic band** | ✅ | [chaos-planner-invalid-json.log](docs/evidence/logs/chaos-planner-invalid-json.log) — live daemon, stubbed garbage LLM, `planner output invalid — fail-safe no-action` on every eligible tick incl. panic |
+| 3 | Critic REJECT → no tx | ✅ real, live | [critic-reject-rounding.log](docs/evidence/logs/critic-reject-rounding.log) — the REJECT that caught our own rounding bug |
+| 4 | Duplicate trigger → idempotency holds | ✅ | Replayed POST with the same `Idempotency-Key` returned the **same executionId** (adopted: `triggerDefense` sends `decisionId` as the key); plus the [panic-restart wiring proof](test/daemon/wiring.test.ts) where Guard idempotency is the only remaining barrier |
+| 5 | RPC unreachable → 3 retries with backoff → tick skipped cleanly | ✅ | [chaos-rpc-unreachable.log](docs/evidence/logs/chaos-rpc-unreachable.log) |
+| 6 | Daemon SIGKILLed mid-cycle → restart resumes from SQLite | ✅ | [chaos-sigkill-restart.log](docs/evidence/logs/chaos-sigkill-restart.log) — bonus: the kill orphaned a live child and the **single-instance lock refused a second daemon** ([chaos-single-instance-lock.log](docs/evidence/logs/chaos-single-instance-lock.log)); stale takeover + cooldown rehydration after |
+| 7 | KeeperHub run polling/backoff ladder observable in logs | ✅ | `run poll (backoff ladder)` info lines (2s → ×1.5 → 15s cap), pinned by [keeperhub.test.ts](test/executor/keeperhub.test.ts) and visible in every live defense log |
 
 ## Verified addresses
 

@@ -329,6 +329,8 @@ export interface WaitForRunOptions {
   sleep?: (ms: number) => Promise<void>;
   /** Injected in tests; defaults to Date.now. */
   clock?: () => number;
+  /** Called once per poll so the backoff ladder is observable in run logs. */
+  onPoll?: (info: { runId: string; poll: number; state: string; nextDelayMs: number }) => void;
 }
 
 const realSleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -353,9 +355,14 @@ export async function waitForRun(
 
   const deadline = clock() + timeoutMs;
   let delayMs = initialDelayMs;
+  let poll = 0;
 
   for (;;) {
+    poll += 1;
     const status = await client.getRun(runId);
+    // Observable backoff: chaos scenario 7 requires the retry/backoff ladder to
+    // be visible in a run log, not just asserted by tests.
+    opts.onPoll?.({ runId, poll, state: status.state, nextDelayMs: delayMs });
     if (isTerminalRunState(status.state)) return status;
 
     const now = clock();

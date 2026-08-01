@@ -491,7 +491,13 @@ export function createDaemon(deps: DaemonDeps): Daemon {
     }
 
     try {
-      const run = await waitForRun(keeperhub, runId, { sleep, clock: () => clock.now() });
+      const run = await waitForRun(keeperhub, runId, {
+        sleep,
+        clock: () => clock.now(),
+        // info-level on purpose: the poll ladder is the only visibility into a
+        // pending run, and chaos scenario 7 requires it observable in run logs.
+        onPoll: (p) => log.info(p, "run poll (backoff ladder)"),
+      });
 
       // A terminal "success" is NOT proof that money moved. WF-2 re-reads the
       // position on-chain and, if it no longer needs defending, takes the false

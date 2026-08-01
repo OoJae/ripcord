@@ -161,6 +161,24 @@ describe("waitForRun", () => {
     expect(delays).toEqual([2000, 3000]); // 2s then 2s × 1.5
   });
 
+  it("reports each poll through onPoll so the backoff ladder is observable (chaos 7)", async () => {
+    const mock = new MockKeeperHubClient({ script: ["pending", "running", "success"] });
+    const { runId } = await mock.triggerDefense(PAYLOAD);
+    const polls: Array<{ poll: number; state: string; nextDelayMs: number }> = [];
+
+    await waitForRun(mock, runId, {
+      sleep: async () => {},
+      clock: fixedClock().now,
+      onPoll: (p) => polls.push({ poll: p.poll, state: p.state, nextDelayMs: p.nextDelayMs }),
+    });
+
+    expect(polls).toEqual([
+      { poll: 1, state: "pending", nextDelayMs: 2000 },
+      { poll: 2, state: "running", nextDelayMs: 3000 },
+      { poll: 3, state: "success", nextDelayMs: 4500 },
+    ]);
+  });
+
   it("throws RunTimeoutError instead of polling forever", async () => {
     const mock = new MockKeeperHubClient({ neverTerminal: true });
     const { runId } = await mock.triggerDefense(PAYLOAD);
