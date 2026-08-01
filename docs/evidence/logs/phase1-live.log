@@ -730,3 +730,298 @@
     [35mhasDebt[39m: true
     [35mshouldDefend[39m: false
     [35mreason[39m: "healthy: hf strictly above rearm threshold — hysteresis latch re-armed"
+[15:31:52.204] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYVT3MNHD2HPC536XHZ2145"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603398
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:32:52.841] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYVVYQJ1G9EHRRC3TJM15DF"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603398
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:33:53.116] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYVXSYD5VRPY3KGW121F0BT"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603398
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:34:53.405] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYVZMSZ3TQ9RE0T1GRPJYCS"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603398
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:35:53.932] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYW1FP0KJD2SX6NPFY6WKTC"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603398
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:36:54.483] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYW3ASEWF8HY1RSQZ5E1Z10"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603398
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:37:54.789] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYW55XNA4RBT94NHGRA0G8M"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603398
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:38:55.123] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYW70T808XS1H44A276NGTC"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603398
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:39:55.395] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYW8VQNH8NZBV960P048RAC"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603398
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:40:55.707] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWAPK60ETK39RDH5N09BF9"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed [hf velocity -0.0000/min]"
+[15:41:56.035] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWCHFXTVYX6F69ZH138829"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed [hf velocity -0.0000/min]"
+[15:42:56.311] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWECD7TN2NRP13FGVXTX25"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:43:56.576] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWG78094EZZ68B4894JCDT"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:44:57.182] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWJ23ZQJE2FDG1S4ARZ7M1"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:45:57.642] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWKXA1HH2RBQGWY5DEB09G"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:46:58.031] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWNRBEDCWBFSW0DE8D0ZQ9"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:47:58.349] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWQKAHYGSV0TC7PG5K11XT"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:48:58.628] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWSE7GMC5ZHPZV489SS10P"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:49:58.944] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWV937FDRF410GCAGWRS7C"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:50:59.610] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWX403CCKTK184FDHDY5BG"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:52:00.166] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYWYZ7XFWQ71ZKBEDCSC41D"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:53:00.471] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYX0TCACZWK5JV2S3DXWDK6"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:54:00.754] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYX2N8V2JN1H9MQKRR03PR6"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:55:01.019] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYX4G4MB5QREW7BAQB3MC7W"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:56:01.358] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYX6AZYA3MX6G4DAP92XYSQ"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:57:01.776] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYX85XHK4HA134K975EB8MP"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:58:02.060] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXA0XKD0R3TZHQ1Z1J8NM4"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[15:59:02.369] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXBVSFE5Q9DWHX506XSKH3"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:00:03.012] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXDPRTNDEQZJ16VPBC2T3C"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:01:04.043] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXFHX8AAFEXJVSYDHD7JJQ"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:02:04.571] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXHDGFNW7G2YGBK263WC8Z"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:03:05.114] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXK8KZTPARTPBV0WMFZWF8"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:04:05.768] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXN3QXCKMNZ1Z59CZ9JHZP"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:05:06.058] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXPYZC6D0MDT9SPTBE26K6"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:06:06.366] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXRSVDMTH11W07BVGN3ECY"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:07:06.765] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXTMR0K640XE4XMY2V29D9"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:08:07.068] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXWFQHBSP9K0KZZFAECV0J"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603397
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:09:07.396] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYXYAM0MKYQ1YXR2GDSCTBC"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603396
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed [hf velocity -0.0000/min]"
+[16:10:07.695] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYY05H7BQ8NMHQJENC8P2TE"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603396
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed [hf velocity -0.0000/min]"
+[16:11:08.315] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYY20DKHTXGBYRDG4HP0CMN"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603396
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:12:09.142] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYY3VKYMXCKZ5BQ2T12GJB9"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603396
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:13:09.447] [32mINFO[39m (57117): [36mtick[39m
+    [35mdecisionId[39m: "01KYYY5Q0SZCSY6J6Z8RWG8XXN"
+    [35mband[39m: "healthy"
+    [35mhf[39m: 1.603396
+    [35mhasDebt[39m: true
+    [35mshouldDefend[39m: false
+    [35mreason[39m: "healthy: no defense needed"
+[16:14:04.337] [32mINFO[39m (57117): [36mSIGTERM received — finishing in-flight tick, then exiting[39m

@@ -125,6 +125,38 @@ export function chooseExecutor(cfg: AppConfig): KeeperHubClient {
   return new MockKeeperHubClient();
 }
 
+/**
+ * Take the single-instance lock or refuse to start.
+ *
+ * Two daemons on one database are not made safe by the database: each mints its
+ * own decisionIds, so the Guard's idempotency rule cannot see across instances
+ * and both can clear the cooldown check before either records an execution —
+ * the position gets defended twice for one event. Phase 1 accidentally ran four
+ * daemons at once (pkill was matching a shell wrapper), so this failure mode is
+ * observed, not theoretical. Same fail-closed posture as loadConfig's startup
+ * refusals: die loudly at boot, not subtly at defense time.
+ *
+ * staleMs defaults to 3 poll intervals: a crashed daemon (SIGKILL skips release)
+ * blocks a restart for at most that long before its lock is taken over.
+ */
+export function acquireDaemonLockOrThrow(
+  db: RipcordDb,
+  pid: number,
+  nowMs: number,
+  staleMs: number,
+): void {
+  const res = db.acquireDaemonLock(pid, nowMs, staleMs);
+  if (!res.acquired) {
+    const age = Math.round((res.heartbeatAgeMs ?? 0) / 1000);
+    throw new Error(
+      `Refusing to start: another Ripcord daemon (pid ${res.holderPid}) holds the ` +
+        `single-instance lock (heartbeat ${age}s ago). Stop it first — running two ` +
+        "daemons can defend the same position twice. A dead holder's lock goes " +
+        `stale and is taken over after ${Math.round(staleMs / 1000)}s.`,
+    );
+  }
+}
+
 export function buildDefensePayload(
   cfg: AppConfig,
   proposal: PlannerProposal,
@@ -194,6 +226,10 @@ export function createDaemon(deps: DaemonDeps): Daemon {
     const decisionId = decisionIdOverride ?? ulid();
     const log = logger.child({ decisionId });
     const now = clock.now();
+
+    // Heartbeat the single-instance lock. A no-op when this process holds no
+    // lock (unit tests drive runTick directly on unlocked in-memory DBs).
+    db.refreshDaemonLock(process.pid, now);
 
     const rawSnapshot = await readWithRetry(log);
     if (!rawSnapshot) {
@@ -588,6 +624,11 @@ async function main(): Promise<void> {
 
   const db = openDb(cfg.dbPath);
 
+  // Single-instance lock BEFORE anything else can act. Fail-closed startup,
+  // like loadConfig's refusals; stale locks (crashed daemon) are taken over
+  // after 3 poll intervals.
+  acquireDaemonLockOrThrow(db, process.pid, Date.now(), cfg.pollSec * 3 * 1000);
+
   const mockSensor = cfg.capabilities.chainReads ? null : createMockSensor(undefined, cfg.chain);
   const sensor: Sensor = cfg.capabilities.chainReads
     ? createAaveSensor(cfg)
@@ -638,6 +679,7 @@ async function main(): Promise<void> {
     if (signals > 1) process.exit(1);
     logger.info({}, `${sig} received — finishing in-flight tick, then exiting`);
     await daemon.stop();
+    db.releaseDaemonLock(process.pid);
     db.close();
     process.exit(0);
   };

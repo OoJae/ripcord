@@ -1,0 +1,6 @@
+# chaos: single-instance lock — second daemon refuses to start (2026-08-01)
+## daemon A (holder), startup:
+{"level":30,"time":1785598137738,"pid":69004,"hostname":"Oluwademilades-MacBook-Pro.local","msg":"🪂 RIPCORD starting — chain: base-sepolia · chain reads: LIVE (https://sepolia.base.org) · brain: LLM mimo-v2.5-pro @ https://token-plan-sgp.xiaomimimo.com/… · executor: KeeperHub webhook · alerts: Telegram · DRY_RUN: ON · RIPCORD_ARM: 0 · caps: $15/tx · $30/24h"}
+{"level":30,"time":1785598138523,"pid":69004,"hostname":"Oluwademilades-MacBook-Pro.local","decisionId":"01KYYZ2NCBQKQ3TDN9181D49NH","band":"healthy","hf":1.603396,"hasDebt":true,"shouldDefend":false,"reason":"healthy: no defense needed","msg":"tick"}
+## daemon B attempt:
+Error: Refusing to start: another Ripcord daemon (pid 69004) holds the single-instance lock (heartbeat 6s ago). Stop it first — running two daemons can defend the same position twice. A dead holder's lock goes stale and is taken over after 180s.

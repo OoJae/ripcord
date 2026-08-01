@@ -321,6 +321,17 @@ export interface ExecutionRow {
   rawRunJson?: string | null;
 }
 
+/** Outcome of a single-instance lock acquisition attempt. */
+export interface LockAcquisition {
+  acquired: boolean;
+  /** Set when acquisition displaced a dead holder's stale lock. */
+  tookOverStalePid?: number;
+  /** Set when refused: who holds the lock… */
+  holderPid?: number;
+  /** …and how fresh their heartbeat is. */
+  heartbeatAgeMs?: number;
+}
+
 export interface RipcordDb {
   insertDecision(row: DecisionRow): void;
   updateDecision(decisionId: string, patch: Partial<Omit<DecisionRow, "decisionId">>): void;
@@ -336,6 +347,16 @@ export interface RipcordDb {
   lastDefenseAt(): number | null;
   recentDecisions(n: number): DecisionRow[];
   recentExecutions(n: number): ExecutionRow[];
+  /**
+   * Single-instance advisory lock. Atomic: absent or stale (heartbeat older
+   * than staleMs) → taken; held by pid → re-entrant success; held live by
+   * another pid → refused with the holder's identity.
+   */
+  acquireDaemonLock(pid: number, nowMs: number, staleMs: number): LockAcquisition;
+  /** Heartbeat refresh; true only if this pid holds the lock (no-op otherwise). */
+  refreshDaemonLock(pid: number, nowMs: number): boolean;
+  /** Release if held by this pid; releasing someone else's lock is impossible. */
+  releaseDaemonLock(pid: number): void;
   close(): void;
 }
 

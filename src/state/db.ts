@@ -15,7 +15,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import Database from "better-sqlite3";
-import type { DecisionRow, ExecutionRow, RipcordDb } from "../types.js";
+import type { DecisionRow, ExecutionRow, LockAcquisition, RipcordDb } from "../types.js";
 
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS decisions (
@@ -37,6 +37,19 @@ CREATE TABLE IF NOT EXISTS decisions (
     'blocked','dry_run','executing','executed','failed'))
 );
 CREATE INDEX IF NOT EXISTS idx_decisions_created_at ON decisions (created_at_ms DESC);
+
+-- Single-instance advisory lock. Exactly one daemon may hold it per database.
+-- Two daemons sharing one SQLite file DO serialize on rows, but each mints its
+-- own ULID decisionIds, so the Guard's idempotency rule cannot see across
+-- instances: both can pass the cooldown check before either records an
+-- execution, and the position gets defended twice for one event. Phase 1
+-- accidentally ran four daemons at once, so this is not hypothetical.
+CREATE TABLE IF NOT EXISTS daemon_lock (
+  id             INTEGER PRIMARY KEY CHECK (id = 1),
+  pid            INTEGER NOT NULL,
+  acquired_at_ms INTEGER NOT NULL,
+  heartbeat_ms   INTEGER NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS executions (
   execution_id    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -236,6 +249,42 @@ export function openDb(path: string): RipcordDb {
     "SELECT * FROM executions ORDER BY requested_at_ms DESC LIMIT ?",
   );
 
+  const selectLockStmt = db.prepare("SELECT pid, heartbeat_ms FROM daemon_lock WHERE id = 1");
+  const insertLockStmt = db.prepare(
+    "INSERT INTO daemon_lock (id, pid, acquired_at_ms, heartbeat_ms) VALUES (1, ?, ?, ?)",
+  );
+  const takeoverLockStmt = db.prepare(
+    "UPDATE daemon_lock SET pid = ?, acquired_at_ms = ?, heartbeat_ms = ? WHERE id = 1",
+  );
+  const refreshLockStmt = db.prepare(
+    "UPDATE daemon_lock SET heartbeat_ms = ? WHERE id = 1 AND pid = ?",
+  );
+  const releaseLockStmt = db.prepare("DELETE FROM daemon_lock WHERE id = 1 AND pid = ?");
+
+  // The whole read-decide-write must be one transaction: two daemons starting
+  // in the same instant must serialize here, not both observe "no lock".
+  const acquireLockTxn = db.transaction(
+    (pid: number, nowMs: number, staleMs: number): LockAcquisition => {
+      const row = selectLockStmt.get() as { pid: number; heartbeat_ms: number } | undefined;
+      if (row === undefined) {
+        insertLockStmt.run(pid, nowMs, nowMs);
+        return { acquired: true };
+      }
+      if (row.pid === pid) {
+        // Re-entrant: the same process re-acquiring its own lock is harmless.
+        refreshLockStmt.run(nowMs, pid);
+        return { acquired: true };
+      }
+      const heartbeatAgeMs = nowMs - row.heartbeat_ms;
+      if (heartbeatAgeMs > staleMs) {
+        // The holder died without releasing (crash, SIGKILL): take over.
+        takeoverLockStmt.run(pid, nowMs, nowMs);
+        return { acquired: true, tookOverStalePid: row.pid };
+      }
+      return { acquired: false, holderPid: row.pid, heartbeatAgeMs };
+    },
+  );
+
   return {
     insertDecision(row: DecisionRow): void {
       insertDecisionStmt.run(
@@ -307,6 +356,18 @@ export function openDb(path: string): RipcordDb {
 
     recentExecutions(n: number): ExecutionRow[] {
       return (recentExecutionsStmt.all(n) as RawExecutionRow[]).map(mapExecution);
+    },
+
+    acquireDaemonLock(pid: number, nowMs: number, staleMs: number): LockAcquisition {
+      return acquireLockTxn(pid, nowMs, staleMs);
+    },
+
+    refreshDaemonLock(pid: number, nowMs: number): boolean {
+      return refreshLockStmt.run(nowMs, pid).changes > 0;
+    },
+
+    releaseDaemonLock(pid: number): void {
+      releaseLockStmt.run(pid);
     },
 
     close(): void {
