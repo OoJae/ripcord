@@ -1,21 +1,23 @@
 # KeeperHub workflows
 
-Exported definitions of the two live workflows, both built and verified against the
-KeeperHub API on **2026-08-01**. Re-export after any change:
+Exported definitions of the live workflows, each built and verified against the
+KeeperHub API. Re-export after any change:
 
 ```bash
 curl -sS "https://app.keeperhub.com/api/workflows/<id>" \
   -H "authorization: Bearer $KEEPERHUB_API_KEY"
 ```
 
-| File | Workflow | ID | Trigger |
-|---|---|---|---|
-| `wf1-hf-monitor.json` | Ripcord WF-1 `hf-monitor` | `8kcwzx7ycrg1zlqhox6tz` | Schedule, `*/5 * * * *` UTC |
-| `wf2-defend.json` | Ripcord WF-2 `defend` | `rk20tp8ucuf3caxjrdpfe` | Webhook |
+| File | Workflow | ID | Chain | Trigger |
+|---|---|---|---|---|
+| `wf1-hf-monitor.json` | WF-1 `hf-monitor` | `8kcwzx7ycrg1zlqhox6tz` | 84532 | Schedule, `*/5 * * * *` UTC |
+| `wf2-defend.json` | WF-2 `defend` | `rk20tp8ucuf3caxjrdpfe` | 84532 | Webhook |
+| `wf2-defend-mainnet.json` | WF-2 `defend-mainnet` | `wjp3tis90y1nn4e57t817` | 8453 | Webhook (kept **disabled** outside supervised armed sessions) |
+| `wf3-risk-score.json` | WF-3 `risk-score` | `70sds40dse7wckofqe7lx` | 8453 | Manual (marketplace `/call`) |
 
-Both run on **Base Sepolia (84532)** against Aave V3 Pool
-`0x8bAB6d1b75f19e9eD9fCe8b9BD338844fF79aE27`, signing from the org's single Turnkey
-wallet `0x30C8A36e99f0708c3e3301b1Ed99cf418BDCf27a`.
+All sign from the org's single Turnkey wallet
+`0x30C8A36e99f0708c3e3301b1Ed99cf418BDCf27a`; Pool addresses come from
+Ripcord's own allowlist (`src/config.ts`).
 
 ---
 
@@ -113,9 +115,10 @@ discriminator and it is the half fully under our control.
 - **`web3/write-contract`, not `aave-v3/repay`.** The Aave protocol actions reject
   chain 84532 outright (`expected: 1 | 10 | 8453 | 42161 | 11155111`), so they are
   unusable on Base Sepolia. Pinning `contractAddress` ourselves also keeps the Pool
-  address sourced from Ripcord's own allowlist rather than an opaque registry, and it
-  is the only node type on which `usePrivateMempool` has been observed — which is how
-  Phase 2 turns on private routing without a rebuild.
+  address sourced from Ripcord's own allowlist rather than an opaque registry.
+  (An earlier revision claimed the node's `usePrivateMempool` field was the Phase-2
+  private-routing switch — disproven: routing is a server-side per-chain flag,
+  Flashbots Protect, Ethereum-only. See docs/architecture.md § MEV posture.)
 - **No notify node in WF-2.** A failing `telegram/send-message` marks the *entire
   execution* `error`, which would report a landed repay as a failure and corrupt the
   daemon's run tracking. The daemon owns notification.
@@ -125,8 +128,22 @@ discriminator and it is the half fully under our control.
   1500000000000000000` evaluates `true`, so the 18-vs-19-digit lexicographic hazard
   does not exist.
 
-## WF-3 `risk-score` (stretch, Phase 3)
+## WF-3 `risk-score` — the paid product ✅
 
-Input `{chain, address}` → reads → scoring → JSON out. Listed on the Marketplace at
-$0.05/call. Note `code/run-code` requires a **paid plan**, so the scoring step needs a
-different shape or an upgrade.
+| | |
+|---|---|
+| Workflow | `70sds40dse7wckofqe7lx` → [`workflows/wf3-risk-score.json`](wf3-risk-score.json) |
+| Listing | slug **`ripcord-risk-score`** · **$0.05/call** (the quota-exemption floor) · category defi · chain 8453 |
+| Call | `POST https://app.keeperhub.com/api/mcp/workflows/ripcord-risk-score/call` (x402 v2; `payTo` = the org wallet) |
+
+`Manual trigger → read getUserAccountData → belowWarn → belowAct → belowPanic →
+noDebt → final position re-read`. The conditions are chained through BOTH handles
+so every band always evaluates, and the terminal re-read exists because the
+platform stores a listing's `outputMapping` but does not apply it to call
+responses (FRICTION.md 2026-08-02) — the last node's output IS the product, so
+the last node is deterministically the full figures.
+
+No `code/run-code` node (pro-plan-gated): the workflow sells **verifiable raw
+figures + band booleans**, and the score formula is public — reference
+implementation `src/risk/engine.ts`, runnable on any paid response via
+`tsx scripts/risk-score.ts --json <response.json>`.

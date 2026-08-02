@@ -483,3 +483,68 @@ private-mempool txs).
 **Proposed fix:** Reject or warn on `usePrivateMempool: true` for chains where
 `usePrivateMempoolRpc` is false, and document the per-chain support list outside of the
 API reference.
+
+## 2026-08-02 — the plugin's MCP OAuth session was silently bound to an EMPTY org
+
+**What:** The KeeperHub MCP plugin connection (OAuth) authenticated fine but was scoped to
+an organization with zero workflows — `list_workflows` returned `[]` and
+`get_workflow(<our id>)` 404'd while the same ids were visible over REST with the org
+`kh_` key. Listing a workflow through that session would have published into the wrong
+org. Nothing in any tool response names the org you are operating in.
+
+**Workaround that unblocked everything:** the `/mcp` endpoint is streamable HTTP and
+accepts raw JSON-RPC with `Authorization: Bearer kh_…` — `initialize` mints a session
+bound to the KEY's org (the session JWT even shows `org` and scopes in its payload). We
+drove `update_workflow_listing` and `list_workflow` with curl. No restart, no OAuth.
+
+**Proposed fix:** return the org id/name in `initialize`'s `serverInfo` and in every
+tool error for a missing entity ("not found *in org X*"), so a wrong-org binding is
+diagnosable in one step.
+
+## 2026-08-02 — listing `outputMapping` is stored, advertised, and NOT applied
+
+**What:** `update_workflow_listing` accepted our Shape-B `outputMapping`, the public
+catalog serves it, other listings carry the same shape — but the paid
+`/api/mcp/workflows/{slug}/call` response returns `output` = the LAST NODE's raw output,
+not the mapping. Our first paying caller received `{"condition": false}` for $0.05. The
+same mismatch is visible on third-party listings (vigil-risk-check's response bears no
+resemblance to its published mapping), so it is platform-wide, not our config error.
+
+**Workaround:** make the terminal node carry the product. We re-chained WF-3 so the
+conditions thread sequentially (both handles wired) into a final `web3/read-contract`
+re-read — the output is now deterministically the full position figures. Costs one extra
+RPC read per call; deterministic beats racy.
+
+**Proposed fix:** apply the stored mapping to the call response (that is what it is
+for), or reject `update_workflow_listing` calls that set one.
+
+## 2026-08-02 — cross-chain paid calls fail AFTER the listing looks callable
+
+**What:** Our first probe paid call targeted `position-health-check` — listed, live,
+returning a 402 challenge — and failed with `CHAIN_MISMATCH: chain does not match
+workflow's registered chain` because that listing is on Sepolia (11155111) while the
+agentic wallet pays on Base. The catalog surfaces `chain` per listing, but nothing in
+the 402 challenge or the wallet's tooling filters or warns before the attempt.
+
+**Impact:** Minor for us (no money moved). For agent builders: an agent that picks a
+listing from the catalog without checking `chain` burns a request cycle per mismatch.
+
+**Proposed fix:** include the workflow's chain in the 402 `accepts` entry (it already
+carries `network` for the PAYMENT chain — the confusion is that payment chain ≠
+execution chain), and have `call_workflow` pre-check catalog `chain` before paying.
+
+## 2026-08-02 — x402scan does not index KeeperHub's facilitator; docs claim it does
+
+**What:** docs.keeperhub.com/workflows/marketplace says a listed workflow "is now
+registered on x402scan.com, mppscan.com, and 8004scan.io under KeeperHub's
+registration." Reality: x402scan's KeeperHub resource index has been stale since
+2026-04-27 (two long-dead resources), none of the 91 current listings appear, x402scan's
+facilitators page has no "keeperhub" entry, and our two real x402 payments (verified
+on-chain) never showed in its transactions feed.
+
+**Impact:** The build guide's "x402scan screenshot" evidence item is unsatisfiable for
+KeeperHub-settled payments today. We replaced it with stronger evidence: Basescan
+Transfer receipts, KeeperHub execution ids, and the payee balance delta.
+
+**Proposed fix:** either register the facilitator with x402scan / refresh the resource
+index, or soften the docs claim.

@@ -259,3 +259,46 @@ Position after: collateral $45.00 · debt $23.37 · **HF 1.6028** · wallet ~$23
 USDC + 0.009 ETH. Armed wall-clock time: **under 4 minutes**.
 
 Full log: [`logs/hero-tx.log`](logs/hero-tx.log).
+
+## Phase 3 — "Ripcord pays for itself" 💸 (2026-08-02, Base mainnet, x402)
+
+**The listing:** `ripcord-risk-score` — $0.05/call (the exact quota-exemption
+floor), category defi, chain 8453, listed 07:33 UTC. Public proof, no auth
+needed:
+- catalog: `GET https://app.keeperhub.com/api/mcp/workflows` carries the slug
+- our own unpaid call returns the x402 v2 challenge (`logs/wf3-402-challenge.log`)
+  with `payTo` = the org Turnkey wallet — **marketplace revenue lands in the
+  same wallet the daemon defends**
+
+**The buyer:** a second, independent agentic wallet (`@keeperhub/wallet`,
+Turnkey sub-org `03ec09f8…`, address `0x1710d02eE0E5f87573FED67483A0D11520800208`),
+funded with $1.50 USDC from the org wallet
+(execution `vhjwqxrc6yu3i912vrvpc`, sponsored).
+
+**The payments** (all EIP-3009 `transferWithAuthorization` — the buyer signed,
+KeeperHub's facilitator submitted and paid gas; the buyer wallet holds zero ETH):
+
+| What | $ | Tx | KeeperHub execution |
+|---|---|---|---|
+| Probe: `vigil-risk-check` (3rd party, facilitator recon) | 0.02 | [`0x482317d8…874a`](https://basescan.org/tx/0x482317d863595d58fccba700fd190bb31386a033bb2ba4b3e39ad2e8d5f3874a) | `p1rppg1m5jync1uo7fmhe` |
+| **Paid call #1 to our listing** | 0.05 | [`0xb9ddfd5a…c72e`](https://basescan.org/tx/0xb9ddfd5ab4f1231d834cc2007bfdbd218992723d0ee12dd3581b863590d0c72e) | `z08itkcc5ks9ioecunx93` |
+| **Paid call #2 (post output-fix)** | 0.05 | [`0x2850f226…02ca`](https://basescan.org/tx/0x2850f2266a37e92acab6bd645c8bdc922d4df06120f31d4cd71870dcf8f302ca) | `dr3891lm4er7oeydu4eas` |
+
+Both $0.05 transfers land in `0x30C8A36e…f27a` — verified by balance delta
+(+$0.10) and by the Transfer events. `paid: true, protocolUsed: "x402"` in the
+wallet's own response (`logs/x402-paid-call.log`).
+
+**The composed demo:** the paid response body fed straight into the open-source
+scorer —
+
+```
+$ tsx scripts/risk-score.ts --json wf3-response.json
+🪂 Ripcord risk report — SCORE 33/100 · grade LOW
+   (HF 1.6318 · buffer 38.7% · velocity warming · utilization 63.6%)
+```
+
+**x402scan:** our payments do NOT appear there — KeeperHub settles through its
+own facilitator, which x402scan does not index (its KeeperHub resource index has
+been stale since 2026-04-27; both documented in FRICTION.md). The layered
+evidence above — Basescan receipts + execution ids + balance delta — is
+stronger than a scanner screenshot anyway: it is the actual money.

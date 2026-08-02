@@ -59,18 +59,27 @@ function render(report: RiskReport, source: string): void {
 async function main(): Promise<void> {
   const jsonPath = argOf("--json");
   if (jsonPath !== undefined) {
-    // A WF-3 `ripcord-risk-score` response body (or compatible JSON).
-    const body = JSON.parse(readFileSync(jsonPath, "utf8")) as Record<string, string | number>;
-    const requireField = (name: string): bigint => {
-      const v = body[name];
-      if (v === undefined || v === null) throw new Error(`response JSON missing "${name}"`);
-      return BigInt(v);
+    // A WF-3 `ripcord-risk-score` response body. Two shapes are accepted:
+    //  - the listing's outputMapping names (healthFactorWad, totalCollateralBase8, …)
+    //  - the raw /call output.result ABI names (healthFactor, totalCollateralBase, …),
+    //    which is what the paid endpoint actually returns today (the platform
+    //    stores outputMapping but does not apply it — see FRICTION.md).
+    const parsed = JSON.parse(readFileSync(jsonPath, "utf8")) as Record<string, unknown>;
+    const body = ((parsed.output as Record<string, unknown>)?.result ??
+      parsed.result ??
+      parsed) as Record<string, string | number>;
+    const pick = (...names: string[]): bigint => {
+      for (const n of names) {
+        const v = body[n];
+        if (v !== undefined && v !== null) return BigInt(v);
+      }
+      throw new Error(`response JSON missing all of: ${names.join(", ")}`);
     };
     const report = riskFromAccountData({
-      healthFactorWad: requireField("healthFactorWad"),
-      totalCollateralBase8: requireField("totalCollateralBase8"),
-      totalDebtBase8: requireField("totalDebtBase8"),
-      availableBorrowsBase8: BigInt(body.availableBorrowsBase8 ?? 0),
+      healthFactorWad: pick("healthFactorWad", "healthFactor"),
+      totalCollateralBase8: pick("totalCollateralBase8", "totalCollateralBase"),
+      totalDebtBase8: pick("totalDebtBase8", "totalDebtBase"),
+      availableBorrowsBase8: BigInt(body.availableBorrowsBase8 ?? body.availableBorrowsBase ?? 0),
       collateralSymbol:
         typeof body.collateralSymbol === "string" ? body.collateralSymbol : undefined,
     });

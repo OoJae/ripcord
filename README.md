@@ -49,7 +49,7 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 | Gas sponsorship | Every setup and defense tx, `sponsored: true` | ✅ all setup txs sponsored |
 | Audit trail | `decisionId` threads log → SQLite → payload → execution → tx | ✅ one ULID end to end |
 | Private routing | Ethereum-only (`/api/chains` proof); Base tradeoff documented, defense gains sponsorship instead | ✅ [architecture.md](docs/architecture.md) § MEV posture |
-| Marketplace + x402 (WF-3 `risk-score`) | Paid risk scoring — Ripcord pays for itself | ⬜ Phase 3 |
+| Marketplace + x402 (WF-3 `risk-score`) | Paid risk scoring — **Ripcord pays for itself** | ✅ [`ripcord-risk-score`](https://app.keeperhub.com/api/mcp/workflows) $0.05/call, 2 paid x402 calls settled to the org wallet |
 
 ## Transactions
 
@@ -58,7 +58,7 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 | 1 | **Hero: autonomous defensive repay — gas-sponsored, full audit trail** | Base mainnet | [`0x6e314ece…9cd05`](https://basescan.org/tx/0x6e314ece3f28df705ce60d62bdcb130b46013aa1b919f6b5efb91dd335e9cd05) | `deqcbg6pwj968qlvqmri5` |
 | 2 | Gas-sponsored setup ×5 (wrap → approve → supply → borrow → capped approval) | Base mainnet | [`0x1d43a6bc…1a29`](https://basescan.org/tx/0x1d43a6bc19684d7e68f045a88a4a390c539df9acdc90b3a4f17b197f8a8b1a29) +4 | [EVIDENCE.md](docs/evidence/EVIDENCE.md) |
 | 3 | 3 consecutive autonomous testnet defenses | Base Sepolia | [`0xf1f52639…`](https://sepolia.basescan.org/tx/0xf1f526390d4c2bee7cf8bc16fe103f35563d72cc40e92ccfc0b7ded8b8aab176) +2 | [EVIDENCE.md](docs/evidence/EVIDENCE.md) |
-| 4 | Paid x402 call to risk-score workflow | Base | _(Phase 3)_ | |
+| 4 | Paid x402 calls to `ripcord-risk-score` ($0.05 ×2 → our own wallet) | Base mainnet | [`0xb9ddfd5a…c72e`](https://basescan.org/tx/0xb9ddfd5ab4f1231d834cc2007bfdbd218992723d0ee12dd3581b863590d0c72e), [`0x2850f226…02ca`](https://basescan.org/tx/0x2850f2266a37e92acab6bd645c8bdc922d4df06120f31d4cd71870dcf8f302ca) | `z08itkcc…`, `dr3891lm…` |
 
 Private routing is **not available on Base** (KeeperHub `/api/chains`: Flashbots
 Protect on Ethereum only) — the hero tx runs public-route with the tradeoff
