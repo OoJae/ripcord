@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createNotifier } from "../../src/notifier/telegram.js";
+import { createNotifier, renderMessage } from "../../src/notifier/telegram.js";
 import type { DecisionNotification } from "../../src/types.js";
 import { makeTestConfig } from "../helpers/fakes.js";
 
@@ -180,5 +180,47 @@ describe("createNotifier (telegram)", () => {
     expect(text).toContain("&lt;/script&gt;");
     expect(text).toContain("&amp; profit");
     expect(text).not.toContain("<script>");
+  });
+});
+
+describe("regression: a defense notification must render its detail", () => {
+  it("shows the cancel-window announcement instead of looking like a completed defense", () => {
+    // Found by review: the announcement put every actionable word in `detail`,
+    // which the defense case never read — so a PENDING defense rendered
+    // identically to a FINISHED one and the veto window was invisible.
+    const msg = renderMessage({
+      kind: "defense",
+      chain: "base",
+      band: "act",
+      decisionId: "01J9CANCELWINDOW00000000A",
+      dryRun: false,
+      hf: 1.2,
+      action: "repay",
+      asset: "USDC",
+      amountUsd: 4.79,
+      expectedHfAfter: 1.6,
+      rationale: "restore the buffer",
+      detail: "Defending in 90s unless cancelled: repay $4.79 USDC",
+    });
+    expect(msg).toContain("Defending in 90s unless cancelled");
+    expect(msg).toContain("90s");
+  });
+
+  it("a completed defense with no detail is unchanged", () => {
+    const msg = renderMessage({
+      kind: "defense",
+      chain: "base",
+      band: "act",
+      decisionId: "01J9DONE00000000000000000",
+      dryRun: false,
+      hf: 1.2,
+      action: "repay",
+      asset: "USDC",
+      amountUsd: 4.79,
+      expectedHfAfter: 1.6,
+      txHash: "0xabc",
+    });
+    expect(msg).toContain("tx:");
+    expect(msg).not.toContain("undefined");
   });
 });

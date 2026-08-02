@@ -21,7 +21,7 @@
  */
 
 import { createPublicClient, http, type PublicClient } from "viem";
-import type { AppConfig } from "../config.js";
+import { type AppConfig, scrubRpcUrl } from "../config.js";
 import type { OracleSanityResult } from "../types.js";
 
 const POOL_PROVIDER_ABI = [
@@ -184,7 +184,11 @@ export function createOracleSanityChecker(
       } catch (err) {
         return {
           status: "unavailable",
-          detail: `oracle sanity reads failed (${String(err).slice(0, 120)}) — proceeding on the Aave oracle alone`,
+          // Scrub BEFORE slicing: viem puts the full RPC URL (which routinely
+          // embeds a provider API key) at ~char 57 of its error, and this
+          // string reaches logs, SQLite and the Critic prompt. Truncating
+          // first would leave a half-URL the scrubber no longer matches.
+          detail: `oracle sanity reads failed (${scrubRpcUrl(String(err), cfg.rpcUrl).slice(0, 120)}) — proceeding on the Aave oracle alone`,
         };
       }
     },

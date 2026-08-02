@@ -60,10 +60,16 @@ export function renderMessage(n: DecisionNotification): string {
       return `${header} HF ${fmtHf(n.hf)} — entering ${n.band} band`;
     case "defense": {
       const asset = n.asset === undefined ? "" : ` ${n.asset}`;
-      const lines: string[] = [
-        `${header} ${n.action ?? "defense"} ${fmtUsd(n.amountUsd)}${asset}`,
-        `HF ${fmtHf(n.hf)} → expected ${fmtHf(n.expectedHfAfter)}`,
-      ];
+      const lines: string[] = [`${header} ${n.action ?? "defense"} ${fmtUsd(n.amountUsd)}${asset}`];
+      // A defense notification can be an ANNOUNCEMENT (autopilot's cancel
+      // window) rather than a completed one. Its whole payload lives in
+      // `detail`; dropping it rendered a pending defense identically to a
+      // finished one — the operator saw "defended" and never knew a veto
+      // window was open. Lead with it so the call to action comes first.
+      if (n.detail !== undefined) {
+        lines.push(escapeHtml(n.detail));
+      }
+      lines.push(`HF ${fmtHf(n.hf)} → expected ${fmtHf(n.expectedHfAfter)}`);
       if (n.rationale !== undefined) {
         lines.push(`"${escapeHtml(n.rationale)}"`);
       }

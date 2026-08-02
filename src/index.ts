@@ -596,6 +596,9 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       });
       if (!approved) {
         log.warn({ summary }, "CO-PILOT: not approved within the window — standing down");
+        // Same reasoning as the autopilot cancel: an unanswered request must
+        // not re-prompt every tick. Cooldown-rate-limit it; panic overrides.
+        Object.assign(state, markDefenseAttempted(state, clock.now()));
         db.updateDecision(decisionId, { status: "blocked" });
         await safeNotify(
           {
@@ -637,6 +640,11 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       });
       if (!proceed) {
         log.warn({ summary }, "AUTOPILOT: cancelled by human during the window");
+        // A veto that lasts one 60s tick is not a veto: the next tick would
+        // re-propose the same defense and fire it. Anchor the cooldown so the
+        // human's decision holds for a cooldown period. PANIC still overrides,
+        // per the existing doctrine.
+        Object.assign(state, markDefenseAttempted(state, clock.now()));
         db.updateDecision(decisionId, { status: "blocked" });
         await safeNotify(
           {
@@ -646,7 +654,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
             decisionId,
             dryRun: cfg.dryRun,
             hf: snapshot.hf,
-            detail: `CANCELLED by human during the ${Math.round(cfg.cancelWindowMs / 1000)}s window: ${summary}`,
+            detail: `CANCELLED by human during the ${Math.round(cfg.cancelWindowMs / 1000)}s window: ${summary}. Will not re-propose for ${Math.round(cfg.thresholds.cooldownSec / 60)} min unless the position enters panic.`,
           },
           log,
         );

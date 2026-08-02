@@ -235,3 +235,64 @@ describe("config: threshold env overrides", () => {
     expect(() => loadConfig({ ...base, RIPCORD_COOLDOWN_SEC: "30" })).toThrow();
   });
 });
+
+describe("config: refusals that keep the daemon in sync with the deployed workflow", () => {
+  const live = {
+    ...base,
+    MONITORED_ADDRESS: "0x1111111111111111111111111111111111111111",
+    KEEPERHUB_DEFEND_WEBHOOK_URL: "https://app.keeperhub.com/api/workflows/wf2/execute",
+  };
+
+  it("refuses an act threshold at or above WF-2's own 1.50 health-factor gate", () => {
+    // Found by review: WF-2 re-reads the chain and refuses to repay a position
+    // at or above HF 1.50. An act threshold there makes every defense a silent
+    // no-op that still burns the cooldown and the daily cap.
+    expect(() =>
+      loadConfig({
+        ...live,
+        RIPCORD_ACT_HF: "1.7",
+        RIPCORD_WARN_HF: "2.0",
+        RIPCORD_REARM_HF: "2.05",
+        RIPCORD_TARGET_HF: "2.2",
+      }),
+    ).toThrow(/health-factor gate/);
+    // exactly at the gate (with a valid surrounding ordering) is still refused
+    expect(() =>
+      loadConfig({
+        ...live,
+        RIPCORD_ACT_HF: "1.5",
+        RIPCORD_WARN_HF: "1.8",
+        RIPCORD_REARM_HF: "1.85",
+        RIPCORD_TARGET_HF: "2.0",
+      }),
+    ).toThrow(/health-factor gate/);
+    expect(() => loadConfig({ ...live, RIPCORD_ACT_HF: "1.49" })).not.toThrow();
+  });
+
+  it("only applies with a live executor — the mock has no workflow gate", () => {
+    expect(() =>
+      loadConfig({
+        ...base,
+        RIPCORD_ACT_HF: "1.7",
+        RIPCORD_WARN_HF: "2.0",
+        RIPCORD_REARM_HF: "2.05",
+        RIPCORD_TARGET_HF: "2.2",
+      }),
+    ).not.toThrow();
+  });
+
+  it("refuses a human-decision window that outlives the daemon-lock stale window", () => {
+    // A tick spent awaiting a human stops heartbeating the single-instance
+    // lock; a window >= 3x the poll interval lets another daemon take it.
+    expect(() =>
+      loadConfig({ ...base, RIPCORD_MODE: "copilot", RIPCORD_APPROVAL_WINDOW_SEC: "180" }),
+    ).toThrow(/stale window/);
+    expect(() => loadConfig({ ...base, RIPCORD_CANCEL_WINDOW_SEC: "200" })).toThrow(/stale window/);
+    // …and the defaults fit: 120s approval, 0s cancel, 180s stale.
+    expect(() => loadConfig({ ...base, RIPCORD_MODE: "copilot" })).not.toThrow();
+    // A longer poll buys a longer window.
+    expect(() =>
+      loadConfig({ ...base, RIPCORD_CANCEL_WINDOW_SEC: "200", RIPCORD_POLL_SEC: "120" }),
+    ).not.toThrow();
+  });
+});

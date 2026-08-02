@@ -635,3 +635,96 @@ describe("defense modes (interruptibility)", () => {
     h.db.close();
   });
 });
+
+describe("regression: a human veto must outlive one tick", () => {
+  function modeHarness(mode: "copilot" | "autopilot", hf: string) {
+    const h = harness({ dryRun: false, hf });
+    h.deps.config = { ...h.deps.config, defenseMode: mode, cancelWindowMs: 90_000 };
+    return h;
+  }
+
+  it("AUTOPILOT: a cancel is not re-proposed and fired on the very next tick", async () => {
+    // Found by review: cancel recorded "blocked" but left the cooldown
+    // unanchored, so the next 60s tick re-proposed the same defense and a
+    // silent gate let it through. A veto that lasts one tick is not a veto.
+    const h = modeHarness("autopilot", "1.20");
+    let calls = 0;
+    h.deps.approvalGate = {
+      async requestApproval() {
+        return false;
+      },
+      async awaitCancelWindow() {
+        calls += 1;
+        return calls > 1; // cancel on tick 1, silence (proceed) on tick 2
+      },
+    };
+    const daemon = createDaemon(h.deps);
+    await daemon.runTick("01J9VETOTICK100000000000A");
+    await daemon.runTick("01J9VETOTICK200000000000B");
+
+    expect(h.executor.receivedPayloads).toHaveLength(0); // NOT fired on tick 2
+    expect(daemon.state.lastFiredAtMs).not.toBeNull(); // cooldown anchored
+    h.db.close();
+  });
+
+  it("AUTOPILOT: the cancel notice tells the human how long the veto holds", async () => {
+    const h = modeHarness("autopilot", "1.20");
+    h.deps.approvalGate = {
+      async requestApproval() {
+        return false;
+      },
+      async awaitCancelWindow() {
+        return false;
+      },
+    };
+    await createDaemon(h.deps).runTick("01J9VETONOTICE0000000000A");
+    expect(h.notifications.at(-1)?.detail).toMatch(/will not re-propose/i);
+    h.db.close();
+  });
+
+  it("PANIC still overrides a prior cancel — the veto is not a suicide pact", async () => {
+    const h = modeHarness("autopilot", "1.20");
+    let calls = 0;
+    h.deps.approvalGate = {
+      async requestApproval() {
+        return false;
+      },
+      async awaitCancelWindow() {
+        calls += 1;
+        return false;
+      },
+    };
+    const daemon = createDaemon(h.deps);
+    await daemon.runTick("01J9VETOPANIC100000000000"); // cancelled in act band
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+
+    // Position deteriorates into panic: cooldown and the cancel are bypassed.
+    h.deps.sensor = {
+      async read() {
+        return makeSnapshot("1.05");
+      },
+    };
+    await createDaemon(h.deps).runTick("01J9VETOPANIC200000000000");
+    expect(h.executor.receivedPayloads).toHaveLength(1);
+    h.db.close();
+  });
+
+  it("CO-PILOT: an unanswered request does not re-prompt every tick", async () => {
+    const h = modeHarness("copilot", "1.20");
+    let prompts = 0;
+    h.deps.approvalGate = {
+      async requestApproval() {
+        prompts += 1;
+        return false;
+      },
+      async awaitCancelWindow() {
+        return true;
+      },
+    };
+    const daemon = createDaemon(h.deps);
+    await daemon.runTick("01J9COPILOTNAG100000000A");
+    await daemon.runTick("01J9COPILOTNAG200000000B");
+    expect(prompts).toBe(1); // cooldown suppressed the second ask
+    h.db.close();
+  });
+});

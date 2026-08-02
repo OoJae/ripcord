@@ -61,6 +61,19 @@ export const KEEPERHUB_API_BASE_URL = "https://app.keeperhub.com/api";
  */
 export const WF2_AMOUNT_CEILING_USD = 60;
 
+/**
+ * WF-2's own health-factor gate, mirrored from the deployed workflow —
+ * `gate-1` → `rule-hf-still-below-warn` (1500000000000000000) in
+ * workflows/wf2-defend*.json. The workflow re-reads the chain and refuses to
+ * repay a position at or above this HF, whatever the daemon believes.
+ *
+ * So a local `act` threshold at or above it is a silent no-op factory: the
+ * daemon fires, the workflow declines, and the run still ends "success" with
+ * no transaction. Same failure shape as an over-large MAX_TX_USD, same fix.
+ * If you change one, change the other.
+ */
+export const WF2_HF_GATE = 1.5;
+
 /** Public endpoints (rate-limited; fine for the hackathon, override via env for volume). */
 export const DEFAULT_RPC_URLS: Record<Chain, string> = {
   base: "https://mainnet.base.org",
@@ -205,7 +218,7 @@ const EnvSchema = z.object({
   /** How long copilot waits for a human. */
   RIPCORD_APPROVAL_WINDOW_SEC: z.preprocess(
     emptyToUndefined,
-    z.coerce.number().int().min(5).default(300),
+    z.coerce.number().int().min(5).default(120),
   ),
   /** Autopilot act-band cancel window; 0 disables. Panic always skips it. */
   RIPCORD_CANCEL_WINDOW_SEC: z.preprocess(
@@ -400,6 +413,36 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     );
   }
 
+  // Refuse thresholds the defense workflow would decline anyway. `act` is the
+  // highest health factor at which a non-panic defense can be triggered, so if
+  // it reaches WF-2's gate every defense becomes a silent no-op that still
+  // burns the cooldown and the daily cap.
+  const resolved = resolveThresholds(e);
+  if (liveExecutor && resolved.thresholds.act >= WF2_HF_GATE) {
+    throw new Error(
+      `Refusing to start: RIPCORD_ACT_HF=${resolved.thresholds.act} is at or above WF-2's own ` +
+        `${WF2_HF_GATE} health-factor gate, so every defense would be declined by the workflow ` +
+        "with no transaction sent. Lower the act threshold, or raise " +
+        "rule-hf-still-below-warn in workflows/wf2-defend*.json and redeploy it first.",
+    );
+  }
+
+  // A human-approval window longer than the daemon-lock stale window means a
+  // tick spent waiting can let another daemon steal the lock mid-decision.
+  const staleMs = (e.RIPCORD_POLL_SEC ?? DEFAULT_POLL_SEC) * 3 * 1000;
+  const longestWindowMs = Math.max(
+    e.RIPCORD_MODE === "copilot" ? e.RIPCORD_APPROVAL_WINDOW_SEC * 1000 : 0,
+    e.RIPCORD_CANCEL_WINDOW_SEC * 1000,
+  );
+  if (longestWindowMs >= staleMs) {
+    throw new Error(
+      `Refusing to start: a ${Math.round(longestWindowMs / 1000)}s human-decision window is not ` +
+        `shorter than the ${Math.round(staleMs / 1000)}s single-instance-lock stale window ` +
+        "(3 × RIPCORD_POLL_SEC). A tick spent waiting would stop heartbeating and another " +
+        "daemon could take the lock mid-decision. Shorten the window or raise RIPCORD_POLL_SEC.",
+    );
+  }
+
   const rpcUrl =
     chain === "base"
       ? (e.BASE_RPC_URL ?? DEFAULT_RPC_URLS.base)
@@ -440,7 +483,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     approvalWindowMs: e.RIPCORD_APPROVAL_WINDOW_SEC * 1000,
     cancelWindowMs: e.RIPCORD_CANCEL_WINDOW_SEC * 1000,
     approvalDir: e.RIPCORD_APPROVAL_DIR ?? DEFAULT_APPROVAL_DIR,
-    ...resolveThresholds(e),
+    ...resolved,
     pollSec: e.RIPCORD_POLL_SEC ?? DEFAULT_POLL_SEC,
     dbPath: e.RIPCORD_DB_PATH ?? DEFAULT_DB_PATH,
     addressBook: ADDRESS_BOOK[chain],
