@@ -1,0 +1,198 @@
+{
+  "id": "70sds40dse7wckofqe7lx",
+  "name": "Ripcord WF-3 risk-score",
+  "description": "Deterministic Aave V3 liquidation-risk snapshot for any Base address. Returns the raw on-chain position figures (wad health factor, 8-decimal base-USD aggregates, LT/LTV bps) plus Ripcord's threshold-band booleans (warn <1.50, act <1.25, panic <1.10, no-debt). Score formula (reproducible, open source): weighted HF distance 45%, buffer-to-liquidation 20%, HF velocity 15%, collateral volatility 10%, borrow-capacity utilization 10% -- reference implementation in the Ripcord repo (src/risk/engine.ts), the same model that ran a real autonomous mainnet defense.",
+  "nodes": [
+    {
+      "id": "trigger-1",
+      "data": {
+        "type": "trigger",
+        "label": "Score Request",
+        "config": {
+          "triggerType": "Manual"
+        },
+        "status": "idle"
+      },
+      "type": "trigger",
+      "position": {
+        "x": 0,
+        "y": 150
+      }
+    },
+    {
+      "id": "read-1",
+      "data": {
+        "type": "action",
+        "label": "Read Position",
+        "config": {
+          "abi": "[{\"type\": \"function\", \"name\": \"getUserAccountData\", \"stateMutability\": \"view\", \"inputs\": [{\"name\": \"user\", \"type\": \"address\"}], \"outputs\": [{\"name\": \"totalCollateralBase\", \"type\": \"uint256\"}, {\"name\": \"totalDebtBase\", \"type\": \"uint256\"}, {\"name\": \"availableBorrowsBase\", \"type\": \"uint256\"}, {\"name\": \"currentLiquidationThreshold\", \"type\": \"uint256\"}, {\"name\": \"ltv\", \"type\": \"uint256\"}, {\"name\": \"healthFactor\", \"type\": \"uint256\"}]}]",
+          "network": "8453",
+          "actionType": "web3/read-contract",
+          "abiFunction": "getUserAccountData",
+          "functionArgs": "[\"{{@trigger-1:Trigger.address}}\"]",
+          "contractAddress": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 280,
+        "y": 150
+      }
+    },
+    {
+      "id": "cond-warn",
+      "data": {
+        "type": "action",
+        "label": "Below Warn 1.50",
+        "config": {
+          "condition": "{{@read-1:Read Position.result.healthFactor}} < 1500000000000000000",
+          "actionType": "Condition",
+          "conditionConfig": {
+            "group": {
+              "id": "g-cond-warn",
+              "logic": "AND",
+              "rules": [
+                {
+                  "id": "r-cond-warn",
+                  "operator": "<",
+                  "leftOperand": "{{@read-1:Read Position.result.healthFactor}}",
+                  "rightOperand": "1500000000000000000"
+                }
+              ]
+            }
+          }
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 560,
+        "y": 0
+      }
+    },
+    {
+      "id": "cond-act",
+      "data": {
+        "type": "action",
+        "label": "Below Act 1.25",
+        "config": {
+          "condition": "{{@read-1:Read Position.result.healthFactor}} < 1250000000000000000",
+          "actionType": "Condition",
+          "conditionConfig": {
+            "group": {
+              "id": "g-cond-act",
+              "logic": "AND",
+              "rules": [
+                {
+                  "id": "r-cond-act",
+                  "operator": "<",
+                  "leftOperand": "{{@read-1:Read Position.result.healthFactor}}",
+                  "rightOperand": "1250000000000000000"
+                }
+              ]
+            }
+          }
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 560,
+        "y": 120
+      }
+    },
+    {
+      "id": "cond-panic",
+      "data": {
+        "type": "action",
+        "label": "Below Panic 1.10",
+        "config": {
+          "condition": "{{@read-1:Read Position.result.healthFactor}} < 1100000000000000000",
+          "actionType": "Condition",
+          "conditionConfig": {
+            "group": {
+              "id": "g-cond-panic",
+              "logic": "AND",
+              "rules": [
+                {
+                  "id": "r-cond-panic",
+                  "operator": "<",
+                  "leftOperand": "{{@read-1:Read Position.result.healthFactor}}",
+                  "rightOperand": "1100000000000000000"
+                }
+              ]
+            }
+          }
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 560,
+        "y": 240
+      }
+    },
+    {
+      "id": "cond-nodebt",
+      "data": {
+        "type": "action",
+        "label": "No Debt",
+        "config": {
+          "condition": "{{@read-1:Read Position.result.totalDebtBase}} == 0",
+          "actionType": "Condition",
+          "conditionConfig": {
+            "group": {
+              "id": "g-cond-nodebt",
+              "logic": "AND",
+              "rules": [
+                {
+                  "id": "r-cond-nodebt",
+                  "operator": "==",
+                  "leftOperand": "{{@read-1:Read Position.result.totalDebtBase}}",
+                  "rightOperand": "0"
+                }
+              ]
+            }
+          }
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 560,
+        "y": 360
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-t-r",
+      "source": "trigger-1",
+      "target": "read-1"
+    },
+    {
+      "id": "e-r-cond-warn",
+      "source": "read-1",
+      "target": "cond-warn"
+    },
+    {
+      "id": "e-r-cond-act",
+      "source": "read-1",
+      "target": "cond-act"
+    },
+    {
+      "id": "e-r-cond-panic",
+      "source": "read-1",
+      "target": "cond-panic"
+    },
+    {
+      "id": "e-r-cond-nodebt",
+      "source": "read-1",
+      "target": "cond-nodebt"
+    }
+  ],
+  "enabled": true,
+  "visibility": "private",
+  "workflowType": "read"
+}
