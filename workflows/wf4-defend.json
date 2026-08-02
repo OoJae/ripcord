@@ -151,9 +151,7 @@
   "listedSlug": "ripcord-defend",
   "inputSchema": {
     "type": "object",
-    "required": [
-      "address"
-    ],
+    "required": ["address"],
     "properties": {
       "address": {
         "type": "string",
