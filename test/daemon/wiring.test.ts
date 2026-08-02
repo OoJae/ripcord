@@ -509,6 +509,8 @@ describe("supervision (dead-sensor doctrine)", () => {
         collateralRaw: 0n,
         collateralAmount: 0,
         collateralSymbol: "WETH" as const,
+        aUsdcRaw: 0n,
+        aUsdcUsd: 0,
       },
     });
     h.deps.sensor = {

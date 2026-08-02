@@ -190,6 +190,8 @@ describe("planner: heuristic (zero-secret demo brain)", () => {
         collateralRaw: 0n,
         collateralAmount: 0,
         collateralSymbol: "WETH" as const,
+        aUsdcRaw: 0n,
+        aUsdcUsd: 0,
       },
     });
     const { proposal } = await createHeuristicPlanner().plan(ctx({ snapshot }));

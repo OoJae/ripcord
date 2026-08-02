@@ -165,7 +165,7 @@ export function createAaveSensor(cfg: AppConfig, injected?: ReadContractClient):
 
   return {
     async read(): Promise<Snapshot> {
-      const [accountRaw, usdcRaw, collateralRaw] = await Promise.all([
+      const [accountRaw, usdcRaw, collateralRaw, aUsdcRaw] = await Promise.all([
         client.readContract({
           address: cfg.addressBook.aavePool.address,
           abi: POOL_ACCOUNT_DATA_ABI,
@@ -184,6 +184,12 @@ export function createAaveSensor(cfg: AppConfig, injected?: ReadContractClient):
           functionName: "balanceOf",
           args: [monitored],
         }) as Promise<bigint>,
+        client.readContract({
+          address: cfg.addressBook.aUsdc.address,
+          abi: ERC20_BALANCE_ABI,
+          functionName: "balanceOf",
+          args: [monitored],
+        }) as Promise<bigint>,
       ]);
 
       const parsed = parseAccountData(accountRaw);
@@ -198,6 +204,8 @@ export function createAaveSensor(cfg: AppConfig, injected?: ReadContractClient):
           collateralRaw,
           collateralAmount: Number(collateralRaw) / 10 ** cfg.addressBook.collateral.decimals,
           collateralSymbol: cfg.addressBook.collateral.symbol,
+          aUsdcRaw,
+          aUsdcUsd: Number(aUsdcRaw) / 10 ** TOKEN_DECIMALS.USDC,
         },
         hfVelocityPerMin: null, // the daemon fills this from its SampleWindow
       };
@@ -274,6 +282,8 @@ export function createMockSensor(scenario?: string[], chain: Chain = "base-sepol
           collateralRaw: 10_000_000_000_000_000n,
           collateralAmount: 0.01,
           collateralSymbol: "WETH",
+          aUsdcRaw: 0n,
+          aUsdcUsd: 0,
         },
         hfVelocityPerMin: null,
       };

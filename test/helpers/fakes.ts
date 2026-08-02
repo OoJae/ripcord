@@ -82,6 +82,8 @@ export function makeSnapshot(
       collateralRaw: 10_000_000_000_000_000n, // 0.01 collateral token
       collateralAmount: 0.01,
       collateralSymbol: "WETH",
+      aUsdcRaw: 0n,
+      aUsdcUsd: 0,
     },
     hfVelocityPerMin: null,
     ...partial,

@@ -104,6 +104,8 @@ describe("critic: heuristic verifier recomputes independently", () => {
         collateralRaw: 0n,
         collateralAmount: 0,
         collateralSymbol: "WETH" as const,
+        aUsdcRaw: 0n,
+        aUsdcUsd: 0,
       },
     });
     const { verdict } = await critic.critique(broke, proposal({ amountUsd: 5 }), THRESHOLDS, CAPS);
@@ -140,6 +142,8 @@ describe("critic: heuristic verifier recomputes independently", () => {
         collateralRaw: 10_000_000_000_000_000_000n,
         collateralAmount: 10,
         collateralSymbol: "cbETH" as const,
+        aUsdcRaw: 0n,
+        aUsdcUsd: 0,
       },
     });
     // (30 + 10) x 0.80 / 20 = 1.60 → exactly the target.
@@ -160,6 +164,8 @@ describe("critic: heuristic verifier recomputes independently", () => {
         collateralRaw: 10_000_000_000_000_000_000n,
         collateralAmount: 10,
         collateralSymbol: "cbETH" as const,
+        aUsdcRaw: 0n,
+        aUsdcUsd: 0,
       },
     });
     const { verdict } = await critic.critique(

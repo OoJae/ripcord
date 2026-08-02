@@ -31,6 +31,7 @@ import {
 import { checkGuard } from "./guard/guard.js";
 import { createNotifier } from "./notifier/telegram.js";
 import { evaluate, markDefenseAttempted, markDefenseFired } from "./policy/thresholds.js";
+import { assessFunding } from "./risk/funding.js";
 import {
   computeVelocity,
   createAaveSensor,
@@ -297,7 +298,8 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       const bandNow = evaluate(snapshot, cfg.thresholdsWad, state, now).band;
       if (bandNow !== "healthy") {
         const needed = repayNeededForTarget(snapshot, cfg.thresholds.targetHf);
-        const affordable = Math.min(cfg.caps.maxTxUsd, snapshot.balances.usdcUsd);
+        const funding = assessFunding(snapshot);
+        const affordable = Math.min(cfg.caps.maxTxUsd, funding.executableUsd);
         if (
           needed > 0 &&
           affordable < needed &&
@@ -314,7 +316,10 @@ export function createDaemon(deps: DaemonDeps): Daemon {
               detail:
                 `SUPERVISION: the next full defense needs ~$${needed.toFixed(2)} but only ` +
                 `$${affordable.toFixed(2)} is fundable (wallet $${snapshot.balances.usdcUsd.toFixed(2)}, ` +
-                `cap $${cfg.caps.maxTxUsd}). Partial defenses only — add USDC or deleverage.`,
+                `cap $${cfg.caps.maxTxUsd}). Partial defenses only — add USDC or deleverage.` +
+                (funding.potentialUsd > 0
+                  ? ` A further $${funding.potentialUsd.toFixed(2)} exists in the position but needs an unwired funding path (see src/risk/funding.ts).`
+                  : ""),
             },
             log,
           );

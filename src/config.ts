@@ -98,6 +98,11 @@ export const ADDRESS_BOOK: Record<Chain, AddressBook> = {
       refRatioMin: 0.95,
       refRatioMax: 1.05,
     },
+    aUsdc: {
+      address: "0x4e65fE4DbA92790696d040ac24Aa414708F5c0AB",
+      verified: true,
+      source: "Pool.getReserveData(USDC).aTokenAddress read on-chain 2026-08-02",
+    },
     chainlinkEthUsd: {
       address: "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
       verified: true,
@@ -130,6 +135,12 @@ export const ADDRESS_BOOK: Record<Chain, AddressBook> = {
       // (Moonwell's $1.12 print was ratio ≈ 0.0006, four orders below the floor).
       refRatioMin: 0.8,
       refRatioMax: 1.4,
+    },
+    aUsdc: {
+      address: "0xf53B60F4006cab2b3C4688ce41fD5362427A2A66",
+      verified: false,
+      source:
+        "VERIFY: Base Sepolia aUSDC not yet read on-chain; unused (funding ladder is read-only)",
     },
     chainlinkEthUsd: {
       address: "0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1",

@@ -55,6 +55,14 @@ export interface Snapshot {
     /** …and in whole tokens. No price feed in Session 1, so this is not USD. */
     collateralAmount: number;
     collateralSymbol: CollateralSymbol;
+    /**
+     * Supplied USDC (aUSDC), base units. Funds a `repayWithATokens` defense —
+     * no wallet float, no allowance, no swap — but that execution path is not
+     * wired yet (see src/risk/funding.ts). Sensed so the funding ladder and the
+     * capitulation notice can tell the truth about total defensive capacity.
+     */
+    aUsdcRaw: bigint;
+    aUsdcUsd: number;
   };
   /** Δ HF per minute over the last 3 samples; null until 3 samples exist. */
   hfVelocityPerMin: number | null;
@@ -411,6 +419,8 @@ export interface AddressBook {
   /** Chainlink ETH/USD aggregator — the independent reference the oracle-sanity
    *  gate compares the Aave oracle against. */
   chainlinkEthUsd: KnownAddress;
+  /** aUSDC — supplied-USDC receipt token; the repayWithATokens funding rung. */
+  aUsdc: KnownAddress;
   /**
    * The collateral asset, which differs by chain: WETH on Base mainnet, cbETH on
    * Base Sepolia, where the WETH reserve is capped out (see FRICTION.md).
