@@ -9,7 +9,7 @@
 import { pathToFileURL } from "node:url";
 import { ulid } from "ulid";
 import { createHeuristicCritic, createLlmCritic } from "./agents/critic.js";
-import { hfAfter } from "./agents/hf-math.js";
+import { hfAfter, repayNeededForTarget } from "./agents/hf-math.js";
 import { createAnthropicLlm } from "./agents/llm.js";
 import { createHeuristicPlanner, createLlmPlanner } from "./agents/planner.js";
 import {
@@ -226,6 +226,14 @@ export function createDaemon(deps: DaemonDeps): Daemon {
     }
   }
 
+  // --- Supervision ("dead sensor" doctrine, stolen from alarm panels): a
+  // monitoring system must alarm on the loss of its own senses, because a
+  // silent watcher is indistinguishable from a healthy quiet one.
+  let blindTicks = 0;
+  let lastFundingWarnAtMs = 0;
+  const BLIND_TICKS_ALERT = 3;
+  const FUNDING_WARN_INTERVAL_MS = 30 * 60_000;
+
   async function runTick(decisionIdOverride?: string): Promise<void> {
     const decisionId = decisionIdOverride ?? ulid();
     const log = logger.child({ decisionId });
@@ -237,14 +245,78 @@ export function createDaemon(deps: DaemonDeps): Daemon {
 
     const rawSnapshot = await readWithRetry(log);
     if (!rawSnapshot) {
-      log.error({}, "sensor unavailable after retries — skipping tick");
+      blindTicks += 1;
+      log.error({ blindTicks }, "sensor unavailable after retries — skipping tick");
+      if (blindTicks === BLIND_TICKS_ALERT) {
+        // Exactly once per blindness streak, at the threshold.
+        await safeNotify(
+          {
+            kind: "error",
+            chain: cfg.chain,
+            band: state.lastBand,
+            decisionId,
+            dryRun: cfg.dryRun,
+            detail:
+              `SUPERVISION: I have been blind for ${blindTicks} consecutive ticks — ` +
+              "the RPC is unreachable and the position is currently UNWATCHED. " +
+              "Check connectivity or the RPC provider.",
+          },
+          log,
+        );
+      }
       return;
     }
+    if (blindTicks >= BLIND_TICKS_ALERT) {
+      await safeNotify(
+        {
+          kind: "error",
+          chain: cfg.chain,
+          band: state.lastBand,
+          decisionId,
+          dryRun: cfg.dryRun,
+          detail: `SUPERVISION: sight restored after ${blindTicks} blind ticks — monitoring resumed.`,
+        },
+        log,
+      );
+    }
+    blindTicks = 0;
     window.push({ tMs: rawSnapshot.timestampMs, hf: rawSnapshot.hf });
     const snapshot: Snapshot = {
       ...rawSnapshot,
       hfVelocityPerMin: computeVelocity(window.samples),
     };
+
+    // Capitulation notice (Bybit AMR's documented failure mode, inverted): if
+    // the position is in a defense band and the wallet cannot fund the repay
+    // the target requires, say so NOW — before the act band forces the issue.
+    if (snapshot.hasDebt) {
+      const bandNow = evaluate(snapshot, cfg.thresholdsWad, state, now).band;
+      if (bandNow !== "healthy") {
+        const needed = repayNeededForTarget(snapshot, cfg.thresholds.targetHf);
+        const affordable = Math.min(cfg.caps.maxTxUsd, snapshot.balances.usdcUsd);
+        if (
+          needed > 0 &&
+          affordable < needed &&
+          now - lastFundingWarnAtMs >= FUNDING_WARN_INTERVAL_MS
+        ) {
+          lastFundingWarnAtMs = now;
+          await safeNotify(
+            {
+              kind: "error",
+              chain: cfg.chain,
+              band: bandNow,
+              decisionId,
+              dryRun: cfg.dryRun,
+              detail:
+                `SUPERVISION: the next full defense needs ~$${needed.toFixed(2)} but only ` +
+                `$${affordable.toFixed(2)} is fundable (wallet $${snapshot.balances.usdcUsd.toFixed(2)}, ` +
+                `cap $${cfg.caps.maxTxUsd}). Partial defenses only — add USDC or deleverage.`,
+            },
+            log,
+          );
+        }
+      }
+    }
 
     const prevBand = state.lastBand;
     const res = evaluate(snapshot, cfg.thresholdsWad, state, now);
@@ -378,6 +450,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       monitoredAddress: cfg.monitoredAddress,
       liveExecutor: cfg.capabilities.keeperhub,
       oracleSanity,
+      minWalletReserveUsd: cfg.minWalletReserveUsd,
     });
 
     db.updateDecision(decisionId, {

@@ -162,6 +162,7 @@ export type GuardRuleId =
   | "hf-claim-honesty"
   | "snapshot-provenance"
   | "oracle-sanity"
+  | "wallet-reserve-floor"
   | "idempotency"
   | "arm-flag"
   | "dry-run";

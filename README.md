@@ -49,7 +49,7 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 | Gas sponsorship | Every setup and defense tx, `sponsored: true` | ✅ all setup txs sponsored |
 | Audit trail | `decisionId` threads log → SQLite → payload → execution → tx | ✅ one ULID end to end |
 | Private routing | Ethereum-only (`/api/chains` proof); Base tradeoff documented, defense gains sponsorship instead | ✅ [architecture.md](docs/architecture.md) § MEV posture |
-| Marketplace + x402 (WF-3 `risk-score`) | Paid risk scoring — **Ripcord pays for itself** | ✅ [`ripcord-risk-score`](https://app.keeperhub.com/api/mcp/workflows) $0.05/call, 2 paid x402 calls settled to the org wallet |
+| Marketplace + x402 (WF-3 `risk-score`) | Paid risk scoring — **Ripcord pays for itself** | ✅ [`ripcord-risk-score`](https://app.keeperhub.com/api/mcp/workflows) $0.02/call, 2 paid x402 calls settled to the org wallet |
 
 ## Transactions
 
@@ -71,7 +71,7 @@ in exchange (private-mempool txs are never sponsored).
 pnpm install
 pnpm dev                  # no .env needed — full decision loop in mock mode, DRY_RUN on
 pnpm status               # current HF, recent decisions, recent runs, spend vs cap
-pnpm test                 # 185 offline tests
+pnpm test                 # 260+ offline tests
 ```
 
 With no `.env` at all, Ripcord runs a **mock demo**: a scripted health-factor descent drives the full Sense → Policy → Plan → Critique → Guard → (dry-run) Execute pipeline, every stage logged under one `decisionId`. Real output from `pnpm dev`:
@@ -82,7 +82,7 @@ With no `.env` at all, Ripcord runs a **mock demo**: a scripted health-factor de
 band=healthy hf=1.82  shouldDefend=false
 band=warn    hf=1.4557 shouldDefend=false
 band=act     hf=1.2129 shouldDefend=true  "act: armed and cooldown elapsed — defend"
-guard=dry-run violations=[] checks=12
+guard=dry-run violations=[] checks=14
 DRY_RUN: all safety checks passed — would trigger KeeperHub defense
    repay 4.79 USDC → 0xba50Cd…4D5f  (minHfAfter 1.6)
    critic APPROVE — recomputed health factor 1.6003 clears the target 1.6

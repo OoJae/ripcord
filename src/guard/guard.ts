@@ -56,6 +56,12 @@ export interface GuardInput {
    * undefined = not checked (mock mode); "divergent" is a hard block.
    */
   oracleSanity?: OracleSanityResult;
+  /**
+   * Never spend the wallet's last dollar silently (Bybit AMR's documented
+   * failure mode: auto-margin drains the balance and the position liquidates
+   * anyway). 0 = disabled.
+   */
+  minWalletReserveUsd?: number;
 }
 
 /** Epsilon for the HF-improvement comparison so exact equality passes despite float noise. */
@@ -321,6 +327,34 @@ export function checkGuard(input: GuardInput): GuardResult {
     record("oracle-sanity", false, sanity.detail);
   } else {
     record("oracle-sanity", true, sanity.detail);
+  }
+
+  // 8c. wallet-reserve-floor — refuse a defense that would leave the wallet
+  // below the operator's reserve. The honest answer to "I can no longer afford
+  // to defend" is to SAY so, not to spend the last dollar and fail next tick.
+  const floor = input.minWalletReserveUsd ?? 0;
+  if (floor > 0 && proposal?.action === "repay") {
+    const remaining = snapshot.balances.usdcUsd - (proposal?.amountUsd ?? 0);
+    if (remaining < floor) {
+      record(
+        "wallet-reserve-floor",
+        false,
+        `defense would leave $${remaining.toFixed(2)} in the wallet, below the ` +
+          `$${floor.toFixed(2)} reserve floor — refusing to spend the last dollar silently`,
+      );
+    } else {
+      record(
+        "wallet-reserve-floor",
+        true,
+        `$${remaining.toFixed(2)} would remain, above the $${floor.toFixed(2)} floor`,
+      );
+    }
+  } else {
+    record(
+      "wallet-reserve-floor",
+      true,
+      floor > 0 ? "not a wallet-funded repay" : "reserve floor disabled (0)",
+    );
   }
 
   // 9. idempotency — one decision, one defense, ever.

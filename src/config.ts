@@ -179,6 +179,11 @@ const EnvSchema = z.object({
   RIPCORD_TARGET_HF: z.preprocess(emptyToUndefined, z.coerce.number().positive().optional()),
   RIPCORD_REARM_HF: z.preprocess(emptyToUndefined, z.coerce.number().positive().optional()),
   RIPCORD_COOLDOWN_SEC: z.preprocess(emptyToUndefined, z.coerce.number().int().min(60).optional()),
+  /** Never spend the wallet's last dollar silently. 0 (default) = disabled. */
+  MIN_WALLET_RESERVE_USD: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().nonnegative().default(0),
+  ),
 });
 
 /** Exact float → wad conversion for threshold values (≤6 dp of precision). */
@@ -264,6 +269,7 @@ export interface AppConfig {
   dryRun: boolean;
   armed: boolean;
   caps: { maxTxUsd: number; dailyCapUsd: number; minHfImprovement: number };
+  minWalletReserveUsd: number;
   capsCents: { maxTxCents: number; dailyCapCents: number };
   thresholds: Thresholds;
   thresholdsWad: ThresholdsWad;
@@ -396,6 +402,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       maxTxCents: usdToCents(e.MAX_TX_USD),
       dailyCapCents: usdToCents(e.DAILY_CAP_USD),
     },
+    minWalletReserveUsd: e.MIN_WALLET_RESERVE_USD,
     ...resolveThresholds(e),
     pollSec: e.RIPCORD_POLL_SEC ?? DEFAULT_POLL_SEC,
     dbPath: e.RIPCORD_DB_PATH ?? DEFAULT_DB_PATH,

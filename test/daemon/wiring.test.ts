@@ -472,3 +472,65 @@ describe("chooseExecutor", () => {
     expect(chooseExecutor(cfg)).toBeInstanceOf(MockKeeperHubClient);
   });
 });
+
+describe("supervision (dead-sensor doctrine)", () => {
+  it("alerts exactly once when blind for 3 consecutive ticks, and once on recovery", async () => {
+    const h = harness({ dryRun: true, hf: "1.80" });
+    let fail = true;
+    const goodSnapshot = makeSnapshot("1.80");
+    h.deps.sensor = {
+      async read(): Promise<Snapshot> {
+        if (fail) throw new Error("rpc down");
+        return goodSnapshot;
+      },
+    };
+    const daemon = createDaemon(h.deps);
+
+    for (let i = 0; i < 5; i++) await daemon.runTick();
+    const blind = h.notifications.filter((n) => n.detail?.includes("blind"));
+    expect(blind).toHaveLength(1); // fired at tick 3, NOT again at 4 and 5
+    expect(blind[0]?.detail).toMatch(/UNWATCHED/);
+
+    fail = false;
+    await daemon.runTick();
+    const restored = h.notifications.filter((n) => n.detail?.includes("sight restored"));
+    expect(restored).toHaveLength(1);
+    h.db.close();
+  });
+
+  it("capitulation notice: warn-band position that cannot fund a full defense", async () => {
+    // Debt $20, LT 80%, collateral $30 → HF 1.20 (act). Full defense to 1.60
+    // needs $5.00; wallet holds $3 → unfundable. Throttled to one per 30 min.
+    const h = harness({ dryRun: true, hf: "1.20" });
+    const broke = makeSnapshot("1.20", {
+      balances: {
+        usdcRaw: 3_000_000n,
+        usdcUsd: 3,
+        collateralRaw: 0n,
+        collateralAmount: 0,
+        collateralSymbol: "WETH" as const,
+      },
+    });
+    h.deps.sensor = {
+      async read() {
+        return broke;
+      },
+    };
+    const daemon = createDaemon(h.deps);
+    await daemon.runTick();
+    await daemon.runTick(); // same clock — must NOT double-warn
+
+    const warnings = h.notifications.filter((n) => n.detail?.includes("fundable"));
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]?.detail).toMatch(/add USDC or deleverage/);
+    h.db.close();
+  });
+
+  it("no capitulation noise when the wallet CAN fund the defense", async () => {
+    const h = harness({ dryRun: true, hf: "1.20" }); // default wallet $25 covers $5
+    const daemon = createDaemon(h.deps);
+    await daemon.runTick();
+    expect(h.notifications.filter((n) => n.detail?.includes("fundable"))).toHaveLength(0);
+    h.db.close();
+  });
+});

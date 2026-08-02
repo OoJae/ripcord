@@ -53,16 +53,16 @@ describe("checkGuard — golden paths", () => {
     const res = checkGuard(baseInput());
     expect(res.decision).toBe("execute");
     expect(res.violations).toEqual([]);
-    expect(res.checks).toHaveLength(13);
+    expect(res.checks).toHaveLength(14);
     expect(res.checks.every((c) => c.passed)).toBe(true);
-    expect(res.reason).toBe("all 13 safety checks passed");
+    expect(res.reason).toBe("all 14 safety checks passed");
   });
 
   it("returns dry-run when everything passes but DRY_RUN holds fire", () => {
     const res = checkGuard(baseInput({ flags: { dryRun: true, armed: false } }));
     expect(res.decision).toBe("dry-run");
     expect(res.violations).toEqual([]);
-    expect(res.checks).toHaveLength(13);
+    expect(res.checks).toHaveLength(14);
     expect(res.checks.every((c) => c.passed)).toBe(true);
     expect(check(res, "dry-run").detail).toContain("held fire");
   });
@@ -355,7 +355,7 @@ describe("multi-violation — every rule is evaluated, nothing short-circuits", 
     // reason is the FIRST violation in rule order
     expect(res.reason).toContain("critic-approval");
     // full audit trail is still 10 entries
-    expect(res.checks).toHaveLength(13);
+    expect(res.checks).toHaveLength(14);
   });
 });
 
@@ -406,5 +406,28 @@ describe("oracle-sanity", () => {
     const check = res.checks.find((c) => c.rule === "oracle-sanity");
     expect(check?.passed).toBe(true);
     expect(check?.detail).toMatch(/not checked/);
+  });
+});
+
+describe("wallet-reserve-floor", () => {
+  it("BLOCKS a repay that would leave the wallet below the reserve", () => {
+    // wallet $25, repay $10 leaves $15 — floor $16 refuses.
+    const res = checkGuard(baseInput({ minWalletReserveUsd: 16 }));
+    expect(res.decision).toBe("blocked");
+    expect(res.violations.map((v) => v.rule)).toContain("wallet-reserve-floor");
+    expect(res.reason).toMatch(/last dollar/);
+  });
+
+  it("passes exactly at the floor (>= semantics: remaining == floor is fine)", () => {
+    // wallet $25 − repay $10 = $15 remaining == floor 15.
+    const res = checkGuard(baseInput({ minWalletReserveUsd: 15 }));
+    expect(res.violations.map((v) => v.rule)).not.toContain("wallet-reserve-floor");
+  });
+
+  it("disabled by default (0) — current behavior unchanged", () => {
+    const res = checkGuard(baseInput({}));
+    const check = res.checks.find((c) => c.rule === "wallet-reserve-floor");
+    expect(check?.passed).toBe(true);
+    expect(check?.detail).toMatch(/disabled/);
   });
 });
