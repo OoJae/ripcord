@@ -548,3 +548,51 @@ Transfer receipts, KeeperHub execution ids, and the payee balance delta.
 
 **Proposed fix:** either register the facilitator with x402scan / refresh the resource
 index, or soften the docs claim.
+
+## 2026-08-02 — the marketplace cannot host a PAID WRITE with caller-supplied parameters
+
+**What we tried to ship.** Across all 91 marketplace listings, every Aave product is a
+*read* — the nearest neighbour, `vigil-rescue-quote`, advertises `executesOnchain: false`
+in its own output. Ripcord has a proven gated write path (a real autonomous mainnet
+defense, tx `0x6e314ece…`), so we built `ripcord-defend`: pass a borrower address, the
+workflow re-reads the position on-chain and repays a fixed $5 USDC slice on-behalf-of that
+address **only** if the health factor is genuinely below 1.50 and the position has debt.
+Listed at $0.25.
+
+**The blocker.** Every call to `POST /api/mcp/workflows/ripcord-defend/call` returns
+`400 {"error":"Unresolvable template reference: {{@trigger-1:Trigger.address}}"}` — the
+*same* reference form that resolves correctly, on the same endpoint, for our listed
+read-only `ripcord-risk-score`. The two workflows have byte-identical trigger nodes
+(`id: trigger-1`, `triggerType: "Manual"`) and equivalent `inputSchema`s. The failure is
+pre-payment, so no money was ever at risk.
+
+**What we ruled out**, each with a live test:
+- reference form — `Trigger.address`, `Manual.address`, `<Label>.address`, `Trigger.data.address` all 400
+- missing `default` values in `inputSchema` — added, no change
+- `workflowType: "write"` as listing metadata — flipped to `"read"`, no change
+- a stale listing snapshot — `list_workflow` refresh, then a full `unlist → set price → list` cycle, no change
+- a wiped `inputSchema` — verified present and equivalent to the working listing's
+
+The one hypothesis we could not test cleanly: that the resolver refuses caller input for
+any graph *containing* a `web3/write-contract` node (independent of the listing's
+`workflowType` label). Removing the write node to check produced a `422` on the PATCH, so
+the graph never changed and the test was inconclusive.
+
+**Corroborating signal.** There are 11 `write`-type listings on the marketplace. Ten are
+`quorum-aegis-*` with `priceUsdcPerCall: null`, and the ones we probed return `503`
+("the workflow owner has disabled this workflow"). We could not find a single **working,
+priced, caller-parameterized write** anywhere in the catalog — which, if the limitation is
+real, explains why the entire Aave category stops at quotes.
+
+**Impact.** The listing was withdrawn (`unlist_workflow`) rather than ship a product that
+400s on every call. The workflow itself is retained and works: driven through
+`POST /api/workflows/{id}/execute` it correctly declined a healthy position
+(`"1630995275581579799" < 1500000000000000000 && "2334281814" > 0` → false, no
+transaction) and an oversized amount. Export: `workflows/wf4-defend.json`.
+
+**Proposed fix.** If caller-parameterized writes are deliberately blocked, say so
+explicitly — reject at `list_workflow` time with a clear message rather than at call time
+with a generic template error, and document it on the marketplace page. If it is not
+deliberate, the resolver needs to treat trigger references identically for read and write
+graphs. Either way the current behaviour lets you publish and price a listing that can
+never be called successfully.

@@ -1,0 +1,175 @@
+{
+  "id": "3csgbw9jlswr15pc7e5i0",
+  "name": "Ripcord DEFEND \u2014 rescue execution",
+  "description": "THE ONLY AAVE RESCUE EXECUTION ON THIS MARKETPLACE: every other Aave listing is a read; this one actually lands the rescue. Pass a Base Aave V3 borrower address and a repay amount in USDC base units (six decimals; size it with any quote product, e.g. a rescue quote or ripcord-risk-score). The workflow independently re-reads the position on-chain and executes ONLY if the health factor is genuinely below the 1.50 warn band and the amount is within its hard 60-USDC ceiling -- a stale or oversized request is declined with no action taken. The repay is funded from Ripcord's own bounded USDC float and gas-sponsored; USDC contract and Aave Pool addresses are pinned server-side and cannot be supplied by the caller. Built on the same audited pipeline that executed a real autonomous mainnet defense (see the Ripcord repo for the on-chain evidence trail). CUSTODY NOTE, honestly stated: the float is Ripcord's org wallet, capped by an on-file 60-USDC allowance; repaying is on-behalf-of and can only ever REDUCE the target address's debt.",
+  "nodes": [
+    {
+      "id": "trigger-1",
+      "data": {
+        "type": "trigger",
+        "label": "Rescue Request",
+        "config": {
+          "triggerType": "Manual"
+        },
+        "status": "idle"
+      },
+      "type": "trigger",
+      "position": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "verify-1",
+      "data": {
+        "type": "action",
+        "label": "Re-read Position",
+        "config": {
+          "abi": "[{\"type\":\"function\",\"name\":\"getUserAccountData\",\"stateMutability\":\"view\",\"inputs\":[{\"name\":\"user\",\"type\":\"address\"}],\"outputs\":[{\"name\":\"totalCollateralBase\",\"type\":\"uint256\"},{\"name\":\"totalDebtBase\",\"type\":\"uint256\"},{\"name\":\"availableBorrowsBase\",\"type\":\"uint256\"},{\"name\":\"currentLiquidationThreshold\",\"type\":\"uint256\"},{\"name\":\"ltv\",\"type\":\"uint256\"},{\"name\":\"healthFactor\",\"type\":\"uint256\"}]}]",
+          "network": "8453",
+          "actionType": "web3/read-contract",
+          "abiFunction": "getUserAccountData",
+          "functionArgs": "[\"{{@trigger-1:Trigger.address}}\"]",
+          "contractAddress": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 280,
+        "y": 0
+      }
+    },
+    {
+      "id": "gate-1",
+      "data": {
+        "type": "action",
+        "label": "Genuinely At Risk",
+        "config": {
+          "condition": "{{@verify-1:Re-read Position.result.healthFactor}} < 1500000000000000000",
+          "actionType": "Condition",
+          "conditionConfig": {
+            "group": {
+              "id": "grp-rescue",
+              "logic": "AND",
+              "rules": [
+                {
+                  "id": "rule-hf-still-below-warn",
+                  "operator": "<",
+                  "leftOperand": "{{@verify-1:Re-read Position.result.healthFactor}}",
+                  "rightOperand": "1500000000000000000"
+                },
+                {
+                  "id": "rule-has-debt",
+                  "operator": ">",
+                  "leftOperand": "{{@verify-1:Re-read Position.result.totalDebtBase}}",
+                  "rightOperand": "0"
+                }
+              ]
+            }
+          }
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 560,
+        "y": 0
+      }
+    },
+    {
+      "id": "repay-1",
+      "data": {
+        "type": "action",
+        "label": "Repay Aave Debt",
+        "config": {
+          "abi": "[{\"type\":\"function\",\"name\":\"repay\",\"stateMutability\":\"nonpayable\",\"inputs\":[{\"name\":\"asset\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"},{\"name\":\"interestRateMode\",\"type\":\"uint256\"},{\"name\":\"onBehalfOf\",\"type\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}]}]",
+          "network": "8453",
+          "actionType": "web3/write-contract",
+          "abiFunction": "repay",
+          "functionArgs": "[\"0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913\",\"5000000\",\"2\",\"{{@trigger-1:Trigger.address}}\"]",
+          "contractAddress": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5",
+          "gasLimitMultiplier": "1.5"
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 840,
+        "y": 0
+      }
+    },
+    {
+      "id": "confirm-1",
+      "data": {
+        "type": "action",
+        "label": "Confirm Position",
+        "config": {
+          "abi": "[{\"type\":\"function\",\"name\":\"getUserAccountData\",\"stateMutability\":\"view\",\"inputs\":[{\"name\":\"user\",\"type\":\"address\"}],\"outputs\":[{\"name\":\"totalCollateralBase\",\"type\":\"uint256\"},{\"name\":\"totalDebtBase\",\"type\":\"uint256\"},{\"name\":\"availableBorrowsBase\",\"type\":\"uint256\"},{\"name\":\"currentLiquidationThreshold\",\"type\":\"uint256\"},{\"name\":\"ltv\",\"type\":\"uint256\"},{\"name\":\"healthFactor\",\"type\":\"uint256\"}]}]",
+          "network": "8453",
+          "actionType": "web3/read-contract",
+          "abiFunction": "getUserAccountData",
+          "functionArgs": "[\"{{@trigger-1:Trigger.address}}\"]",
+          "contractAddress": "0xA238Dd80C259a72e81d7e4664a9801593F98d1c5"
+        },
+        "status": "idle"
+      },
+      "type": "action",
+      "position": {
+        "x": 1120,
+        "y": 0
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-t-v",
+      "source": "trigger-1",
+      "target": "verify-1"
+    },
+    {
+      "id": "e-v-g",
+      "source": "verify-1",
+      "target": "gate-1"
+    },
+    {
+      "id": "e-g-r",
+      "source": "gate-1",
+      "target": "repay-1",
+      "sourceHandle": "true"
+    },
+    {
+      "id": "e-r-c",
+      "source": "repay-1",
+      "target": "confirm-1"
+    }
+  ],
+  "enabled": true,
+  "visibility": "private",
+  "workflowType": "write",
+  "isListed": false,
+  "listedSlug": "ripcord-defend",
+  "inputSchema": {
+    "type": "object",
+    "required": [
+      "address"
+    ],
+    "properties": {
+      "address": {
+        "type": "string",
+        "default": "0x30C8A36e99f0708c3e3301b1Ed99cf418BDCf27a",
+        "pattern": "^0x[a-fA-F0-9]{40}$",
+        "description": "Base Aave V3 borrower to rescue. The repay is on-behalf-of this address and can only REDUCE its debt."
+      }
+    },
+    "additionalProperties": false
+  },
+  "outputMapping": {
+    "note": "output carries the post-rescue getUserAccountData read; empty transactionHashes on the run record means the gate declined (position not below warn, or amount out of bounds) and nothing was executed",
+    "chainId": 8453,
+    "protocol": "aave-v3"
+  },
+  "priceUsdcPerCall": "0.25",
+  "category": "defi",
+  "chain": "8453"
+}
