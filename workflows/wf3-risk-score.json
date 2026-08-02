@@ -194,5 +194,47 @@
   ],
   "enabled": true,
   "visibility": "private",
-  "workflowType": "read"
+  "workflowType": "read",
+  "isListed": true,
+  "listedSlug": "ripcord-risk-score",
+  "listedAt": "2026-08-02T07:33:58.331Z",
+  "inputSchema": {
+    "type": "object",
+    "required": ["address"],
+    "properties": {
+      "address": {
+        "type": "string",
+        "default": "0x30C8A36e99f0708c3e3301b1Ed99cf418BDCf27a",
+        "pattern": "^0x[a-fA-F0-9]{40}$",
+        "description": "Base address whose Aave V3 position to score (0x + 40 hex chars)."
+      }
+    },
+    "additionalProperties": false
+  },
+  "outputMapping": {
+    "bands": {
+      "noDebt": "{{@cond-nodebt:No Debt.condition}}",
+      "belowAct": "{{@cond-act:Below Act 1.25.condition}}",
+      "belowWarn": "{{@cond-warn:Below Warn 1.50.condition}}",
+      "belowPanic": "{{@cond-panic:Below Panic 1.10.condition}}"
+    },
+    "ltvBps": "{{@read-1:Read Position.result.ltv}}",
+    "address": "{{@trigger-1:Trigger.address}}",
+    "chainId": 8453,
+    "protocol": "aave-v3",
+    "thresholds": {
+      "act": 1.25,
+      "warn": 1.5,
+      "panic": 1.1
+    },
+    "scoreFormula": "score = 0.45*hfRisk + 0.20*bufferRisk + 0.15*velocityRisk + 0.10*volatilityRisk + 0.10*utilizationRisk \u2014 reference implementation: github.com/OoJae/ripcord src/risk/engine.ts",
+    "totalDebtBase8": "{{@read-1:Read Position.result.totalDebtBase}}",
+    "healthFactorWad": "{{@read-1:Read Position.result.healthFactor}}",
+    "totalCollateralBase8": "{{@read-1:Read Position.result.totalCollateralBase}}",
+    "availableBorrowsBase8": "{{@read-1:Read Position.result.availableBorrowsBase}}",
+    "liquidationThresholdBps": "{{@read-1:Read Position.result.currentLiquidationThreshold}}"
+  },
+  "priceUsdcPerCall": "0.05",
+  "category": "defi",
+  "chain": "8453"
 }

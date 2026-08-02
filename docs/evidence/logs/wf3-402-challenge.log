@@ -1,0 +1,62 @@
+# Listing evidence: the 402 challenge for our own slug (2026-08-02)
+# POST /api/mcp/workflows/ripcord-risk-score/call (unpaid) →
+{
+    "x402Version": 2,
+    "error": "Payment required",
+    "resource": {
+        "url": "https://app.keeperhub.com/api/mcp/workflows/ripcord-risk-score/call",
+        "description": "Pay to run workflow: Ripcord WF-3 risk-score",
+        "mimeType": "application/json"
+    },
+    "accepts": [
+        {
+            "scheme": "exact",
+            "network": "eip155:8453",
+            "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "amount": "50000",
+            "payTo": "0x30c8a36e99f0708c3e3301b1ed99cf418bdcf27a",
+            "maxTimeoutSeconds": 300,
+            "extra": {
+                "name": "USD Coin",
+                "version": "2"
+            }
+        }
+    ],
+    "extensions": {
+        "bazaar": {
+            "discoverable": true,
+            "category": "defi",
+            "schema": {
+                "properties": {
+                    "input": {
+                        "properties": {
+                            "body": {
+                                "type": "object",
+                                "required": [
+                                    "address"
+                                ],
+                                "properties": {
+                                    "address": {
+                                        "type": "string",
+                                        "default": "0x30C8A36e99f0708c3e3301b1Ed99cf418BDCf27a",
+                                        "pattern": "^0x[a-fA-F0-9]{40}$",
+                                        "description": "Base address whose Aave V3 position to score (0x + 40 hex chars)."
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        }
+                    },
+                    "output": {
+                        "properties": {
+                            "example": {
+                                "executionId": "exec_abc123",
+                                "status": "running"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
