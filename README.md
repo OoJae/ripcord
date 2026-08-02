@@ -6,7 +6,7 @@
 
 When a DeFi position slides toward liquidation, every second and every mempool snoop matters. Ripcord watches your Aave V3 health factor, plans a defense with a Planner agent, forces an independent Critic agent to approve it, passes a deterministic safety Guard — and then lands the rescue transaction through KeeperHub with retries, smart gas, sponsorship, and a full audit trail — MEV-aware by design (see the routing analysis in docs/architecture.md).
 
-> Incidents like Moonwell's $1.78M bad debt (Feb 2026) and Aave's $27M liquidation event (Mar 2026) were detectable before a single bot ran. Agents can *decide* to save a position; Ripcord is how the rescue actually *lands*.
+> Most liquidations are slow-motion failures: a position drifts for hours while its owner sleeps — or, as in October 2025's $19B cascade, owners watched helplessly while the infrastructure they needed to defend themselves was down. Ripcord is the actor that stays awake and keeps acting. And for the failure mode that *isn't* slow — single-block oracle mispricings like Moonwell's $1.12 cbETH print (Feb 2026) or Aave's $27M CAPO glitch (Mar 2026) — no poller on earth out-races the block, but an agent with world knowledge can refuse to act on an absurd price and scream: that is Ripcord's oracle-sanity gate. Agents *decide*; Ripcord is how the rescue actually *lands*.
 
 ## Architecture
 
@@ -38,7 +38,7 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 | Surface | Where Ripcord uses it | Evidence |
 |---|---|---|
 | Webhook-triggered workflow (WF-2 `defend`) | The only path by which Ripcord moves money | ✅ [`rk20tp8ucuf3caxjrdpfe`](workflows/wf2-defend.json) |
-| Scheduled workflow (WF-1 `hf-monitor`) | Redundant HF monitoring even if the daemon dies | ✅ [`8kcwzx7ycrg1zlqhox6tz`](workflows/wf1-hf-monitor.json) |
+| Scheduled workflow (WF-1 `hf-monitor`) | Redundant monitoring intent — testnet, alert-only; its schedule trigger has never fired platform-side and its Telegram node needs a one-time integration (both in FRICTION.md) | ⚠️ [`8kcwzx7ycrg1zlqhox6tz`](workflows/wf1-hf-monitor.json) |
 | Workflow execution API | Daemon triggers WF-2 via `POST /workflows/{id}/execute` | ✅ `src/executor/keeperhub.ts` |
 | Run status API (`/status`, `/wait`) | Executor polls runs to a terminal state | ✅ every defense in [EVIDENCE.md](docs/evidence/EVIDENCE.md) |
 | `web3/read-contract` in-workflow | WF-2 re-reads the position before it will write | ✅ [stale-decision refusal](docs/evidence/EVIDENCE.md) |
