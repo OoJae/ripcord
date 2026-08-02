@@ -36,6 +36,7 @@ import {
   createMockSensor,
   SampleWindow,
 } from "./sensor/aave.js";
+import { createOracleSanityChecker, type OracleSanityChecker } from "./sensor/oracle-sanity.js";
 import { openDb } from "./state/db.js";
 import type {
   AssetSymbol,
@@ -44,6 +45,7 @@ import type {
   DefensePayload,
   KeeperHubClient,
   Notifier,
+  OracleSanityResult,
   Planner,
   PlannerProposal,
   PolicyState,
@@ -75,6 +77,8 @@ export interface DaemonDeps {
   sleep?: (ms: number) => Promise<void>;
   /** Called after a successful (non-dry-run) defense — mock mode uses it to rescue the position. */
   onDefenseSuccess?: (payload: DefensePayload) => void;
+  /** Oracle-sanity checker; wired only when live chain reads are available. */
+  oracleSanity?: OracleSanityChecker;
 }
 
 export interface Daemon {
@@ -295,6 +299,19 @@ export function createDaemon(deps: DaemonDeps): Daemon {
 
     if (!res.shouldDefend) return;
 
+    // --- Oracle sanity (before any agent runs): compare the Aave oracle's
+    // collateral price against the independent Chainlink ETH/USD reference.
+    // "divergent" hard-blocks in the Guard; "unavailable" proceeds with a
+    // warning. Only checked when a live checker is wired (real reads).
+    let oracleSanity: OracleSanityResult | undefined;
+    if (deps.oracleSanity) {
+      oracleSanity = await deps.oracleSanity.check();
+      log[oracleSanity.status === "ok" ? "info" : "warn"](
+        { oracleSanity },
+        `oracle sanity: ${oracleSanity.status}`,
+      );
+    }
+
     // --- Plan
     let proposal: PlannerProposal;
     let plannerRaw: string | null = null;
@@ -334,7 +351,9 @@ export function createDaemon(deps: DaemonDeps): Daemon {
     // There is no path on which the absence of an approval becomes an approval.
     let critiqued: Awaited<ReturnType<Critic["critique"]>>;
     try {
-      critiqued = await critic.critique(snapshot, proposal, cfg.thresholds, cfg.caps);
+      critiqued = await critic.critique(snapshot, proposal, cfg.thresholds, cfg.caps, {
+        oracleSanity,
+      });
     } catch (err) {
       log.error({ err: String(err) }, "critic threw — treating as REJECT (fail-closed)");
       critiqued = {
@@ -358,6 +377,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       alreadyExecuted: db.hasExecution(decisionId),
       monitoredAddress: cfg.monitoredAddress,
       liveExecutor: cfg.capabilities.keeperhub,
+      oracleSanity,
     });
 
     db.updateDecision(decisionId, {
@@ -655,6 +675,9 @@ async function main(): Promise<void> {
 
   const notifier = createNotifier(cfg, logger);
 
+  // Oracle-sanity gate needs live reads; mock mode has no oracle to distrust.
+  const oracleSanity = cfg.capabilities.chainReads ? createOracleSanityChecker(cfg) : undefined;
+
   const banner = [
     `chain: ${cfg.chain}`,
     `chain reads: ${cfg.capabilities.chainReads ? `LIVE (${redactRpcUrl(cfg.rpcUrl)})` : "MOCK (no MONITORED_ADDRESS)"}`,
@@ -677,6 +700,7 @@ async function main(): Promise<void> {
     logger,
     clock: { now: () => Date.now() },
     onDefenseSuccess: mockSensor ? (p) => mockSensor.applyDefense(p.amountUsd) : undefined,
+    oracleSanity,
   });
 
   let signals = 0;

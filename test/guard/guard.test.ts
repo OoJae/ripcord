@@ -53,16 +53,16 @@ describe("checkGuard — golden paths", () => {
     const res = checkGuard(baseInput());
     expect(res.decision).toBe("execute");
     expect(res.violations).toEqual([]);
-    expect(res.checks).toHaveLength(12);
+    expect(res.checks).toHaveLength(13);
     expect(res.checks.every((c) => c.passed)).toBe(true);
-    expect(res.reason).toBe("all 12 safety checks passed");
+    expect(res.reason).toBe("all 13 safety checks passed");
   });
 
   it("returns dry-run when everything passes but DRY_RUN holds fire", () => {
     const res = checkGuard(baseInput({ flags: { dryRun: true, armed: false } }));
     expect(res.decision).toBe("dry-run");
     expect(res.violations).toEqual([]);
-    expect(res.checks).toHaveLength(12);
+    expect(res.checks).toHaveLength(13);
     expect(res.checks.every((c) => c.passed)).toBe(true);
     expect(check(res, "dry-run").detail).toContain("held fire");
   });
@@ -355,6 +355,56 @@ describe("multi-violation — every rule is evaluated, nothing short-circuits", 
     // reason is the FIRST violation in rule order
     expect(res.reason).toContain("critic-approval");
     // full audit trail is still 10 entries
-    expect(res.checks).toHaveLength(12);
+    expect(res.checks).toHaveLength(13);
+  });
+});
+
+describe("oracle-sanity", () => {
+  it("BLOCKS when the oracles diverge — acting on corrupted pricing is the hazard", () => {
+    const res = checkGuard(
+      baseInput({
+        oracleSanity: {
+          status: "divergent",
+          aaveCollateralUsd: 1.12,
+          referenceEthUsd: 1874.63,
+          ratio: 0.0006,
+          detail: "ORACLE ANOMALY: Aave prices collateral at $1.12 vs Chainlink ETH $1874.63",
+        },
+      }),
+    );
+    expect(res.decision).toBe("blocked");
+    expect(res.violations.map((v) => v.rule)).toContain("oracle-sanity");
+    expect(res.reason).toMatch(/ORACLE ANOMALY/);
+  });
+
+  it("passes on agreement", () => {
+    const res = checkGuard(
+      baseInput({
+        oracleSanity: {
+          status: "ok",
+          aaveCollateralUsd: 1870.56,
+          referenceEthUsd: 1874.63,
+          ratio: 0.9978,
+          detail: "within band",
+        },
+      }),
+    );
+    expect(res.violations.map((v) => v.rule)).not.toContain("oracle-sanity");
+  });
+
+  it("passes when the reference is unavailable — the reference must never brick a rescue", () => {
+    const res = checkGuard(
+      baseInput({
+        oracleSanity: { status: "unavailable", detail: "reference feed unusable" },
+      }),
+    );
+    expect(res.violations.map((v) => v.rule)).not.toContain("oracle-sanity");
+  });
+
+  it("passes when unchecked (mock mode), with an explicit note in the trail", () => {
+    const res = checkGuard(baseInput({}));
+    const check = res.checks.find((c) => c.rule === "oracle-sanity");
+    expect(check?.passed).toBe(true);
+    expect(check?.detail).toMatch(/not checked/);
   });
 });

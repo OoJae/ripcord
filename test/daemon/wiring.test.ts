@@ -367,6 +367,43 @@ describe("daemon: policy suppression paths", () => {
     h.db.close();
   });
 
+  it("a divergent oracle blocks the defense at the wiring level — no executor call", async () => {
+    // Moonwell replay: the act-band HF is *computed from the corrupted price*,
+    // so every downstream figure is garbage. The gate's whole point is that
+    // nothing — planner, critic, executor — acts on it.
+    const h = harness({ dryRun: false, hf: "1.20" });
+    h.deps.oracleSanity = {
+      async check() {
+        return {
+          status: "divergent" as const,
+          aaveCollateralUsd: 1.12,
+          referenceEthUsd: 1874.63,
+          ratio: 0.0006,
+          detail: "ORACLE ANOMALY: Aave prices collateral at $1.12 vs Chainlink ETH $1874.63",
+        };
+      },
+    };
+    await createDaemon(h.deps).runTick("01J9ORACLEANOMALY0000000A");
+
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+    expect(h.db.recentDecisions(1)[0]?.status).toMatch(/blocked|rejected/);
+    const last = h.notifications.at(-1);
+    expect(last?.detail).toMatch(/ORACLE ANOMALY|oracle anomaly/);
+    h.db.close();
+  });
+
+  it("an unavailable reference does NOT block the defense", async () => {
+    const h = harness({ dryRun: false, hf: "1.20" });
+    h.deps.oracleSanity = {
+      async check() {
+        return { status: "unavailable" as const, detail: "reference feed unusable" };
+      },
+    };
+    await createDaemon(h.deps).runTick("01J9ORACLEUNAVAIL0000000A");
+    expect(h.executor.receivedPayloads).toHaveLength(1);
+    h.db.close();
+  });
+
   it("blocks an unpriceable asset instead of sending a zero-amount payload", async () => {
     // Ripcord has no oracle feed, so it cannot convert USD → collateral base
     // units. Returning 0 would have POSTed a defense that supplies nothing;

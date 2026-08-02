@@ -92,6 +92,15 @@ export const ADDRESS_BOOK: Record<Chain, AddressBook> = {
       address: "0x4200000000000000000000000000000000000006",
       verified: true,
       source: "bgd-labs/aave-address-book AaveV3Base.sol @ 2026-07-30 (OP-stack predeploy)",
+      // WETH is ETH by definition — a tight ±5% band.
+      refRatioMin: 0.95,
+      refRatioMax: 1.05,
+    },
+    chainlinkEthUsd: {
+      address: "0x71041dddad3595F9CEd3DcCFBe3D1F4b0a16Bb70",
+      verified: true,
+      source:
+        'Chainlink docs + on-chain description()=="ETH / USD", decimals()==8, live answer 2026-08-02',
     },
   },
   "base-sepolia": {
@@ -114,6 +123,17 @@ export const ADDRESS_BOOK: Record<Chain, AddressBook> = {
       address: "0xD171b9694f7A2597Ed006D41f7509aaD4B485c4B",
       verified: true,
       source: "bgd-labs/aave-address-book AaveV3BaseSepolia.sol + live supply 2026-08-01",
+      // cbETH carries a legitimate staking premium over ETH and testnet pricing
+      // is loose — a wide band that still catches order-of-magnitude anomalies
+      // (Moonwell's $1.12 print was ratio ≈ 0.0006, four orders below the floor).
+      refRatioMin: 0.8,
+      refRatioMax: 1.4,
+    },
+    chainlinkEthUsd: {
+      address: "0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1",
+      verified: true,
+      source:
+        'Chainlink docs + on-chain description()=="ETH / USD", decimals()==8, live answer 2026-08-02',
     },
   },
 };

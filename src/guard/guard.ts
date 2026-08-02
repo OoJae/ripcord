@@ -22,6 +22,7 @@ import type {
   GuardResult,
   GuardViolation,
   KnownAddress,
+  OracleSanityResult,
   PlannerProposal,
   Snapshot,
 } from "../types.js";
@@ -50,6 +51,11 @@ export interface GuardInput {
    * which is only tolerable while the executor is a mock (the zero-secret demo).
    */
   liveExecutor?: boolean;
+  /**
+   * Oracle-sanity verdict (Aave oracle vs independent Chainlink reference).
+   * undefined = not checked (mock mode); "divergent" is a hard block.
+   */
+  oracleSanity?: OracleSanityResult;
 }
 
 /** Epsilon for the HF-improvement comparison so exact equality passes despite float noise. */
@@ -298,6 +304,23 @@ export function checkGuard(input: GuardInput): GuardResult {
           : `snapshot is from ${chain}:${String(snapshot.address)}, matching the configured target`
         : problems.join("; "),
     );
+  }
+
+  // 8b. oracle-sanity — refuse to act on corrupted pricing. The 2026 headline
+  // liquidations were single-block oracle mispricings; a defense sized from a
+  // corrupted price can be the disaster rather than the rescue. "unavailable"
+  // passes (the reference feed must never brick a rescue); "divergent" blocks.
+  const sanity = input.oracleSanity;
+  if (sanity === undefined) {
+    record(
+      "oracle-sanity",
+      true,
+      "not checked (no live reads in this mode) — Aave oracle taken as-is",
+    );
+  } else if (sanity.status === "divergent") {
+    record("oracle-sanity", false, sanity.detail);
+  } else {
+    record("oracle-sanity", true, sanity.detail);
   }
 
   // 9. idempotency — one decision, one defense, ever.

@@ -7,7 +7,14 @@
  *     type(uint256).max health factor must never reach a model.
  */
 
-import type { Caps, PlannerContext, PlannerProposal, Snapshot, Thresholds } from "../types.js";
+import type {
+  Caps,
+  OracleSanityResult,
+  PlannerContext,
+  PlannerProposal,
+  Snapshot,
+  Thresholds,
+} from "../types.js";
 import { hfAfter, repayNeededForTarget } from "./hf-math.js";
 
 export interface BuiltPrompt {
@@ -149,7 +156,24 @@ export function buildCriticPrompt(
   proposal: PlannerProposal,
   thresholds: Thresholds,
   caps: Caps,
+  extras?: { oracleSanity?: OracleSanityResult },
 ): BuiltPrompt {
+  const sanity = extras?.oracleSanity;
+  const sanityLines =
+    sanity === undefined
+      ? []
+      : [
+          "",
+          "ORACLE CROSS-CHECK (Aave oracle vs independent Chainlink ETH/USD reference)",
+          `status: ${sanity.status.toUpperCase()} — ${sanity.detail}`,
+          ...(sanity.status === "divergent"
+            ? [
+                "A divergent oracle means the position figures above may be corrupted.",
+                "Acting on corrupted pricing is strictly worse than waiting. REJECT.",
+              ]
+            : []),
+        ];
+
   const user = [
     "POSITION",
     renderPosition(snapshot),
@@ -169,6 +193,7 @@ export function buildCriticPrompt(
     `health factor after this defense: ${fmtHf(hfAfter(snapshot, proposal))}`,
     `target to clear:              ${thresholds.targetHf}`,
     `smallest repayment that would clear the target: $${repayNeededForTarget(snapshot, thresholds.targetHf).toFixed(2)}`,
+    ...sanityLines,
     "",
     "Judge the proposal against the verified figures and return your verdict.",
   ].join("\n");

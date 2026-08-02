@@ -142,6 +142,8 @@ export interface Critic {
     proposal: PlannerProposal,
     thresholds: Thresholds,
     caps: Caps,
+    /** Optional extra verified context (e.g. the oracle-sanity comparison). */
+    extras?: { oracleSanity?: OracleSanityResult },
   ): Promise<CritiqueResult>;
 }
 
@@ -159,6 +161,7 @@ export type GuardRuleId =
   | "min-hf-improvement"
   | "hf-claim-honesty"
   | "snapshot-provenance"
+  | "oracle-sanity"
   | "idempotency"
   | "arm-flag"
   | "dry-run";
@@ -321,6 +324,22 @@ export interface ExecutionRow {
   rawRunJson?: string | null;
 }
 
+/**
+ * Verdict of the oracle-sanity gate: the Aave oracle's collateral price
+ * compared against an independent Chainlink ETH/USD reference.
+ * - "ok": ratio within the collateral's configured band — safe to act.
+ * - "divergent": one oracle is lying — the Guard BLOCKS any defense.
+ * - "unavailable": reference unusable — proceed with a warning (the reference
+ *   feed's availability must never brick a rescue).
+ */
+export interface OracleSanityResult {
+  status: "ok" | "divergent" | "unavailable";
+  aaveCollateralUsd?: number;
+  referenceEthUsd?: number;
+  ratio?: number;
+  detail: string;
+}
+
 /** Outcome of a single-instance lock acquisition attempt. */
 export interface LockAcquisition {
   acquired: boolean;
@@ -374,12 +393,23 @@ export interface KnownAddress {
 export interface CollateralAsset extends KnownAddress {
   symbol: CollateralSymbol;
   decimals: number;
+  /**
+   * Sanity band for (Aave oracle collateral price ÷ Chainlink ETH/USD).
+   * Tight for WETH (≈1 by definition), wide for staking derivatives that carry
+   * a legitimate premium. A price outside the band — like Moonwell's $1.12
+   * cbETH print against ~$1.9k ETH — is treated as an oracle anomaly.
+   */
+  refRatioMin: number;
+  refRatioMax: number;
 }
 
 export interface AddressBook {
   aavePool: KnownAddress;
   /** The debt asset. Always USDC — `repay` is Ripcord's primary defense. */
   usdc: KnownAddress;
+  /** Chainlink ETH/USD aggregator — the independent reference the oracle-sanity
+   *  gate compares the Aave oracle against. */
+  chainlinkEthUsd: KnownAddress;
   /**
    * The collateral asset, which differs by chain: WETH on Base mainnet, cbETH on
    * Base Sepolia, where the WETH reserve is capped out (see FRICTION.md).

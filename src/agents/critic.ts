@@ -13,6 +13,7 @@ import type {
   Critic,
   CritiqueResult,
   LlmClient,
+  OracleSanityResult,
   PlannerProposal,
   Snapshot,
   Thresholds,
@@ -28,11 +29,12 @@ export function createLlmCritic(llm: LlmClient): Critic {
       proposal: PlannerProposal,
       thresholds: Thresholds,
       caps: Caps,
+      extras?: { oracleSanity?: OracleSanityResult },
     ): Promise<CritiqueResult> {
       try {
         const { value, raw } = await completeWithSchema(
           llm,
-          buildCriticPrompt(snapshot, proposal, thresholds, caps),
+          buildCriticPrompt(snapshot, proposal, thresholds, caps, extras),
           CriticVerdictSchema,
         );
         return { verdict: value, raw };
@@ -64,11 +66,17 @@ export function createHeuristicCritic(): Critic {
       proposal: PlannerProposal,
       thresholds: Thresholds,
       caps: Caps,
+      extras?: { oracleSanity?: OracleSanityResult },
     ): Promise<CritiqueResult> {
       const reject = (reason: string): CritiqueResult => ({
         verdict: { verdict: "REJECT", reason },
         raw: null,
       });
+
+      // Corrupted pricing corrupts every figure below — refuse before judging.
+      if (extras?.oracleSanity?.status === "divergent") {
+        return reject(`oracle anomaly: ${extras.oracleSanity.detail}`);
+      }
 
       if (proposal.action === "none") return reject("planner proposed no action");
       if (proposal.action === "repay" && proposal.asset !== "USDC") {
