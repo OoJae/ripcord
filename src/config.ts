@@ -171,7 +171,70 @@ const EnvSchema = z.object({
   RIPCORD_POLL_SEC: z.preprocess(emptyToUndefined, z.coerce.number().int().positive().optional()),
   RIPCORD_DB_PATH: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   RIPCORD_MODEL: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  // Per-position policy thresholds (defaults = the spec values). Ordering is
+  // validated below — a nonsensical band layout refuses to start.
+  RIPCORD_WARN_HF: z.preprocess(emptyToUndefined, z.coerce.number().positive().optional()),
+  RIPCORD_ACT_HF: z.preprocess(emptyToUndefined, z.coerce.number().positive().optional()),
+  RIPCORD_PANIC_HF: z.preprocess(emptyToUndefined, z.coerce.number().positive().optional()),
+  RIPCORD_TARGET_HF: z.preprocess(emptyToUndefined, z.coerce.number().positive().optional()),
+  RIPCORD_REARM_HF: z.preprocess(emptyToUndefined, z.coerce.number().positive().optional()),
+  RIPCORD_COOLDOWN_SEC: z.preprocess(emptyToUndefined, z.coerce.number().int().min(60).optional()),
 });
+
+/** Exact float → wad conversion for threshold values (≤6 dp of precision). */
+export function hfToWad(hf: number): bigint {
+  return BigInt(Math.round(hf * 1e6)) * 10n ** 12n;
+}
+
+/**
+ * Build the threshold set from env overrides, enforcing the ordering the whole
+ * policy machine assumes: panic < act < warn ≤ rearm < target. A violated
+ * ordering silently breaks hysteresis (a rearm below warn re-arms while still
+ * in the warn band) or produces bands that can never fire — refuse to start.
+ */
+export function resolveThresholds(e: {
+  RIPCORD_WARN_HF?: number;
+  RIPCORD_ACT_HF?: number;
+  RIPCORD_PANIC_HF?: number;
+  RIPCORD_TARGET_HF?: number;
+  RIPCORD_REARM_HF?: number;
+  RIPCORD_COOLDOWN_SEC?: number;
+}): { thresholds: Thresholds; thresholdsWad: ThresholdsWad } {
+  const thresholds: Thresholds = {
+    warn: e.RIPCORD_WARN_HF ?? THRESHOLDS.warn,
+    act: e.RIPCORD_ACT_HF ?? THRESHOLDS.act,
+    panic: e.RIPCORD_PANIC_HF ?? THRESHOLDS.panic,
+    targetHf: e.RIPCORD_TARGET_HF ?? THRESHOLDS.targetHf,
+    rearm: e.RIPCORD_REARM_HF ?? THRESHOLDS.rearm,
+    cooldownSec: e.RIPCORD_COOLDOWN_SEC ?? THRESHOLDS.cooldownSec,
+  };
+  const t = thresholds;
+  const order: Array<[string, boolean]> = [
+    [`panic (${t.panic}) must be < act (${t.act})`, t.panic < t.act],
+    [`act (${t.act}) must be < warn (${t.warn})`, t.act < t.warn],
+    [`warn (${t.warn}) must be ≤ rearm (${t.rearm})`, t.warn <= t.rearm],
+    [`rearm (${t.rearm}) must be < target (${t.targetHf})`, t.rearm < t.targetHf],
+    [
+      `panic (${t.panic}) must be ≥ 1.0 — below 1.0 the position is already liquidatable`,
+      t.panic >= 1.0,
+    ],
+  ];
+  const broken = order.filter(([, ok]) => !ok).map(([msg]) => msg);
+  if (broken.length > 0) {
+    throw new Error(`Refusing to start: invalid threshold ordering — ${broken.join("; ")}`);
+  }
+  return {
+    thresholds,
+    thresholdsWad: {
+      warn: hfToWad(t.warn),
+      act: hfToWad(t.act),
+      panic: hfToWad(t.panic),
+      targetHf: hfToWad(t.targetHf),
+      rearm: hfToWad(t.rearm),
+      cooldownSec: t.cooldownSec,
+    },
+  };
+}
 
 // ---------------------------------------------------------------------------
 // AppConfig
@@ -333,8 +396,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       maxTxCents: usdToCents(e.MAX_TX_USD),
       dailyCapCents: usdToCents(e.DAILY_CAP_USD),
     },
-    thresholds: THRESHOLDS,
-    thresholdsWad: THRESHOLDS_WAD,
+    ...resolveThresholds(e),
     pollSec: e.RIPCORD_POLL_SEC ?? DEFAULT_POLL_SEC,
     dbPath: e.RIPCORD_DB_PATH ?? DEFAULT_DB_PATH,
     addressBook: ADDRESS_BOOK[chain],

@@ -98,6 +98,7 @@ Capabilities light up independently as you add secrets — each missing one fall
 | `ANTHROPIC_API_KEY` | LLM Planner + Critic instead of the deterministic heuristics |
 | `KEEPERHUB_DEFEND_WEBHOOK_URL` + `KEEPERHUB_API_KEY` | Real execution through KeeperHub |
 | `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` | Telegram alerts instead of log-only |
+| `RIPCORD_WARN_HF` / `RIPCORD_ACT_HF` / `RIPCORD_PANIC_HF` / `RIPCORD_TARGET_HF` / `RIPCORD_REARM_HF` / `RIPCORD_COOLDOWN_SEC` | Per-position policy tuning (defaults 1.5 / 1.25 / 1.1 / 1.6 / 1.55 / 1800s). Ordering is validated at startup — panic < act < warn ≤ rearm < target — because a nonsensical layout silently breaks hysteresis |
 
 `KEEPERHUB_DEFEND_WEBHOOK_URL` is WF-2's trigger endpoint —
 `https://app.keeperhub.com/api/workflows/<WF-2 id>/execute`. Use the `/execute`

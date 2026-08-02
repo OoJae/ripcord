@@ -184,3 +184,54 @@ describe("config: wad thresholds and cents", () => {
     }
   });
 });
+
+describe("config: threshold env overrides", () => {
+  it("defaults are the spec values with exact wads", () => {
+    const cfg = loadConfig({});
+    expect(cfg.thresholds).toEqual({
+      warn: 1.5,
+      act: 1.25,
+      panic: 1.1,
+      targetHf: 1.6,
+      rearm: 1.55,
+      cooldownSec: 1800,
+    });
+    expect(cfg.thresholdsWad.warn).toBe(1_500_000_000_000_000_000n);
+  });
+
+  it("overrides flow through to floats AND wads consistently", () => {
+    const cfg = loadConfig({
+      ...base,
+      RIPCORD_WARN_HF: "1.8",
+      RIPCORD_ACT_HF: "1.4",
+      RIPCORD_PANIC_HF: "1.15",
+      RIPCORD_TARGET_HF: "2.0",
+      RIPCORD_REARM_HF: "1.85",
+      RIPCORD_COOLDOWN_SEC: "600",
+    });
+    expect(cfg.thresholds.warn).toBe(1.8);
+    expect(cfg.thresholdsWad.warn).toBe(1_800_000_000_000_000_000n);
+    expect(cfg.thresholdsWad.act).toBe(1_400_000_000_000_000_000n);
+    expect(cfg.thresholds.cooldownSec).toBe(600);
+    expect(cfg.thresholdsWad.cooldownSec).toBe(600);
+  });
+
+  it("refuses a band ordering that would silently break hysteresis", () => {
+    // rearm below warn: the latch would re-arm while still inside the warn band.
+    expect(() => loadConfig({ ...base, RIPCORD_REARM_HF: "1.45" })).toThrow(/rearm/);
+    // act above warn: the act band swallows warn entirely.
+    expect(() => loadConfig({ ...base, RIPCORD_ACT_HF: "1.55" })).toThrow(/act/);
+    // panic above act.
+    expect(() => loadConfig({ ...base, RIPCORD_PANIC_HF: "1.3" })).toThrow(/panic/);
+    // target at/below rearm: a defense could land already below the re-arm line.
+    expect(() => loadConfig({ ...base, RIPCORD_TARGET_HF: "1.55" })).toThrow(/rearm.*target/);
+    // panic under 1.0 is not a defense band, it's a post-mortem.
+    expect(() => loadConfig({ ...base, RIPCORD_PANIC_HF: "0.95", RIPCORD_ACT_HF: "1.05" })).toThrow(
+      /1\.0/,
+    );
+  });
+
+  it("cooldown floor: sub-minute cooldowns are refused by the schema", () => {
+    expect(() => loadConfig({ ...base, RIPCORD_COOLDOWN_SEC: "30" })).toThrow();
+  });
+});
