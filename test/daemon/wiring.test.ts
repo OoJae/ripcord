@@ -534,3 +534,102 @@ describe("supervision (dead-sensor doctrine)", () => {
     h.db.close();
   });
 });
+
+describe("defense modes (interruptibility)", () => {
+  const approvingGate = {
+    async requestApproval() {
+      return true;
+    },
+    async awaitCancelWindow() {
+      return true;
+    },
+  };
+  const denyingGate = {
+    async requestApproval() {
+      return false;
+    },
+    async awaitCancelWindow() {
+      return false;
+    },
+  };
+
+  function modeHarness(mode: "advisory" | "copilot" | "autopilot", hf: string, extra = {}) {
+    const h = harness({ dryRun: false, hf });
+    h.deps.config = { ...h.deps.config, defenseMode: mode, cancelWindowMs: 90_000, ...extra };
+    return h;
+  }
+
+  it("ADVISORY never executes, even with everything else green", async () => {
+    const h = modeHarness("advisory", "1.20");
+    await createDaemon(h.deps).runTick("01J9MODEADVISORY00000000A");
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+    expect(h.db.recentDecisions(1)[0]?.status).toBe("blocked");
+    expect(h.notifications.at(-1)?.detail).toMatch(/ADVISORY MODE/);
+    h.db.close();
+  });
+
+  it("ADVISORY does not execute in PANIC either — it is a recommendation engine", async () => {
+    const h = modeHarness("advisory", "1.05");
+    await createDaemon(h.deps).runTick("01J9MODEADVPANIC00000000A");
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+    h.db.close();
+  });
+
+  it("CO-PILOT holds without approval", async () => {
+    const h = modeHarness("copilot", "1.20");
+    h.deps.approvalGate = denyingGate;
+    await createDaemon(h.deps).runTick("01J9MODECOPILOTDENY00000A");
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+    expect(h.db.recentDecisions(1)[0]?.status).toBe("blocked");
+    expect(h.notifications.at(-1)?.detail).toMatch(/no approval within/);
+    h.db.close();
+  });
+
+  it("CO-PILOT executes once approved", async () => {
+    const h = modeHarness("copilot", "1.20");
+    h.deps.approvalGate = approvingGate;
+    await createDaemon(h.deps).runTick("01J9MODECOPILOTOK0000000A");
+    expect(h.executor.receivedPayloads).toHaveLength(1);
+    h.db.close();
+  });
+
+  it("CO-PILOT auto-fires in PANIC — an unreachable owner must not become a liquidation", async () => {
+    const h = modeHarness("copilot", "1.05");
+    h.deps.approvalGate = denyingGate; // would refuse if consulted
+    await createDaemon(h.deps).runTick("01J9MODECOPILOTPANIC0000A");
+    expect(h.executor.receivedPayloads).toHaveLength(1);
+    h.db.close();
+  });
+
+  it("AUTOPILOT cancel window: a human veto aborts the defense", async () => {
+    const h = modeHarness("autopilot", "1.20");
+    h.deps.approvalGate = denyingGate;
+    await createDaemon(h.deps).runTick("01J9MODEAUTOCANCEL000000A");
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+    expect(h.notifications.at(-1)?.detail).toMatch(/CANCELLED by human/);
+    h.db.close();
+  });
+
+  it("AUTOPILOT proceeds on silence (fail-open — that is what autopilot means)", async () => {
+    const h = modeHarness("autopilot", "1.20");
+    h.deps.approvalGate = approvingGate;
+    await createDaemon(h.deps).runTick("01J9MODEAUTOSILENT000000A");
+    expect(h.executor.receivedPayloads).toHaveLength(1);
+    h.db.close();
+  });
+
+  it("AUTOPILOT skips the cancel window in PANIC (instant-trigger zone)", async () => {
+    const h = modeHarness("autopilot", "1.05");
+    h.deps.approvalGate = denyingGate; // would cancel if consulted
+    await createDaemon(h.deps).runTick("01J9MODEAUTOPANIC0000000A");
+    expect(h.executor.receivedPayloads).toHaveLength(1);
+    h.db.close();
+  });
+
+  it("the default gate denies copilot (no channel configured ⇒ no silent execution)", async () => {
+    const h = modeHarness("copilot", "1.20"); // no approvalGate injected
+    await createDaemon(h.deps).runTick("01J9MODENOGATE0000000000A");
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+    h.db.close();
+  });
+});

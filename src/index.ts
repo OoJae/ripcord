@@ -12,6 +12,7 @@ import { createHeuristicCritic, createLlmCritic } from "./agents/critic.js";
 import { hfAfter, repayNeededForTarget } from "./agents/hf-math.js";
 import { createAnthropicLlm } from "./agents/llm.js";
 import { createHeuristicPlanner, createLlmPlanner } from "./agents/planner.js";
+import { type ApprovalGate, createFileApprovalGate, noopApprovalGate } from "./approval/gate.js";
 import {
   type AppConfig,
   getConfig,
@@ -79,6 +80,8 @@ export interface DaemonDeps {
   onDefenseSuccess?: (payload: DefensePayload) => void;
   /** Oracle-sanity checker; wired only when live chain reads are available. */
   oracleSanity?: OracleSanityChecker;
+  /** Human-in-the-loop gate for copilot / cancel windows. */
+  approvalGate?: ApprovalGate;
 }
 
 export interface Daemon {
@@ -195,6 +198,7 @@ export function buildDefensePayload(
 export function createDaemon(deps: DaemonDeps): Daemon {
   const { config: cfg, db, sensor, planner, critic, keeperhub, notifier, logger, clock } = deps;
   const sleep = deps.sleep ?? realSleep;
+  const approvalGate = deps.approvalGate ?? noopApprovalGate;
 
   const state: PolicyState = {
     armed: true,
@@ -547,6 +551,104 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       return;
     }
 
+    // --- Defense mode: the human's say in the loop.
+    // Panic overrides every mode — the same doctrine that lets panic bypass the
+    // hysteresis latch and the cooldown. An unreachable owner must not become a
+    // liquidation.
+    const expedited = res.band === "panic";
+    const summary =
+      `${proposal.action} $${proposal.amountUsd.toFixed(2)} ${proposal.asset} — ` +
+      `HF ${snapshot.hf.toFixed(4)} → ${verifiedHfAfter.toFixed(4)} (${res.band} band)`;
+
+    if (cfg.defenseMode === "advisory") {
+      log.info({ payload, summary }, "ADVISORY: defense recommended, not executed");
+      db.updateDecision(decisionId, { status: "blocked" });
+      await safeNotify(
+        {
+          kind: "blocked",
+          chain: cfg.chain,
+          band: res.band,
+          decisionId,
+          dryRun: cfg.dryRun,
+          hf: snapshot.hf,
+          action: proposal.action,
+          asset: proposal.asset,
+          amountUsd: proposal.amountUsd,
+          expectedHfAfter: verifiedHfAfter,
+          rationale: proposal.rationale,
+          detail: `ADVISORY MODE — recommended but NOT executed: ${summary}`,
+        },
+        log,
+      );
+      return;
+    }
+
+    if (cfg.defenseMode === "copilot" && !expedited) {
+      const approved = await approvalGate.requestApproval({
+        decisionId,
+        summary,
+        windowMs: cfg.approvalWindowMs,
+      });
+      if (!approved) {
+        log.warn({ summary }, "CO-PILOT: not approved within the window — standing down");
+        db.updateDecision(decisionId, { status: "blocked" });
+        await safeNotify(
+          {
+            kind: "blocked",
+            chain: cfg.chain,
+            band: res.band,
+            decisionId,
+            dryRun: cfg.dryRun,
+            hf: snapshot.hf,
+            detail: `CO-PILOT: no approval within ${Math.round(cfg.approvalWindowMs / 1000)}s — defense stood down (panic would auto-fire): ${summary}`,
+          },
+          log,
+        );
+        return;
+      }
+      log.info({ summary }, "CO-PILOT: approved by human");
+    } else if (cfg.defenseMode === "autopilot" && !expedited && cfg.cancelWindowMs > 0) {
+      await safeNotify(
+        {
+          kind: "defense",
+          chain: cfg.chain,
+          band: res.band,
+          decisionId,
+          dryRun: false,
+          hf: snapshot.hf,
+          action: proposal.action,
+          asset: proposal.asset,
+          amountUsd: proposal.amountUsd,
+          expectedHfAfter: verifiedHfAfter,
+          rationale: proposal.rationale,
+          detail: `Defending in ${Math.round(cfg.cancelWindowMs / 1000)}s unless cancelled: ${summary}`,
+        },
+        log,
+      );
+      const proceed = await approvalGate.awaitCancelWindow({
+        decisionId,
+        summary,
+        windowMs: cfg.cancelWindowMs,
+      });
+      if (!proceed) {
+        log.warn({ summary }, "AUTOPILOT: cancelled by human during the window");
+        db.updateDecision(decisionId, { status: "blocked" });
+        await safeNotify(
+          {
+            kind: "blocked",
+            chain: cfg.chain,
+            band: res.band,
+            decisionId,
+            dryRun: cfg.dryRun,
+            hf: snapshot.hf,
+            detail: `CANCELLED by human during the ${Math.round(cfg.cancelWindowMs / 1000)}s window: ${summary}`,
+          },
+          log,
+        );
+        return;
+      }
+    }
+
     // --- Execute (guard already proved arm-flag for mainnet)
     db.insertExecution({
       decisionId,
@@ -751,12 +853,26 @@ async function main(): Promise<void> {
   // Oracle-sanity gate needs live reads; mock mode has no oracle to distrust.
   const oracleSanity = cfg.capabilities.chainReads ? createOracleSanityChecker(cfg) : undefined;
 
+  // A gate is only meaningful when a mode actually consults it.
+  const approvalGate =
+    cfg.defenseMode === "copilot" || cfg.cancelWindowMs > 0
+      ? createFileApprovalGate({
+          dir: cfg.approvalDir,
+          onPrompt: (req, approve, cancel) =>
+            logger.warn(
+              { decisionId: req.decisionId, approve, cancel },
+              `AWAITING HUMAN: ${req.summary} — touch the approve or cancel file`,
+            ),
+        })
+      : undefined;
+
   const banner = [
     `chain: ${cfg.chain}`,
     `chain reads: ${cfg.capabilities.chainReads ? `LIVE (${redactRpcUrl(cfg.rpcUrl)})` : "MOCK (no MONITORED_ADDRESS)"}`,
     `brain: ${cfg.capabilities.llm ? `LLM ${cfg.model}${cfg.anthropicBaseUrl ? ` @ ${redactRpcUrl(cfg.anthropicBaseUrl)}` : ""}` : "HEURISTIC (no ANTHROPIC_API_KEY)"}`,
     `executor: ${cfg.capabilities.keeperhub ? "KeeperHub webhook" : "MOCK (no KEEPERHUB_DEFEND_WEBHOOK_URL)"}`,
     `alerts: ${cfg.capabilities.telegram ? "Telegram" : "log-only"}`,
+    `mode: ${cfg.defenseMode.toUpperCase()}`,
     `DRY_RUN: ${cfg.dryRun ? "ON" : "off"} · RIPCORD_ARM: ${cfg.armed ? "1" : "0"}`,
     `caps: $${cfg.caps.maxTxUsd}/tx · $${cfg.caps.dailyCapUsd}/24h`,
   ];
@@ -774,6 +890,7 @@ async function main(): Promise<void> {
     clock: { now: () => Date.now() },
     onDefenseSuccess: mockSensor ? (p) => mockSensor.applyDefense(p.amountUsd) : undefined,
     oracleSanity,
+    approvalGate,
   });
 
   let signals = 0;

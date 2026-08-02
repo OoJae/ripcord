@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+import type { DefenseMode } from "./approval/gate.js";
 import type { Address, AddressBook, Chain, Thresholds, ThresholdsWad } from "./types.js";
 
 // ---------------------------------------------------------------------------
@@ -40,6 +41,7 @@ export const DEFAULT_MODEL = "claude-sonnet-5";
 export const DEFAULT_POLL_SEC = 60;
 export const MOCK_POLL_SEC = 5;
 export const DEFAULT_DB_PATH = "data/ripcord.sqlite";
+export const DEFAULT_APPROVAL_DIR = "data/approvals";
 /**
  * Aave's permissionless testnet faucet on Base Sepolia (`isPermissioned() == false`).
  * Mint test tokens with `mint(token, to, amount)`. Verified on-chain 2026-08-01.
@@ -184,6 +186,22 @@ const EnvSchema = z.object({
     emptyToUndefined,
     z.coerce.number().nonnegative().default(0),
   ),
+  /** advisory = never execute · copilot = require approval · autopilot = act (default). */
+  RIPCORD_MODE: z.preprocess(
+    emptyToUndefined,
+    z.enum(["advisory", "copilot", "autopilot"]).default("autopilot"),
+  ),
+  /** How long copilot waits for a human. */
+  RIPCORD_APPROVAL_WINDOW_SEC: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().min(5).default(300),
+  ),
+  /** Autopilot act-band cancel window; 0 disables. Panic always skips it. */
+  RIPCORD_CANCEL_WINDOW_SEC: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().nonnegative().default(0),
+  ),
+  RIPCORD_APPROVAL_DIR: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
 });
 
 /** Exact float → wad conversion for threshold values (≤6 dp of precision). */
@@ -270,6 +288,10 @@ export interface AppConfig {
   armed: boolean;
   caps: { maxTxUsd: number; dailyCapUsd: number; minHfImprovement: number };
   minWalletReserveUsd: number;
+  defenseMode: DefenseMode;
+  approvalWindowMs: number;
+  cancelWindowMs: number;
+  approvalDir: string;
   capsCents: { maxTxCents: number; dailyCapCents: number };
   thresholds: Thresholds;
   thresholdsWad: ThresholdsWad;
@@ -403,6 +425,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       dailyCapCents: usdToCents(e.DAILY_CAP_USD),
     },
     minWalletReserveUsd: e.MIN_WALLET_RESERVE_USD,
+    defenseMode: e.RIPCORD_MODE,
+    approvalWindowMs: e.RIPCORD_APPROVAL_WINDOW_SEC * 1000,
+    cancelWindowMs: e.RIPCORD_CANCEL_WINDOW_SEC * 1000,
+    approvalDir: e.RIPCORD_APPROVAL_DIR ?? DEFAULT_APPROVAL_DIR,
     ...resolveThresholds(e),
     pollSec: e.RIPCORD_POLL_SEC ?? DEFAULT_POLL_SEC,
     dbPath: e.RIPCORD_DB_PATH ?? DEFAULT_DB_PATH,
