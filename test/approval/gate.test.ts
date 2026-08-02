@@ -80,18 +80,18 @@ describe("createFileApprovalGate", () => {
 
   it("prompts with both paths so the human knows what to touch", async () => {
     const dir = tempDir();
-    let prompted: { approve: string; cancel: string } | null = null;
+    const prompted: { approve?: string; cancel?: string } = {};
     const gate = createFileApprovalGate({
       dir,
       sleep: async () => {},
       pollMs: 1_000,
       onPrompt: (_r, approve, cancel) => {
-        prompted = { approve, cancel };
+        prompted.approve = approve;
+        prompted.cancel = cancel;
       },
     });
     await gate.requestApproval(req("prompt-1"));
-    expect(prompted).not.toBeNull();
-    expect(prompted?.approve).toContain("approve-prompt-1");
-    expect(prompted?.cancel).toContain("cancel-prompt-1");
+    expect(prompted.approve).toContain("approve-prompt-1");
+    expect(prompted.cancel).toContain("cancel-prompt-1");
   });
 });
