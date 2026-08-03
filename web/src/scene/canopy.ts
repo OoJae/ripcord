@@ -35,7 +35,9 @@ export function mountCanopy(canvas: HTMLCanvasElement, smooth: Smooth | null): C
   const { uniforms } = cloth;
 
   const desktop = () => window.innerWidth >= 768;
-  const restX = () => (desktop() ? 0.55 : 0);
+  // Mobile: the streamer hugs the right edge and shrinks — it must never
+  // sit on top of the copy on a narrow viewport.
+  const restX = () => (desktop() ? 0.55 : 0.42);
 
   // Reduced motion: the canopy poster — fully bloomed, one frame, stop.
   if (!smooth) {
@@ -48,6 +50,7 @@ export function mountCanopy(canvas: HTMLCanvasElement, smooth: Smooth | null): C
   }
 
   cloth.mesh.position.x = restX();
+  cloth.mesh.scale.setScalar(desktop() ? 1 : 0.78);
 
   // The bloom, scrubbed across the pull section — reversible by construction.
   gsap.to(uniforms.uMorph, {

@@ -250,7 +250,12 @@ main {
 
   .site-header nav {
     justify-self: end;
-    gap: 0.9rem;
+    gap: 0.7rem;
+  }
+
+  .site-header nav a {
+    font-size: 0.625rem;
+    white-space: nowrap;
   }
 
   .altimeter {

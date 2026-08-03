@@ -71,7 +71,8 @@ in exchange (private-mempool txs are never sponsored).
 pnpm install
 pnpm dev                  # no .env needed — full decision loop in mock mode, DRY_RUN on
 pnpm status               # current HF, recent decisions, recent runs, spend vs cap
-pnpm test                 # 299 offline tests
+pnpm test                 # 322 offline tests
+pnpm web:dev              # the brand site (web/ — see docs/brand/BRAND.md)
 ```
 
 With no `.env` at all, Ripcord runs a **mock demo**: a scripted health-factor descent drives the full Sense → Policy → Plan → Critique → Guard → (dry-run) Execute pipeline, every stage logged under one `decisionId`. Real output from `pnpm dev`:

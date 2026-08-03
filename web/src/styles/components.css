@@ -346,17 +346,16 @@ html:not(.js) .canopy-poster {
   gap: 1.25rem;
 }
 
+/* Chanel's rule — the hover lift these cards once had is gone: the page's
+   one loud thing is THE PULL, and furniture must not fidget. */
 .mode-cards article {
   border: 1px solid var(--hairline);
   padding: 1.5rem;
-  transition:
-    border-color var(--dur-micro) var(--ease-expressive),
-    transform var(--dur-micro) var(--ease-expressive);
+  transition: border-color var(--dur-micro) var(--ease-expressive);
 }
 
 .mode-cards article:hover {
   border-color: var(--dim);
-  transform: translateY(-3px);
 }
 
 .mode-cards h3 {
