@@ -161,3 +161,16 @@ html.js [data-reveal] .line {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Pre-hide reveal targets only while JS is running, so nothing flashes before
+   gsap takes over. visibility (not display) keeps layout stable — zero CLS.
+   Split lines become visible via the child rule (visibility un-inherits);
+   block reveals get inline visibility from gsap's autoAlpha; reveal.ts sets
+   inline visibility on restore. No-JS pages never hide anything. */
+html.js [data-reveal] {
+  visibility: hidden;
+}
+
+html.js [data-reveal] .line {
+  visibility: visible;
+}
