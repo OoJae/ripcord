@@ -10,7 +10,7 @@ KeeperHub. This document explains the trust design; the README covers usage.
         │                                                                        │
   ┌─────▼─────┐   ┌────────┐   ┌─────────┐   ┌─────────┐   ┌───────┐   ┌─────────▼─────────┐
   │  SENSOR   │──▶│ POLICY │──▶│ PLANNER │──▶│ CRITIC  │──▶│ GUARD │──▶│ EXECUTOR          │
-  │ viem read │   │ bands  │   │  (LLM)  │   │  (LLM)  │   │ 12    │   │ KeeperHub WF-2    │
+  │ viem read │   │ bands  │   │  (LLM)  │   │  (LLM)  │   │ 15    │   │ KeeperHub WF-2    │
   │ mainnet/  │   │ wad    │   │ proposes│   │ APPROVE │   │ rules │   │ re-reads chain,   │
   │ testnet   │   │ bigint │   │ ONE act │   │ or veto │   │ deter-│   │ gates, repays     │
   └───────────┘   └────────┘   └─────────┘   └─────────┘   │ minist│   └───────────────────┘

@@ -48,7 +48,7 @@
         "type": "action",
         "label": "Still Below Warn 1.50",
         "config": {
-          "condition": "{{@trigger-1:Trigger.chain}} == base-sepolia && {{@verify-1:Re-read Position.result.healthFactor}} < 1500000000000000000",
+          "condition": "{{@trigger-1:Trigger.chain}} == base-sepolia && {{@verify-1:Re-read Position.result.healthFactor}} < 1500000000000000000 && {{@trigger-1:Trigger.amountBaseUnits}} <= 60000000",
           "actionType": "Condition",
           "conditionConfig": {
             "group": {

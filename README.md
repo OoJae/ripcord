@@ -58,7 +58,7 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 | 1 | **Hero: autonomous defensive repay — gas-sponsored, full audit trail** | Base mainnet | [`0x6e314ece…9cd05`](https://basescan.org/tx/0x6e314ece3f28df705ce60d62bdcb130b46013aa1b919f6b5efb91dd335e9cd05) | `deqcbg6pwj968qlvqmri5` |
 | 2 | Gas-sponsored setup ×5 (wrap → approve → supply → borrow → capped approval) | Base mainnet | [`0x1d43a6bc…1a29`](https://basescan.org/tx/0x1d43a6bc19684d7e68f045a88a4a390c539df9acdc90b3a4f17b197f8a8b1a29) +4 | [EVIDENCE.md](docs/evidence/EVIDENCE.md) |
 | 3 | 3 consecutive autonomous testnet defenses | Base Sepolia | [`0xf1f52639…`](https://sepolia.basescan.org/tx/0xf1f526390d4c2bee7cf8bc16fe103f35563d72cc40e92ccfc0b7ded8b8aab176) +2 | [EVIDENCE.md](docs/evidence/EVIDENCE.md) |
-| 4 | Paid x402 calls to `ripcord-risk-score` ($0.05 ×2 → our own wallet) | Base mainnet | [`0xb9ddfd5a…c72e`](https://basescan.org/tx/0xb9ddfd5ab4f1231d834cc2007bfdbd218992723d0ee12dd3581b863590d0c72e), [`0x2850f226…02ca`](https://basescan.org/tx/0x2850f2266a37e92acab6bd645c8bdc922d4df06120f31d4cd71870dcf8f302ca) | `z08itkcc…`, `dr3891lm…` |
+| 4 | Paid x402 calls to `ripcord-risk-score` ($0.05 ×2 → our own wallet; the two calls settled at the original $0.05 price, since [repriced to $0.02](workflows/wf3-risk-score.json)) | Base mainnet | [`0xb9ddfd5a…c72e`](https://basescan.org/tx/0xb9ddfd5ab4f1231d834cc2007bfdbd218992723d0ee12dd3581b863590d0c72e), [`0x2850f226…02ca`](https://basescan.org/tx/0x2850f2266a37e92acab6bd645c8bdc922d4df06120f31d4cd71870dcf8f302ca) | `z08itkcc…`, `dr3891lm…` |
 
 Private routing is **not available on Base** (KeeperHub `/api/chains`: Flashbots
 Protect on Ethereum only) — the hero tx runs public-route with the tradeoff
@@ -133,7 +133,7 @@ This is not theoretical tidiness. On the first live run a real model claimed a p
 - **Snapshot provenance is checked.** A defense can only act on a position whose chain and address match the configured target, so a simulated or stale snapshot can never drive a real transaction. Config independently refuses to pair mock reads with a live executor.
 - **Idempotency by decisionId** (ULID), backstopped by a SQLite UNIQUE constraint.
 - **Secrets never reach logs.** The Telegram bot token is redacted from every log path, and RPC URLs (which routinely embed a provider API key) are elided in the banner and scrubbed out of error text.
-- Capped, revocable USDC approval; kill switch: Ctrl-C stops the daemon while WF-1 monitoring survives.
+- Capped, revocable USDC approval; kill switch: Ctrl-C stops the daemon cleanly (finishes the in-flight tick, releases the single-instance lock). WF-1 is a redundant-monitoring *intent*, not a live fallback — its schedule trigger has never fired platform-side (see the surfaces table and FRICTION.md), so it does not keep watching after the daemon stops.
 
 The safety design was reviewed adversarially: 22 candidate findings across four independent lenses, each then double-verified by a skeptic prompted to refute it. Seven survived and all are fixed — including two the review reproduced end to end (a mock sensor able to drive a live mainnet defense, and the Guard trusting LLM-supplied arithmetic). See [FRICTION.md](FRICTION.md) for the write-ups.
 

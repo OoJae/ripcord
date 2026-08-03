@@ -596,3 +596,15 @@ with a generic template error, and document it on the marketplace page. If it is
 deliberate, the resolver needs to treat trigger references identically for read and write
 graphs. Either way the current behaviour lets you publish and price a listing that can
 never be called successfully.
+
+## 2026-08-03 — whole-project adversarial audit: 19 of 22 findings survived, all resolved
+
+**What:** An 8-lens adversarial workflow (one finder per slice — security, control-loop, guard/policy, sensor/oracle, executor/external, state, tests, docs — each finding then handed to an independent skeptic prompted to *refute* it) filed 22 candidates. 19 survived refutation; a 20th ("README quotes the risk-score at $0.02 but the listing is $0.05") fell to git-history investigation — the two evidenced calls settled at $0.05 *before* the reprice to $0.02, so both numbers were correct; the skeptic hadn't checked the commit log. Two independent-value catches worth recording:
+- **Our own bug, fresh:** `src/status.ts` printed `String(err)` unscrubbed on a sensor read failure, leaking the API-key-bearing RPC URL to `pnpm status` stdout — the *same* leak class fixed hours earlier in the daemon and oracle-sanity, in a third parallel path nobody had wired the scrub into. Invariant 7. A one-line mirror of an already-tested function is exactly the kind of thing that slips a diff.
+- **A silently-dead safety gate was possible:** `createOracleSanityChecker` (the live read/scale chain behind the oracle-anomaly Guard rule) had *zero* test coverage — only the pure verdict function was tested. A wrong decimal (1e8 vs 1e18) or a swapped `latestRoundData` tuple index would have disabled the gate while every test stayed green. Now covered end-to-end with an injected client.
+
+**Impact / resolution:** 9 code findings fixed with 23 new tests (6 mutation-checked); Guard grew a 15th rule (deterministic wallet-solvency). 7 doc/workflow-honesty findings fixed in the repo. Full write-ups are in the two audit commits.
+
+**Residual — live-platform actions this session could not perform (MCP disconnected; do before submission):**
+- **Rotate the exposed `kh_` org key.** Standing item — but the audit sharpened why: `wf4-defend` was left `enabled: true` on the platform, a mainnet write callable by anyone holding that key (`POST /workflows/{id}/execute` with an arbitrary underwater address), bypassing DRY_RUN / ARM / caps / Guard entirely. The repo artifact is now `enabled: false`; **the deployed workflow must be disabled on app.keeperhub.com and the key rotated.**
+- **Sync the deployed WF-3 listing description** to the corrected repo text (the paid response returns raw figures; bands/score are computed locally — the platform does not apply the stored `outputMapping`, per the 2026-08-02 entry).
