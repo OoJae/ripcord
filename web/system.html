@@ -12,7 +12,7 @@
     <meta property="og:title" content="System — Ripcord" />
     <meta
       property="og:description"
-      content="Autonomous liquidation protection for Aave V3 on Base. HF 1.24 pulled to 1.60 on mainnet, gas-sponsored, 10.7s end to end."
+      content="Two models argue. A deterministic Guard decides. KeeperHub lands it."
     />
     <meta property="og:image" content="/brand/og.png" />
     <meta property="og:type" content="website" />
@@ -34,18 +34,174 @@
   </head>
   <body data-page="system">
     <a class="skip-link" href="#main">Skip to content</a>
+
     <header class="site-header">
-      <a class="wordmark" href="/" aria-label="Ripcord home">RIPCORD</a>
+      <a class="wordmark" href="/" aria-label="Ripcord home">
+        <svg class="wordmark-ring" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="17" y="40" width="30" height="14" rx="7" stroke="currentColor" stroke-width="6" fill="none" />
+          <path d="M32 38 V12" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+        </svg>
+        RIPCORD
+      </a>
       <nav aria-label="Site">
         <a href="/evidence.html">Flight log</a>
-        <a href="/system.html">System</a>
+        <a href="/system.html" aria-current="page">System</a>
         <a href="https://github.com/OoJae/ripcord" rel="noopener">GitHub</a>
       </nav>
-      <div class="altimeter" id="altimeter" aria-hidden="true"></div>
+      <p class="altimeter mono is-recovered" aria-hidden="true">
+        <span class="altimeter-value">HF 1.6028</span>
+        <span class="altimeter-band">RECOVERED</span>
+      </p>
     </header>
-    <main id="main">
-      <!-- Sections written in the copy pass: data-flight drives the descent -->
+
+    <main id="main" class="page">
+      <header class="page-head">
+        <p class="label" data-reveal>System</p>
+        <h1 data-reveal="hero">Two models argue. A&nbsp;deterministic Guard decides.</h1>
+        <p data-reveal>
+          Ripcord's core belief: model intelligence proposes, deterministic code disposes. Every
+          tick runs the same loop, and nothing an LLM says can move money on its own.
+        </p>
+      </header>
+
+      <section class="log-section" aria-labelledby="sys-loop">
+        <h2 id="sys-loop" data-reveal>The loop</h2>
+        <ol class="loop-row loop-row-page">
+          <li data-reveal>
+            <h3 class="mono">01 · Sense</h3>
+            <p>
+              Reads the position directly from the chain — health factor, balances, prices. The
+              Aave oracle is cross-checked against an independent Chainlink feed; a divergent
+              price blocks any defense, because acting on corrupted pricing is worse than
+              waiting.
+            </p>
+          </li>
+          <li data-reveal>
+            <h3 class="mono">02 · Plan</h3>
+            <p>
+              A Planner model proposes exactly one action with one amount and its expected
+              outcome. It cannot name an address or a contract — those exist only in an
+              allowlisted config the model never touches.
+            </p>
+          </li>
+          <li data-reveal>
+            <h3 class="mono">03 · Critique</h3>
+            <p>
+              An independent Critic model reviews the plan against verified figures it is given
+              separately. Anything but an explicit APPROVE ends the tick. No approval, no
+              transaction — ever.
+            </p>
+          </li>
+          <li data-reveal>
+            <h3 class="mono">04 · Guard</h3>
+            <p>
+              Fourteen deterministic rules re-derive every number the models claimed. The Guard is
+              final authority: it can veto both models, and nothing can veto the Guard.
+            </p>
+          </li>
+          <li data-reveal>
+            <h3 class="mono">05 · Execute</h3>
+            <p>
+              The defense lands through a KeeperHub workflow that re-reads the chain and refuses
+              to write if the position no longer needs defending — retries, smart gas, and
+              sponsorship included. The daemon holds no signing keys at all.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="log-section" aria-labelledby="sys-thresholds">
+        <h2 id="sys-thresholds" data-reveal>Pull altitudes</h2>
+        <table class="logbook mono" data-reveal>
+          <caption class="visually-hidden">Health-factor thresholds</caption>
+          <thead>
+            <tr><th scope="col">band</th><th scope="col">threshold</th><th scope="col">behavior</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">healthy</th><td>≥ 1.50</td><td>watch, say nothing</td></tr>
+            <tr><th scope="row">warn</th><td>&lt; 1.50</td><td>alert and draft</td></tr>
+            <tr><th scope="row">act</th><td>&lt; 1.25</td><td>defend, toward target 1.60</td></tr>
+            <tr><th scope="row">panic</th><td>&lt; 1.10</td><td>defend now — overrides modes, cooldowns, latches</td></tr>
+          </tbody>
+        </table>
+        <p class="mono log-total" data-reveal>
+          re-arm above 1.55 · cooldown 1800s between defenses · caps $15/tx · $30/24h in the demo
+          config
+        </p>
+      </section>
+
+      <section class="log-section" aria-labelledby="sys-guard">
+        <h2 id="sys-guard" data-reveal>The fourteen rules</h2>
+        <dl class="rule-list" data-reveal>
+          <div><dt class="mono">action-none</dt><dd>"do nothing" is a valid plan, and it never executes</dd></div>
+          <div><dt class="mono">critic-approval</dt><dd>strict APPROVE required — anything else blocks</dd></div>
+          <div><dt class="mono">allowlist</dt><dd>assets resolve only through config; a raw address anywhere in model output is fatal</dd></div>
+          <div><dt class="mono">amount-positive</dt><dd>finite and positive, or blocked</dd></div>
+          <div><dt class="mono">max-tx-usd</dt><dd>per-transaction cap, compared in integer cents</dd></div>
+          <div><dt class="mono">daily-cap</dt><dd>rolling 24-hour spend; failed attempts still count against it</dd></div>
+          <div><dt class="mono">min-hf-improvement</dt><dd>gated on the Guard's own arithmetic, never the model's claim</dd></div>
+          <div><dt class="mono">hf-claim-honesty</dt><dd>a model overstating its outcome is itself grounds to block</dd></div>
+          <div><dt class="mono">snapshot-provenance</dt><dd>the position defended must be the position actually read</dd></div>
+          <div><dt class="mono">oracle-sanity</dt><dd>Aave's price cross-checked against Chainlink; divergence blocks</dd></div>
+          <div><dt class="mono">wallet-reserve-floor</dt><dd>never spends the wallet's last dollar silently</dd></div>
+          <div><dt class="mono">wallet-solvency</dt><dd>the repay must fit the balance — checked deterministically</dd></div>
+          <div><dt class="mono">idempotency</dt><dd>one decision, one defense, ever</dd></div>
+          <div><dt class="mono">arm-flag</dt><dd>mainnet writes require an explicit human arm on top of everything</dd></div>
+        </dl>
+        <p data-reveal>
+          Every rule runs on every decision — no short-circuits — and every check is written to
+          the audit trail. DRY_RUN is evaluated last, which is why a clean pass reads
+          <span class="mono">"all 15 safety checks passed"</span>.
+        </p>
+      </section>
+
+      <section class="log-section" aria-labelledby="sys-modes">
+        <h2 id="sys-modes" data-reveal>Modes — whose hand is on the handle</h2>
+        <div class="mode-cards">
+          <article data-reveal>
+            <h3 class="mono">advisory</h3>
+            <p>Full pipeline, real alerts, never executes. A recommendation engine.</p>
+          </article>
+          <article data-reveal>
+            <h3 class="mono">copilot</h3>
+            <p>The defense is built and held for your explicit approval. Silence means no.</p>
+          </article>
+          <article data-reveal>
+            <h3 class="mono">autopilot</h3>
+            <p>Acts on its own, but announces a cancel window first. Silence means go.</p>
+          </article>
+        </div>
+        <p data-reveal>
+          The two failure postures are opposite on purpose: a mode built on consent must not act
+          when you never answered, and a mode built on autonomy must not be disarmed by an unread
+          notification. Panic overrides all three — an unreachable owner must not become a
+          liquidation.
+        </p>
+      </section>
+
+      <section class="log-section" aria-labelledby="sys-honest">
+        <h2 id="sys-honest" data-reveal>What Ripcord is not</h2>
+        <p data-reveal>
+          It funds defenses from wallet USDC — the flash-loan, repay-from-collateral path the
+          incumbents use is on the roadmap, stated plainly in the code rather than hidden. Private
+          transaction routing is Ethereum-only on KeeperHub today, so Base defenses run public
+          with the tradeoff documented. The limits are in the repo next to the things that work.
+        </p>
+      </section>
     </main>
-    <footer class="site-footer"></footer>
+
+    <footer class="site-footer">
+      <p class="label">Open the canopy</p>
+      <nav aria-label="Footer">
+        <a href="https://github.com/OoJae/ripcord" rel="noopener">GitHub</a>
+        <a href="/">Home</a>
+        <a href="/evidence.html">Flight log</a>
+        <a href="https://app.keeperhub.com/api/mcp/workflows" rel="noopener">Marketplace listing</a>
+      </nav>
+      <p class="mono footer-fine">
+        Built for the KeeperHub "Agents Onchain" hackathon. DRY_RUN by default — mainnet writes
+        require an explicit human arm.
+      </p>
+    </footer>
   </body>
 </html>

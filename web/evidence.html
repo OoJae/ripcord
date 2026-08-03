@@ -12,7 +12,7 @@
     <meta property="og:title" content="Flight log — Ripcord" />
     <meta
       property="og:description"
-      content="Autonomous liquidation protection for Aave V3 on Base. HF 1.24 pulled to 1.60 on mainnet, gas-sponsored, 10.7s end to end."
+      content="Every save on record, with the tx hashes to prove it."
     />
     <meta property="og:image" content="/brand/og.png" />
     <meta property="og:type" content="website" />
@@ -34,18 +34,203 @@
   </head>
   <body data-page="evidence">
     <a class="skip-link" href="#main">Skip to content</a>
+
     <header class="site-header">
-      <a class="wordmark" href="/" aria-label="Ripcord home">RIPCORD</a>
+      <a class="wordmark" href="/" aria-label="Ripcord home">
+        <svg class="wordmark-ring" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="17" y="40" width="30" height="14" rx="7" stroke="currentColor" stroke-width="6" fill="none" />
+          <path d="M32 38 V12" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+        </svg>
+        RIPCORD
+      </a>
       <nav aria-label="Site">
-        <a href="/evidence.html">Flight log</a>
+        <a href="/evidence.html" aria-current="page">Flight log</a>
         <a href="/system.html">System</a>
         <a href="https://github.com/OoJae/ripcord" rel="noopener">GitHub</a>
       </nav>
-      <div class="altimeter" id="altimeter" aria-hidden="true"></div>
+      <p class="altimeter mono is-recovered" aria-hidden="true">
+        <span class="altimeter-value">HF 1.6028</span>
+        <span class="altimeter-band">RECOVERED</span>
+      </p>
     </header>
-    <main id="main">
-      <!-- Sections written in the copy pass: data-flight drives the descent -->
+
+    <main id="main" class="page">
+      <header class="page-head">
+        <p class="label" data-reveal>Flight log</p>
+        <h1 data-reveal="hero">Every jump, on record</h1>
+        <p data-reveal>
+          Ripcord's whole evidence trail is public: transaction hashes on Base, KeeperHub run ids,
+          and the decision ULIDs that thread each save from first sensor read to landed
+          transaction. Nothing below is staged — including the failure.
+        </p>
+      </header>
+
+      <section class="log-section" aria-labelledby="log-mainnet">
+        <h2 id="log-mainnet" data-reveal>Mainnet — the save</h2>
+        <table class="logbook mono" data-reveal>
+          <caption class="visually-hidden">Mainnet defense, 2026-08-01</caption>
+          <thead>
+            <tr><th scope="col">entry</th><th scope="col">value</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">date</th><td>2026-08-01 · Base mainnet</td></tr>
+            <tr><th scope="row">health factor</th><td>1.2400 → <span class="ok">1.6028</span></td></tr>
+            <tr><th scope="row">defense</th><td>repay $6.78 USDC</td></tr>
+            <tr><th scope="row">decision</th><td>01KYZKX5R00C9F8D6G3ZS55CE0</td></tr>
+            <tr><th scope="row">run</th><td>deqcbg6pwj968qlvqmri5</td></tr>
+            <tr><th scope="row">guard</th><td>12/12 checks · 0 violations</td></tr>
+            <tr><th scope="row">gas</th><td>184,531 · sponsored</td></tr>
+            <tr><th scope="row">duration</th><td>10.7s sense → landed</td></tr>
+            <tr>
+              <th scope="row">tx</th>
+              <td>
+                <a
+                  href="https://basescan.org/tx/0x6e314ece3f28df705ce60d62bdcb130b46013aa1b919f6b5efb91dd335e9cd05"
+                  rel="noopener"
+                  >0x6e314ece3f28df…dd335e9cd05 ↗</a
+                >
+              </td>
+            </tr>
+            <tr><th scope="row">armed window</th><td>under 4 minutes, then disarmed</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="log-section" aria-labelledby="log-testnet">
+        <h2 id="log-testnet" data-reveal>Testnet — three in a row, and one honest failure</h2>
+        <p data-reveal>
+          The first attempt failed for real —
+          <span class="mono">ERC20: transfer amount exceeds allowance</span> — and the loop
+          recovered on its own. The three defenses that followed ran the full pipeline with no
+          human in it, spaced by the real 1800-second cooldown. No overrides, no config tuning for
+          the demo.
+        </p>
+        <table class="logbook mono" data-reveal>
+          <caption class="visually-hidden">
+            Base Sepolia defenses, consecutive autonomous runs
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">run</th>
+              <th scope="col">defense</th>
+              <th scope="col">tx</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>7wnw3uuchs8g…</td>
+              <td>$4.20 — <span class="warn-text">failed: allowance</span></td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>zfv7imdpw0uc…</td>
+              <td>repay $4.21</td>
+              <td>
+                <a
+                  href="https://sepolia.basescan.org/tx/0xf1f526390d4c2bee7cf8bc16fe103f35563d72cc40e92ccfc0b7ded8b8aab176"
+                  rel="noopener"
+                  >0xf1f52639… ↗</a
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>ni3gbbfz5q5b…</td>
+              <td>repay $4.20</td>
+              <td>
+                <a
+                  href="https://sepolia.basescan.org/tx/0xbeccc0d431f7ebb5b41f80d0f1612de9e63c2197d7f43ef00c75e642ded7a27e"
+                  rel="noopener"
+                  >0xbeccc0d4… ↗</a
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>l9rpksmy73bm…</td>
+              <td>repay $4.20</td>
+              <td>
+                <a
+                  href="https://sepolia.basescan.org/tx/0x49283fc255ae69d5731cd3e0124e5a789e4bfcafbd4233f552695260311f6db2"
+                  rel="noopener"
+                  >0x49283fc2… ↗</a
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="mono log-total" data-reveal>
+          HF 1.2266 → 1.6010 · total spend $12.61 of the $30 daily cap · every tx gas-sponsored
+        </p>
+      </section>
+
+      <section class="log-section" aria-labelledby="log-x402">
+        <h2 id="log-x402" data-reveal>Marketplace — Ripcord pays for itself</h2>
+        <p data-reveal>
+          Ripcord's risk engine is listed on the KeeperHub marketplace as
+          <span class="mono">ripcord-risk-score</span>. An independent agentic wallet — holding
+          zero ETH — paid for two calls over x402. Both transfers settled into the same wallet the
+          daemon defends.
+        </p>
+        <table class="logbook mono" data-reveal>
+          <caption class="visually-hidden">Paid x402 calls</caption>
+          <thead>
+            <tr>
+              <th scope="col">call</th>
+              <th scope="col">paid</th>
+              <th scope="col">tx</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>z08itkcc5ks9…</td>
+              <td>$0.05</td>
+              <td>
+                <a
+                  href="https://basescan.org/tx/0xb9ddfd5ab4f1231d834cc2007bfdbd218992723d0ee12dd3581b863590d0c72e"
+                  rel="noopener"
+                  >0xb9ddfd5a… ↗</a
+                >
+              </td>
+            </tr>
+            <tr>
+              <td>dr3891lm4er7…</td>
+              <td>$0.05</td>
+              <td>
+                <a
+                  href="https://basescan.org/tx/0x2850f2266a37e92acab6bd645c8bdc922d4df06120f31d4cd71870dcf8f302ca"
+                  rel="noopener"
+                  >0x2850f226… ↗</a
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="mono log-total" data-reveal>
+          settled at the original $0.05 · since repriced to $0.02/call
+        </p>
+      </section>
+
+      <section class="log-section" aria-labelledby="log-deeper">
+        <h2 id="log-deeper" data-reveal>The full trail</h2>
+        <p data-reveal>
+          Raw logs, chaos-drill transcripts, and the complete write-ups live in the repo:
+          <a href="https://github.com/OoJae/ripcord" rel="noopener">docs/evidence/EVIDENCE.md</a>.
+          Every claim on this site links back to a source there.
+        </p>
+      </section>
     </main>
-    <footer class="site-footer"></footer>
+
+    <footer class="site-footer">
+      <p class="label">Open the canopy</p>
+      <nav aria-label="Footer">
+        <a href="https://github.com/OoJae/ripcord" rel="noopener">GitHub</a>
+        <a href="/">Home</a>
+        <a href="/system.html">System</a>
+        <a href="https://app.keeperhub.com/api/mcp/workflows" rel="noopener">Marketplace listing</a>
+      </nav>
+      <p class="mono footer-fine">
+        Built for the KeeperHub "Agents Onchain" hackathon. DRY_RUN by default — mainnet writes
+        require an explicit human arm.
+      </p>
+    </footer>
   </body>
 </html>

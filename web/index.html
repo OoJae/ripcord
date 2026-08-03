@@ -34,18 +34,231 @@
   </head>
   <body data-page="index">
     <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- The signature: one WebGL scene behind everything. aria-hidden; the copy carries the story. -->
+    <canvas id="canopy" class="canopy-canvas" aria-hidden="true"></canvas>
+    <div id="poster" class="canopy-poster" aria-hidden="true" hidden></div>
+
     <header class="site-header">
-      <a class="wordmark" href="/" aria-label="Ripcord home">RIPCORD</a>
+      <a class="wordmark" href="/" aria-label="Ripcord home">
+        <svg class="wordmark-ring" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="17" y="40" width="30" height="14" rx="7" stroke="currentColor" stroke-width="6" fill="none" />
+          <path d="M32 38 V12" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+        </svg>
+        RIPCORD
+      </a>
       <nav aria-label="Site">
         <a href="/evidence.html">Flight log</a>
         <a href="/system.html">System</a>
         <a href="https://github.com/OoJae/ripcord" rel="noopener">GitHub</a>
       </nav>
-      <div class="altimeter" id="altimeter" aria-hidden="true"></div>
+      <p class="altimeter mono" id="altimeter" aria-hidden="true">
+        <span class="altimeter-value">HF 1.6000</span>
+        <span class="altimeter-band">HEALTHY</span>
+      </p>
     </header>
+
     <main id="main">
-      <!-- Sections written in the copy pass: data-flight drives the descent -->
+      <!-- ── HF 1.60 · the jump ─────────────────────────────────────────── -->
+      <section class="hero" data-flight="hold" aria-labelledby="hero-title">
+        <p class="label hero-eyebrow" data-reveal>Aave V3 · Base · autonomous</p>
+        <h1 class="hero-title" id="hero-title" data-reveal="hero">
+          Pull<br />before<br />the drop
+        </h1>
+        <p class="hero-lede" data-reveal>
+          Ripcord is autonomous liquidation protection for Aave&nbsp;V3 on Base. It watches your
+          health factor, plans a defense, argues with itself about it — and pulls. One position has
+          already been caught on mainnet by this exact loop.
+        </p>
+        <div class="hero-actions" data-reveal>
+          <a class="btn-handle" href="#pull">
+            <span class="btn-ring" aria-hidden="true"></span>
+            See the save
+          </a>
+          <a class="btn-quiet" href="/system.html">Read the system</a>
+        </div>
+        <p class="hero-scrollcue mono" aria-hidden="true">scroll ↓ the descent begins at 1.50</p>
+      </section>
+
+      <!-- ── 1.60 → 1.50 · the drift ────────────────────────────────────── -->
+      <section class="band band-drift" data-flight="drift" aria-labelledby="drift-title">
+        <p class="band-marker mono" aria-hidden="true">1.50</p>
+        <p class="label" data-reveal>The drift</p>
+        <h2 id="drift-title" data-reveal>
+          Liquidation is rarely a lightning strike. It is a slow leak.
+        </h2>
+        <p data-reveal>
+          A position drifts for hours while its owner sleeps. In October 2025, nineteen billion
+          dollars liquidated in a cascade — and many owners were awake, watching, locked out of
+          infrastructure that had gone down with the price. Watching is not protection. Something
+          has to act.
+        </p>
+        <p class="mono band-facts" data-reveal>
+          poll 60s · warn &lt; 1.50 · act &lt; 1.25 · panic &lt; 1.10
+        </p>
+      </section>
+
+      <!-- ── 1.50 → 1.26 · warn band ────────────────────────────────────── -->
+      <section class="band band-warn" data-flight="warn" aria-labelledby="warn-title">
+        <p class="band-marker mono" aria-hidden="true">1.50 → 1.25</p>
+        <p class="label" data-reveal>Warn band</p>
+        <h2 id="warn-title" data-reveal>At 1.50, Ripcord starts talking.</h2>
+        <p data-reveal>
+          Below the warn band it alerts and drafts. One model proposes a single action with a
+          single amount. An independent second model must approve it. Neither is trusted with
+          anything: fourteen deterministic Guard rules re-derive every number before a dollar
+          moves.
+        </p>
+      </section>
+
+      <!-- ── 1.25 · act band ────────────────────────────────────────────── -->
+      <section class="band band-act" data-flight="act" aria-labelledby="act-title">
+        <p class="band-marker mono" aria-hidden="true">1.25</p>
+        <p class="label label-act" data-reveal>Act band</p>
+        <h2 id="act-title" data-reveal>At 1.25, talk ends.</h2>
+        <p data-reveal>This is the pull altitude.</p>
+      </section>
+
+      <!-- ── THE PULL ───────────────────────────────────────────────────── -->
+      <section class="pull" id="pull" data-flight="pull" aria-labelledby="pull-title">
+        <h2 class="pull-title" id="pull-title" data-reveal="hero">The pull</h2>
+        <figure class="receipt" data-reveal>
+          <figcaption class="label">
+            Flight record · 2026-08-01 · Base mainnet — not a simulation
+          </figcaption>
+          <dl class="mono receipt-grid">
+            <div><dt>health factor</dt><dd>1.2400 → <span class="ok">1.6028</span></dd></div>
+            <div><dt>defense</dt><dd>repay $6.78 USDC</dd></div>
+            <div><dt>decision</dt><dd>01KYZKX5R00C9F8D6G3ZS55CE0</dd></div>
+            <div><dt>run</dt><dd>deqcbg6pwj968qlvqmri5</dd></div>
+            <div><dt>gas</dt><dd>184,531 — sponsored, $0 to the position</dd></div>
+            <div><dt>sense → landed</dt><dd>10.7 seconds</dd></div>
+            <div><dt>guard</dt><dd>12/12 checks, 0 violations</dd></div>
+            <div>
+              <dt>transaction</dt>
+              <dd>
+                <a
+                  href="https://basescan.org/tx/0x6e314ece3f28df705ce60d62bdcb130b46013aa1b919f6b5efb91dd335e9cd05"
+                  rel="noopener"
+                  >0x6e314ece…9cd05 ↗</a
+                >
+              </dd>
+            </div>
+          </dl>
+        </figure>
+        <p class="pull-caption" data-reveal>
+          This position existed, drifted, and was caught. The transaction is on Base; the whole
+          decision trail — snapshot, plan, critique, every Guard check — is in a SQLite row you
+          can read.
+        </p>
+      </section>
+
+      <!-- ── under canopy · the loop ────────────────────────────────────── -->
+      <section class="band canopy-loop" data-flight="climb" aria-labelledby="loop-title">
+        <p class="band-marker mono band-marker-ok" aria-hidden="true">→ 1.6028</p>
+        <p class="label" data-reveal>Under canopy</p>
+        <h2 id="loop-title" data-reveal>The loop that pulled</h2>
+        <ol class="loop-row" data-reveal>
+          <li>
+            <h3 class="mono">Sense</h3>
+            <p>Reads the chain directly. Prices are cross-checked against an independent Chainlink feed — a corrupted oracle blocks the defense instead of sizing it.</p>
+          </li>
+          <li>
+            <h3 class="mono">Plan</h3>
+            <p>One model proposes one action with one amount. It cannot name an address; addresses only exist in config.</p>
+          </li>
+          <li>
+            <h3 class="mono">Critique</h3>
+            <p>A second, independent model must approve. No approval, no transaction — ever.</p>
+          </li>
+          <li>
+            <h3 class="mono">Guard</h3>
+            <p>Fourteen deterministic rules re-derive every figure. Final authority; it trusts neither model.</p>
+          </li>
+          <li>
+            <h3 class="mono">Execute</h3>
+            <p>Lands through KeeperHub: retries, smart gas, sponsorship, and the workflow re-reads the chain before it will write.</p>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ── the guard manifest ─────────────────────────────────────────── -->
+      <section class="band guard-manifest" aria-labelledby="guard-title">
+        <p class="label" data-reveal>The Guard</p>
+        <h2 id="guard-title" data-reveal>Autonomy you can audit</h2>
+        <p data-reveal>
+          Every rule is evaluated on every decision — no short-circuits — and every check lands in
+          the audit trail. A clean pass reads
+          <span class="mono">"all 15 safety checks passed"</span>: fourteen rules, and DRY_RUN
+          itself is the fifteenth.
+        </p>
+        <ul class="rule-chips mono" data-reveal aria-label="The fourteen Guard rules">
+          <li>action-none</li>
+          <li>critic-approval</li>
+          <li>allowlist</li>
+          <li>amount-positive</li>
+          <li>max-tx-usd</li>
+          <li>daily-cap</li>
+          <li>min-hf-improvement</li>
+          <li>hf-claim-honesty</li>
+          <li>snapshot-provenance</li>
+          <li>oracle-sanity</li>
+          <li>wallet-reserve-floor</li>
+          <li>wallet-solvency</li>
+          <li>idempotency</li>
+          <li>arm-flag</li>
+        </ul>
+      </section>
+
+      <!-- ── modes ──────────────────────────────────────────────────────── -->
+      <section class="band modes" aria-labelledby="modes-title">
+        <p class="label" data-reveal>Whose hand is on the handle</p>
+        <h2 id="modes-title" data-reveal>Three grips</h2>
+        <div class="mode-cards">
+          <article data-reveal>
+            <h3 class="mono">advisory</h3>
+            <p>Full pipeline, real alerts, never executes. A recommendation engine.</p>
+          </article>
+          <article data-reveal>
+            <h3 class="mono">copilot</h3>
+            <p>The defense is built and held for your explicit approval. Panic still auto-fires.</p>
+          </article>
+          <article data-reveal>
+            <h3 class="mono">autopilot</h3>
+            <p>Acts on its own, but announces a cancel window first. Panic skips the wait.</p>
+          </article>
+        </div>
+        <p class="modes-panic" data-reveal>
+          Below 1.10, panic overrides every mode. An unreachable owner must not become a
+          liquidation.
+        </p>
+      </section>
+
+      <!-- ── evidence strip ─────────────────────────────────────────────── -->
+      <section class="band evidence-strip" aria-labelledby="evidence-title">
+        <h2 class="visually-hidden" id="evidence-title">Evidence</h2>
+        <p class="mono strip-row" data-reveal>
+          <span>322 tests</span>
+          <span>3 consecutive autonomous testnet saves</span>
+          <span>$12.61 spent of a $30 daily cap</span>
+          <span>paid x402 listing · $0.02/call</span>
+        </p>
+        <a class="btn-quiet" href="/evidence.html" data-reveal>Open the flight log</a>
+      </section>
     </main>
-    <footer class="site-footer"></footer>
+
+    <footer class="site-footer">
+      <p class="label">Open the canopy</p>
+      <nav aria-label="Footer">
+        <a href="https://github.com/OoJae/ripcord" rel="noopener">GitHub</a>
+        <a href="/evidence.html">Flight log</a>
+        <a href="/system.html">System</a>
+        <a href="https://app.keeperhub.com/api/mcp/workflows" rel="noopener">Marketplace listing</a>
+      </nav>
+      <p class="mono footer-fine">
+        Built for the KeeperHub "Agents Onchain" hackathon. DRY_RUN by default — mainnet writes
+        require an explicit human arm.
+      </p>
+    </footer>
   </body>
 </html>
