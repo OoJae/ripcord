@@ -357,6 +357,37 @@ export function checkGuard(input: GuardInput): GuardResult {
     );
   }
 
+  // 8d. wallet-solvency — a wallet-funded repay must fit the wallet balance,
+  // checked DETERMINISTICALLY here rather than trusting the (LLM) critic. The
+  // Guard is the final authority and re-derives everything else it depends on;
+  // affordability was the one money-relevant fact still delegated upstream. A
+  // repay larger than the balance would revert on-chain, wasting a cooldown and
+  // a daily-cap slot. Only wallet-funded repay is gated (supplyCollateral and
+  // the not-yet-wired aToken/collateral rungs draw from other sources).
+  if (proposal?.action === "repay") {
+    const walletUsd = snapshot.balances.usdcUsd;
+    const amt = proposal?.amountUsd;
+    if (Number.isFinite(amt) && Number.isFinite(walletUsd) && amt <= walletUsd) {
+      record(
+        "wallet-solvency",
+        true,
+        `repay $${amt.toFixed(2)} fits wallet USDC $${walletUsd.toFixed(2)}`,
+      );
+    } else {
+      record(
+        "wallet-solvency",
+        false,
+        `repay $${String(amt)} exceeds wallet USDC $${String(walletUsd)} — would revert on-chain`,
+      );
+    }
+  } else {
+    record(
+      "wallet-solvency",
+      true,
+      `action ${String(proposal?.action)} is not a wallet-funded repay`,
+    );
+  }
+
   // 9. idempotency — one decision, one defense, ever.
   if (input.alreadyExecuted) {
     record("idempotency", false, "decision already executed — refusing duplicate defense");

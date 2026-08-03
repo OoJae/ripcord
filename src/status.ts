@@ -2,7 +2,7 @@
  * `pnpm status` — current HF, recent decisions, recent runs, spend vs cap.
  */
 
-import { getConfig } from "./config.js";
+import { getConfig, scrubRpcUrl } from "./config.js";
 import { createAaveSensor } from "./sensor/aave.js";
 import { openDb } from "./state/db.js";
 
@@ -39,7 +39,12 @@ async function main(): Promise<void> {
         `  current HF: ${snap.hasDebt ? snap.hf.toFixed(4) : "∞ (no debt)"} · collateral $${snap.totalCollateralUsd.toFixed(2)} · debt $${snap.totalDebtUsd.toFixed(2)}`,
       );
     } catch (err) {
-      console.log(`  current HF: read failed (${String(err)})`);
+      // Scrub before printing: a viem read failure embeds the full RPC URL
+      // (which routinely carries a provider API key) in its message, and this
+      // line goes to stdout — terminal scrollback, CI logs, a screen share.
+      // The daemon (index.ts) and oracle-sanity both scrub the identical
+      // String(err); this parallel path must not be the one that leaks it.
+      console.log(`  current HF: read failed (${scrubRpcUrl(String(err), cfg.rpcUrl)})`);
     }
   }
 

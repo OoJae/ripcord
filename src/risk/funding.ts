@@ -57,10 +57,18 @@ export interface FundingAssessment {
 /**
  * Rank funding sources for the current snapshot, cheapest/safest first.
  * Pure: no I/O, no config beyond the snapshot.
+ *
+ * `minWalletReserveUsd` (default 0) is the Guard's wallet-reserve-floor: the
+ * Guard refuses any wallet-funded repay that would leave the wallet below it,
+ * so those dollars are NOT spendable capacity. The wallet rung is capped at
+ * (wallet − floor) accordingly — otherwise the capitulation notice, whose whole
+ * job is to warn BEFORE the act band forces the issue, counts money the Guard
+ * will later refuse and stays silent exactly when it should speak.
  */
-export function assessFunding(snapshot: Snapshot): FundingAssessment {
+export function assessFunding(snapshot: Snapshot, minWalletReserveUsd = 0): FundingAssessment {
   const aUsdc = Math.max(0, snapshot.balances.aUsdcUsd);
-  const wallet = Math.max(0, snapshot.balances.usdcUsd);
+  const reserve = Math.max(0, minWalletReserveUsd);
+  const wallet = Math.max(0, snapshot.balances.usdcUsd - reserve);
   // Collateral is priced by the Aave oracle in the position aggregate; only the
   // portion above the liquidation threshold is realistically extractable, and
   // extracting it needs the flash-loan path. Reported, never counted as usable.
@@ -82,7 +90,10 @@ export function assessFunding(snapshot: Snapshot): FundingAssessment {
       id: "wallet-usdc",
       capacityUsd: wallet,
       executable: true,
-      detail: `$${wallet.toFixed(2)} idle USDC in the wallet — the only wired funding source`,
+      detail:
+        reserve > 0
+          ? `$${wallet.toFixed(2)} spendable idle USDC (wallet $${snapshot.balances.usdcUsd.toFixed(2)} − $${reserve.toFixed(2)} reserve floor) — the only wired funding source`
+          : `$${wallet.toFixed(2)} idle USDC in the wallet — the only wired funding source`,
     },
     {
       id: "collateral-swap",

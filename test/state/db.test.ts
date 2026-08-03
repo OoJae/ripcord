@@ -210,3 +210,83 @@ describe("openDb", () => {
     db.close();
   });
 });
+
+describe("reconcileOrphanedExecuting (audit #12): resolve decisions crash-stranded mid-execution", () => {
+  it("landed → executed, declined → blocked, everything else executing → failed", () => {
+    const db = openDb(":memory:");
+    // A: execution succeeded WITH a tx hash → the defense landed.
+    db.insertDecision(
+      makeDecision({ decisionId: "01JD00000000000000000LAND", status: "executing" }),
+    );
+    db.insertExecution(
+      makeExecution({
+        decisionId: "01JD00000000000000000LAND",
+        status: "success",
+        txHash: "0xabc",
+      }),
+    );
+    // B: execution succeeded with NO tx hash → WF-2 declined on its re-check.
+    db.insertDecision(
+      makeDecision({ decisionId: "01JD0000000000000000DECLN", status: "executing" }),
+    );
+    db.insertExecution(
+      makeExecution({ decisionId: "01JD0000000000000000DECLN", status: "success", txHash: null }),
+    );
+    // C: execution still 'running' when the process died → unknown → failed.
+    db.insertDecision(
+      makeDecision({ decisionId: "01JD00000000000000000RUNN", status: "executing" }),
+    );
+    db.insertExecution(
+      makeExecution({ decisionId: "01JD00000000000000000RUNN", status: "running" }),
+    );
+    // D: a healthy terminal decision must be left untouched.
+    db.insertDecision(
+      makeDecision({ decisionId: "01JD00000000000000000DONE", status: "executed" }),
+    );
+
+    const changed = db.reconcileOrphanedExecuting();
+    expect(changed).toBe(3);
+
+    const byId = (id: string) => db.recentDecisions(10).find((d) => d.decisionId === id)?.status;
+    expect(byId("01JD00000000000000000LAND")).toBe("executed");
+    expect(byId("01JD0000000000000000DECLN")).toBe("blocked");
+    expect(byId("01JD00000000000000000RUNN")).toBe("failed");
+    expect(byId("01JD00000000000000000DONE")).toBe("executed");
+    db.close();
+  });
+
+  it("is a no-op (returns 0) when nothing is stranded", () => {
+    const db = openDb(":memory:");
+    db.insertDecision(makeDecision({ status: "executed" }));
+    expect(db.reconcileOrphanedExecuting()).toBe(0);
+    db.close();
+  });
+});
+
+describe("cooldown anchor (audit #3): a suppressed defense survives a restart", () => {
+  it("persists the anchor and is monotonic — a later smaller value never shortens a live cooldown", () => {
+    const db = openDb(":memory:");
+    expect(db.lastCooldownAnchor()).toBeNull();
+    db.recordCooldownAnchor(T0);
+    expect(db.lastCooldownAnchor()).toBe(T0);
+    db.recordCooldownAnchor(T0 - HOUR); // stale/out-of-order write must NOT move it back
+    expect(db.lastCooldownAnchor()).toBe(T0);
+    db.recordCooldownAnchor(T0 + HOUR); // a newer anchor advances it
+    expect(db.lastCooldownAnchor()).toBe(T0 + HOUR);
+    db.close();
+  });
+
+  it("survives a reopen of the same file (restart)", () => {
+    const path = join(tmpdir(), `ripcord-anchor-${process.pid}-${Date.now()}.sqlite`);
+    try {
+      const db1 = openDb(path);
+      db1.recordCooldownAnchor(T0);
+      db1.close();
+      const db2 = openDb(path);
+      expect(db2.lastCooldownAnchor()).toBe(T0);
+      db2.close();
+    } finally {
+      for (const s of ["", "-wal", "-shm"]) rmSync(`${path}${s}`, { force: true });
+    }
+  });
+});

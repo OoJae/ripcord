@@ -82,7 +82,7 @@ With no `.env` at all, Ripcord runs a **mock demo**: a scripted health-factor de
 band=healthy hf=1.82  shouldDefend=false
 band=warn    hf=1.4557 shouldDefend=false
 band=act     hf=1.2129 shouldDefend=true  "act: armed and cooldown elapsed — defend"
-guard=dry-run violations=[] checks=14
+guard=dry-run violations=[] checks=15
 DRY_RUN: all safety checks passed — would trigger KeeperHub defense
    repay 4.79 USDC → 0xba50Cd…4D5f  (minHfAfter 1.6)
    critic APPROVE — recomputed health factor 1.6003 clears the target 1.6

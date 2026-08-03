@@ -171,6 +171,7 @@ export type GuardRuleId =
   | "snapshot-provenance"
   | "oracle-sanity"
   | "wallet-reserve-floor"
+  | "wallet-solvency"
   | "idempotency"
   | "arm-flag"
   | "dry-run";
@@ -373,6 +374,13 @@ export interface RipcordDb {
   spentCentsSince(sinceMs: number): number;
   /** Most recent defense attempt (for cooldown rehydration); null if none. */
   lastDefenseAt(): number | null;
+  /**
+   * Persist a cooldown anchor for a SUPPRESSED defense (human veto/denial) that
+   * creates no execution row. Monotonic — never moves the anchor backward.
+   */
+  recordCooldownAnchor(nowMs: number): void;
+  /** Most recent persisted cooldown anchor; null if none. Merged with lastDefenseAt() on restart. */
+  lastCooldownAnchor(): number | null;
   recentDecisions(n: number): DecisionRow[];
   recentExecutions(n: number): ExecutionRow[];
   /**
@@ -385,6 +393,12 @@ export interface RipcordDb {
   refreshDaemonLock(pid: number, nowMs: number): boolean;
   /** Release if held by this pid; releasing someone else's lock is impossible. */
   releaseDaemonLock(pid: number): void;
+  /**
+   * Resolve decisions crash-stranded in "executing" from their execution row's
+   * ground truth (landed → executed, declined → blocked, else failed). Runs once
+   * at startup; returns the number of rows reconciled.
+   */
+  reconcileOrphanedExecuting(): number;
   close(): void;
 }
 

@@ -58,3 +58,25 @@ describe("assessFunding", () => {
     expect(ids.indexOf("atoken-usdc")).toBeLessThan(ids.indexOf("wallet-usdc"));
   });
 });
+
+describe("assessFunding — reserve-floor awareness (audit #4)", () => {
+  it("caps the wallet rung at (wallet − reserve floor), the dollars the Guard will actually let it spend", () => {
+    // wallet $25, floor $16 → only $9 is spendable; the Guard's
+    // wallet-reserve-floor rule refuses any repay that dips below $16.
+    const f = assessFunding(makeSnapshot("1.20"), 16);
+    expect(f.executableUsd).toBe(9);
+    const wallet = f.rungs.find((r) => r.id === "wallet-usdc");
+    expect(wallet?.capacityUsd).toBe(9);
+    expect(wallet?.detail).toContain("reserve floor");
+  });
+
+  it("never reports negative capacity when the floor exceeds the balance", () => {
+    const f = assessFunding(makeSnapshot("1.20"), 100);
+    expect(f.executableUsd).toBe(0);
+  });
+
+  it("a zero / omitted floor is unchanged — full wallet is spendable", () => {
+    expect(assessFunding(makeSnapshot("1.20"), 0).executableUsd).toBe(25);
+    expect(assessFunding(makeSnapshot("1.20")).executableUsd).toBe(25);
+  });
+});

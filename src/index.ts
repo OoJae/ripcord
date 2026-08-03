@@ -95,6 +95,13 @@ export interface Daemon {
 
 const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+/** The later of two epoch-ms values, ignoring nulls; null when both are null. */
+function maxOrNull(a: number | null, b: number | null): number | null {
+  if (a === null) return b;
+  if (b === null) return a;
+  return Math.max(a, b);
+}
+
 /**
  * Convert a USD amount into token base units for the defense payload.
  *
@@ -203,13 +210,28 @@ export function createDaemon(deps: DaemonDeps): Daemon {
 
   const state: PolicyState = {
     armed: true,
-    lastFiredAtMs: db.lastDefenseAt(),
+    // Rehydrate the cooldown from BOTH a real execution AND a persisted veto:
+    // a human cancel/denial creates no execution row, so lastDefenseAt() alone
+    // would let a restart re-propose (and, in autopilot with no human present,
+    // fire) a defense the operator just cancelled. Take the more recent anchor.
+    lastFiredAtMs: maxOrNull(db.lastDefenseAt(), db.lastCooldownAnchor()),
     lastBand: "healthy",
   };
   const window = new SampleWindow(3);
   let stopping = false;
   let inFlight: Promise<void> | null = null;
   let timer: NodeJS.Timeout | null = null;
+
+  // Heartbeat the single-instance lock. Called at tick start AND around every
+  // long-running phase within a tick — execution polling and the human-decision
+  // windows — because a defend tick can outlive the stale window (staleMs =
+  // 3×pollSec) if it only beat once at the top: two LLM round-trips, a
+  // KeeperHub run polled to its ~120s deadline, plus a cancel/approval window.
+  // A single heartbeat per tick would let a second daemon take the lock
+  // mid-defense and double-repay. No-op when this process holds no lock (unit
+  // tests drive runTick on unlocked in-memory DBs). clock.now(), not the tick's
+  // captured `now`, so the heartbeat reflects real elapsed time.
+  const heartbeat = () => db.refreshDaemonLock(process.pid, clock.now());
 
   async function readWithRetry(log: DaemonLogger): Promise<Snapshot | null> {
     for (let attempt = 1; attempt <= 3; attempt++) {
@@ -244,9 +266,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
     const log = logger.child({ decisionId });
     const now = clock.now();
 
-    // Heartbeat the single-instance lock. A no-op when this process holds no
-    // lock (unit tests drive runTick directly on unlocked in-memory DBs).
-    db.refreshDaemonLock(process.pid, now);
+    heartbeat();
 
     const rawSnapshot = await readWithRetry(log);
     if (!rawSnapshot) {
@@ -298,7 +318,9 @@ export function createDaemon(deps: DaemonDeps): Daemon {
       const bandNow = evaluate(snapshot, cfg.thresholdsWad, state, now).band;
       if (bandNow !== "healthy") {
         const needed = repayNeededForTarget(snapshot, cfg.thresholds.targetHf);
-        const funding = assessFunding(snapshot);
+        // Floor-aware: the Guard's wallet-reserve-floor will refuse a repay that
+        // dips below the reserve, so those dollars are not spendable capacity.
+        const funding = assessFunding(snapshot, cfg.minWalletReserveUsd);
         const affordable = Math.min(cfg.caps.maxTxUsd, funding.executableUsd);
         if (
           needed > 0 &&
@@ -344,10 +366,26 @@ export function createDaemon(deps: DaemonDeps): Daemon {
         status: "observed",
       });
     } catch (err) {
-      // A decisionId we have already recorded — a replay. Don't crash the tick:
-      // continue so the Guard's idempotency rule blocks it explicitly and the
-      // operator gets a notification, rather than an unhandled throw.
-      log.warn({ err: String(err) }, "decision already recorded — treating this tick as a replay");
+      const code = (err as { code?: string } | undefined)?.code ?? "";
+      if (code.startsWith("SQLITE_CONSTRAINT")) {
+        // A decisionId we have already recorded — a genuine replay (only the
+        // idempotency-test path can reach this; production mints a fresh ULID
+        // per tick under a single-instance lock). Continue so the Guard's
+        // idempotency rule blocks it explicitly with a notification.
+        log.warn(
+          { err: String(err) },
+          "decision already recorded — treating this tick as a replay",
+        );
+      } else {
+        // ANY other write failure (disk full, SQLITE_BUSY, corruption) means
+        // the decision row does NOT exist. Proceeding would run the whole
+        // pipeline against a phantom row — updateDecision would silently no-op
+        // and insertExecution would throw a FOREIGN KEY error mid-defense,
+        // leaving inconsistent state. Fail CLOSED: abort the tick loudly. The
+        // daemon's tick-crash handler logs it and the next poll retries.
+        log.error({ err: String(err) }, "decision insert failed (not a replay) — aborting tick");
+        throw err;
+      }
     }
 
     log.info(
@@ -536,7 +574,14 @@ export function createDaemon(deps: DaemonDeps): Daemon {
         { payload, checks: guard.checks },
         "DRY_RUN: all safety checks passed — would trigger KeeperHub defense",
       );
-      Object.assign(state, markDefenseFired(state, now));
+      // markDefenseAttempted, NOT markDefenseFired: a dry run sends no
+      // transaction and calls no onDefenseSuccess, so the HF is unchanged.
+      // markDefenseFired would OPEN the hysteresis latch (armed=false), and an
+      // undefended act-band position can never climb back above rearm to re-arm
+      // it — so every later act-band tick would be suppressed as "unarmed" and
+      // the operator would hear nothing until panic. Anchor the cooldown but
+      // keep the latch armed, so the recommendation re-surfaces each cooldown.
+      Object.assign(state, markDefenseAttempted(state, now));
       await safeNotify(
         {
           kind: "defense",
@@ -589,6 +634,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
     }
 
     if (cfg.defenseMode === "copilot" && !expedited) {
+      heartbeat(); // beat before the wait; the window is < staleMs (config guard)
       const approved = await approvalGate.requestApproval({
         decisionId,
         summary,
@@ -598,7 +644,9 @@ export function createDaemon(deps: DaemonDeps): Daemon {
         log.warn({ summary }, "CO-PILOT: not approved within the window — standing down");
         // Same reasoning as the autopilot cancel: an unanswered request must
         // not re-prompt every tick. Cooldown-rate-limit it; panic overrides.
+        // Persist the anchor so the denial survives a restart within the cooldown.
         Object.assign(state, markDefenseAttempted(state, clock.now()));
+        db.recordCooldownAnchor(clock.now());
         db.updateDecision(decisionId, { status: "blocked" });
         await safeNotify(
           {
@@ -633,6 +681,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
         },
         log,
       );
+      heartbeat(); // beat before the wait; the window is < staleMs (config guard)
       const proceed = await approvalGate.awaitCancelWindow({
         decisionId,
         summary,
@@ -643,8 +692,9 @@ export function createDaemon(deps: DaemonDeps): Daemon {
         // A veto that lasts one 60s tick is not a veto: the next tick would
         // re-propose the same defense and fire it. Anchor the cooldown so the
         // human's decision holds for a cooldown period. PANIC still overrides,
-        // per the existing doctrine.
+        // per the existing doctrine. Persist so the veto survives a restart too.
         Object.assign(state, markDefenseAttempted(state, clock.now()));
+        db.recordCooldownAnchor(clock.now());
         db.updateDecision(decisionId, { status: "blocked" });
         await safeNotify(
           {
@@ -663,6 +713,7 @@ export function createDaemon(deps: DaemonDeps): Daemon {
     }
 
     // --- Execute (guard already proved arm-flag for mainnet)
+    heartbeat(); // beat after the LLM/guard phase, before the potentially-long run
     db.insertExecution({
       decisionId,
       requestedAtMs: now,
@@ -704,7 +755,12 @@ export function createDaemon(deps: DaemonDeps): Daemon {
         clock: () => clock.now(),
         // info-level on purpose: the poll ladder is the only visibility into a
         // pending run, and chaos scenario 7 requires it observable in run logs.
-        onPoll: (p) => log.info(p, "run poll (backoff ladder)"),
+        // Heartbeat on every poll so a run polled to its ~120s deadline cannot
+        // let the single-instance lock go stale mid-defense.
+        onPoll: (p) => {
+          heartbeat();
+          log.info(p, "run poll (backoff ladder)");
+        },
       });
 
       // A terminal "success" is NOT proof that money moved. WF-2 re-reads the
@@ -842,6 +898,13 @@ async function main(): Promise<void> {
   // like loadConfig's refusals; stale locks (crashed daemon) are taken over
   // after 3 poll intervals.
   acquireDaemonLockOrThrow(db, process.pid, Date.now(), cfg.pollSec * 3 * 1000);
+
+  // Resolve any decision crash-stranded mid-execution before starting the loop,
+  // so the audit trail and `pnpm status` never show a permanent "executing".
+  const reconciled = db.reconcileOrphanedExecuting();
+  if (reconciled > 0) {
+    logger.warn({ reconciled }, "reconciled decisions left in 'executing' by a prior crash");
+  }
 
   const mockSensor = cfg.capabilities.chainReads ? null : createMockSensor(undefined, cfg.chain);
   const sensor: Sensor = cfg.capabilities.chainReads

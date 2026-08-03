@@ -153,7 +153,9 @@ export const ADDRESS_BOOK: Record<Chain, AddressBook> = {
       address: "0xf53B60F4006cab2b3C4688ce41fD5362427A2A66",
       verified: false,
       source:
-        "VERIFY: Base Sepolia aUSDC not yet read on-chain; unused (funding ladder is read-only)",
+        "VERIFY: Base Sepolia aUSDC address unconfirmed. It IS read on the live sensor path " +
+        "(funding ladder, informational), but that read is fault-tolerant (degrades to 0 on " +
+        "revert, src/sensor/aave.ts) so an unverified/absent token cannot brick sensing.",
     },
     chainlinkEthUsd: {
       address: "0x4aDC67696bA383F43DD60A9e78F2C97Fbbfc7cb1",

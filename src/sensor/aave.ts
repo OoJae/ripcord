@@ -184,12 +184,19 @@ export function createAaveSensor(cfg: AppConfig, injected?: ReadContractClient):
           functionName: "balanceOf",
           args: [monitored],
         }) as Promise<bigint>,
-        client.readContract({
-          address: cfg.addressBook.aUsdc.address,
-          abi: ERC20_BALANCE_ABI,
-          functionName: "balanceOf",
-          args: [monitored],
-        }) as Promise<bigint>,
+        // aUSDC is informational only (the funding ladder reports it but cannot
+        // yet spend it), and its address is unverified on base-sepolia. A revert
+        // here must NOT reject the whole batch and blind the sensor to a real,
+        // load-bearing HF read — degrade to 0n. The three reads above ARE
+        // load-bearing and stay strict.
+        (
+          client.readContract({
+            address: cfg.addressBook.aUsdc.address,
+            abi: ERC20_BALANCE_ABI,
+            functionName: "balanceOf",
+            args: [monitored],
+          }) as Promise<bigint>
+        ).catch(() => 0n),
       ]);
 
       const parsed = parseAccountData(accountRaw);

@@ -53,16 +53,16 @@ describe("checkGuard — golden paths", () => {
     const res = checkGuard(baseInput());
     expect(res.decision).toBe("execute");
     expect(res.violations).toEqual([]);
-    expect(res.checks).toHaveLength(14);
+    expect(res.checks).toHaveLength(15);
     expect(res.checks.every((c) => c.passed)).toBe(true);
-    expect(res.reason).toBe("all 14 safety checks passed");
+    expect(res.reason).toBe("all 15 safety checks passed");
   });
 
   it("returns dry-run when everything passes but DRY_RUN holds fire", () => {
     const res = checkGuard(baseInput({ flags: { dryRun: true, armed: false } }));
     expect(res.decision).toBe("dry-run");
     expect(res.violations).toEqual([]);
-    expect(res.checks).toHaveLength(14);
+    expect(res.checks).toHaveLength(15);
     expect(res.checks.every((c) => c.passed)).toBe(true);
     expect(check(res, "dry-run").detail).toContain("held fire");
   });
@@ -355,7 +355,7 @@ describe("multi-violation — every rule is evaluated, nothing short-circuits", 
     // reason is the FIRST violation in rule order
     expect(res.reason).toContain("critic-approval");
     // full audit trail is still 10 entries
-    expect(res.checks).toHaveLength(14);
+    expect(res.checks).toHaveLength(15);
   });
 });
 
@@ -429,5 +429,65 @@ describe("wallet-reserve-floor", () => {
     const check = res.checks.find((c) => c.rule === "wallet-reserve-floor");
     expect(check?.passed).toBe(true);
     expect(check?.detail).toMatch(/disabled/);
+  });
+});
+
+describe("checkGuard — wallet-solvency (audit #11): amount must fit the balance, checked deterministically", () => {
+  it("blocks a repay larger than the wallet USDC even when the critic APPROVES", () => {
+    // wallet is $25 (makeSnapshot); a $55 repay would revert on-chain, wasting
+    // a cooldown and a daily-cap slot. The Guard — not the LLM critic — refuses.
+    const res = checkGuard(
+      withProposal(
+        { amountUsd: 55, expectedHfAfter: 5 },
+        { capsCents: { maxTxCents: 10_000, dailyCapCents: 10_000 } },
+      ),
+    );
+    expect(res.decision).toBe("blocked");
+    expect(violation(res, "wallet-solvency").detail).toContain("exceeds wallet USDC");
+  });
+
+  it("passes when the repay fits, and passes vacuously for non-repay actions", () => {
+    expect(check(checkGuard(baseInput()), "wallet-solvency").passed).toBe(true);
+    const supply = checkGuard(
+      withProposal({ action: "supplyCollateral", asset: "WETH", amountUsd: 999 }),
+    );
+    expect(check(supply, "wallet-solvency").passed).toBe(true);
+  });
+
+  it("a non-finite amount fails solvency (fail-closed)", () => {
+    const res = checkGuard(withProposal({ amountUsd: Number.NaN }));
+    expect(check(res, "wallet-solvency").passed).toBe(false);
+  });
+});
+
+describe("checkGuard — defense-in-depth branches (audit #14): the re-checks that trust nothing upstream", () => {
+  it("blocks an allowlist entry with a zero address", () => {
+    const poisoned = {
+      ...ADDRESS_BOOK["base-sepolia"],
+      usdc: { ...ADDRESS_BOOK["base-sepolia"].usdc, address: `0x${"0".repeat(40)}` as const },
+    };
+    const res = checkGuard(baseInput({ addressBook: poisoned }));
+    expect(res.decision).toBe("blocked");
+    expect(violation(res, "allowlist").detail).toContain("invalid/zero address");
+  });
+
+  it("blocks an allowlist entry with a malformed address", () => {
+    const poisoned = {
+      ...ADDRESS_BOOK["base-sepolia"],
+      usdc: {
+        ...ADDRESS_BOOK["base-sepolia"].usdc,
+        address: "0xNOTHEX" as unknown as `0x${string}`,
+      },
+    };
+    const res = checkGuard(baseInput({ addressBook: poisoned }));
+    expect(violation(res, "allowlist").detail).toContain("invalid/zero address");
+  });
+
+  it("blocks an action outside the known set reaching the Guard directly", () => {
+    const res = checkGuard(
+      withProposal({ action: "drainWallet" as unknown as PlannerProposal["action"] }),
+    );
+    expect(res.decision).toBe("blocked");
+    expect(violation(res, "allowlist").detail).toContain("unknown action");
   });
 });

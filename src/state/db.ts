@@ -51,6 +51,17 @@ CREATE TABLE IF NOT EXISTS daemon_lock (
   heartbeat_ms   INTEGER NOT NULL
 );
 
+-- Persistent cooldown anchor for SUPPRESSED defenses (a human cancel/denial, or
+-- an advisory recommendation) that never create an execution row. The in-memory
+-- cooldown (markDefenseAttempted) is lost on restart; without this a daemon
+-- restarted within the cooldown re-proposes a just-vetoed defense — and in
+-- autopilot, an absent human means it then fires. Rehydrated alongside
+-- lastDefenseAt() so a veto survives a restart for the full cooldown period.
+CREATE TABLE IF NOT EXISTS cooldown_anchor (
+  id           INTEGER PRIMARY KEY CHECK (id = 1),
+  anchored_ms  INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS executions (
   execution_id    INTEGER PRIMARY KEY AUTOINCREMENT,
   decision_id     TEXT NOT NULL UNIQUE REFERENCES decisions(decision_id),
@@ -241,6 +252,14 @@ export function openDb(path: string): RipcordDb {
 
   const lastDefenseStmt = db.prepare("SELECT MAX(requested_at_ms) AS latest FROM executions");
 
+  // Monotonic upsert: never let a later write move the anchor BACKWARD, so an
+  // out-of-order clock or a stale caller cannot shorten a live cooldown.
+  const anchorCooldownStmt = db.prepare(
+    `INSERT INTO cooldown_anchor (id, anchored_ms) VALUES (1, ?)
+     ON CONFLICT(id) DO UPDATE SET anchored_ms = MAX(anchored_ms, excluded.anchored_ms)`,
+  );
+  const lastAnchorStmt = db.prepare("SELECT anchored_ms FROM cooldown_anchor WHERE id = 1");
+
   const recentDecisionsStmt = db.prepare(
     "SELECT * FROM decisions ORDER BY created_at_ms DESC LIMIT ?",
   );
@@ -284,6 +303,29 @@ export function openDb(path: string): RipcordDb {
       return { acquired: false, holderPid: row.pid, heartbeatAgeMs };
     },
   );
+
+  // Startup reconciliation: a crash between setting decision.status='executing'
+  // and writing its terminal status leaves a decision permanently stuck. Resolve
+  // each from its execution row's ground truth (landed / declined / otherwise
+  // failed — fail-closed). Runs once at startup, inside a transaction.
+  const reconcileStmts = [
+    db.prepare(
+      `UPDATE decisions SET status = 'executed'
+       WHERE status = 'executing' AND decision_id IN
+         (SELECT decision_id FROM executions WHERE status = 'success' AND tx_hash IS NOT NULL)`,
+    ),
+    db.prepare(
+      `UPDATE decisions SET status = 'blocked'
+       WHERE status = 'executing' AND decision_id IN
+         (SELECT decision_id FROM executions WHERE status = 'success' AND tx_hash IS NULL)`,
+    ),
+    db.prepare("UPDATE decisions SET status = 'failed' WHERE status = 'executing'"),
+  ];
+  const reconcileTxn = db.transaction((): number => {
+    let changed = 0;
+    for (const s of reconcileStmts) changed += s.run().changes;
+    return changed;
+  });
 
   return {
     insertDecision(row: DecisionRow): void {
@@ -350,6 +392,15 @@ export function openDb(path: string): RipcordDb {
       return row.latest;
     },
 
+    recordCooldownAnchor(nowMs: number): void {
+      anchorCooldownStmt.run(nowMs);
+    },
+
+    lastCooldownAnchor(): number | null {
+      const row = lastAnchorStmt.get() as { anchored_ms: number } | undefined;
+      return row?.anchored_ms ?? null;
+    },
+
     recentDecisions(n: number): DecisionRow[] {
       return (recentDecisionsStmt.all(n) as RawDecisionRow[]).map(mapDecision);
     },
@@ -368,6 +419,10 @@ export function openDb(path: string): RipcordDb {
 
     releaseDaemonLock(pid: number): void {
       releaseLockStmt.run(pid);
+    },
+
+    reconcileOrphanedExecuting(): number {
+      return reconcileTxn();
     },
 
     close(): void {

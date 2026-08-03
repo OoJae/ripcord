@@ -728,3 +728,109 @@ describe("regression: a human veto must outlive one tick", () => {
     h.db.close();
   });
 });
+
+describe("audit fixes: veto persistence, dry-run latch, fail-closed insert, heartbeat", () => {
+  function autopilotHarness(hf: string) {
+    const h = harness({ dryRun: false, hf });
+    h.deps.config = { ...h.deps.config, defenseMode: "autopilot", cancelWindowMs: 90_000 };
+    return h;
+  }
+
+  it("#3 a cancelled autopilot defense survives a RESTART (persisted cooldown), not just one tick", async () => {
+    const h = autopilotHarness("1.20");
+    h.deps.approvalGate = {
+      async requestApproval() {
+        return false;
+      },
+      async awaitCancelWindow() {
+        return false; // human cancels
+      },
+    };
+    await createDaemon(h.deps).runTick("01J9PERSIST00000000000CX1");
+    expect(h.executor.receivedPayloads).toHaveLength(0);
+    expect(h.db.lastCooldownAnchor()).not.toBeNull(); // veto persisted
+
+    // "restart": a FRESH daemon over the SAME db, and now the human would proceed.
+    // Without the persisted anchor it would rehydrate no cooldown (a veto writes
+    // no execution row), re-announce, and — silence = go — fire.
+    h.deps.approvalGate = {
+      async requestApproval() {
+        return true;
+      },
+      async awaitCancelWindow() {
+        return true;
+      },
+    };
+    await createDaemon(h.deps).runTick("01J9PERSIST00000000000CX2");
+    expect(h.executor.receivedPayloads).toHaveLength(0); // still suppressed by the rehydrated cooldown
+    h.db.close();
+  });
+
+  it("#10 DRY_RUN keeps the hysteresis latch ARMED so act-band recommendations re-surface after the cooldown", async () => {
+    const clock = fixedClock();
+    const h = harness({ dryRun: true, hf: "1.20" }); // act band, dry-run
+    h.deps.clock = clock;
+    const daemon = createDaemon(h.deps);
+
+    await daemon.runTick("01J9DRYLATCH0000000000AA1");
+    const dryDefenses = () =>
+      h.notifications.filter((n) => n.kind === "defense" && n.dryRun === true).length;
+    expect(dryDefenses()).toBe(1);
+
+    // Past the 1800s cooldown; the position is still unhealthy (dry run changed nothing).
+    clock.advance(1_800_000 + 60_000);
+    await daemon.runTick("01J9DRYLATCH0000000000AA2");
+    // With markDefenseFired the latch would be stuck disarmed and this stays 1,
+    // silencing the operator until panic. markDefenseAttempted keeps it armed.
+    expect(dryDefenses()).toBe(2);
+    h.db.close();
+  });
+
+  it("#7 a NON-constraint insertDecision failure aborts the tick (fail-closed), not a phantom 'replay'", async () => {
+    const h = harness({ hf: "2.0" }); // healthy: proves the abort is the insert, not a defense path
+    h.deps.db = {
+      ...h.db,
+      insertDecision() {
+        throw new Error("disk full");
+      },
+    };
+    await expect(createDaemon(h.deps).runTick("01J9FAILCLOSED000000000A")).rejects.toThrow(
+      /disk full/,
+    );
+    h.db.close();
+  });
+
+  it("#7 a genuine PRIMARY KEY collision IS treated as a replay (tick continues, no throw)", async () => {
+    const h = harness({ hf: "2.0" });
+    h.deps.db = {
+      ...h.db,
+      insertDecision() {
+        const e = new Error("UNIQUE constraint failed: decisions.decision_id") as Error & {
+          code: string;
+        };
+        e.code = "SQLITE_CONSTRAINT_PRIMARYKEY";
+        throw e;
+      },
+    };
+    await expect(createDaemon(h.deps).runTick("01J9REPLAY0000000000000A")).resolves.toBeUndefined();
+    h.db.close();
+  });
+
+  it("#2 heartbeats around the long execution phase, not only at tick start", async () => {
+    const h = harness({ chain: "base", dryRun: false, armed: true, hf: "1.20" });
+    let beats = 0;
+    h.deps.db = {
+      ...h.db,
+      refreshDaemonLock(pid: number, ms: number) {
+        beats += 1;
+        return h.db.refreshDaemonLock(pid, ms);
+      },
+    };
+    await createDaemon(h.deps).runTick("01J9HEARTBEAT0000000000A");
+    expect(h.executor.receivedPayloads).toHaveLength(1); // it defended
+    // tick-start + before-trigger + one-per-run-poll. A single heartbeat per
+    // tick (the bug) would let a long run stale the single-instance lock.
+    expect(beats).toBeGreaterThan(1);
+    h.db.close();
+  });
+});
