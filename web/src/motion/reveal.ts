@@ -118,30 +118,52 @@ export async function initReveals(reducedMotion: boolean): Promise<void> {
 
   await document.fonts.ready;
 
+  // Above-the-fold content (hero / page head) is the page-load choreography:
+  // one staged sequence on arrival, not scroll-gated — a CTA sitting at the
+  // fold must never be hostage to a trigger line. Everything else reveals
+  // once near the viewport.
+  let loadStagger = 0;
+
   for (const el of targets) {
     const isHero = el.dataset.reveal === "hero";
     const duration = isHero ? 1.2 : 0.8;
+    const onLoad = el.closest(".hero, .page-head") !== null;
+    const delay = onLoad ? 0.15 + loadStagger : 0;
+    if (onLoad) loadStagger += 0.14;
+
+    const scrollTrigger = onLoad
+      ? undefined
+      : ({ trigger: el, start: "top 85%", once: true } as const);
 
     if (hasMarkup(el) && el.tagName !== "H1" && el.tagName !== "H2") {
       // Blocks with inline markup (receipt, tables, buttons): rise as one.
-      gsap.from(el, {
-        autoAlpha: 0,
-        y: 28,
-        duration,
-        ease: "expressive",
-        scrollTrigger: { trigger: el, start: "top 85%", once: true },
-      });
+      // fromTo, not from: the CSS pre-hide leaves computed visibility hidden,
+      // and .from() would faithfully restore that at the end. Explicit end
+      // values pin the element open.
+      gsap.fromTo(
+        el,
+        { autoAlpha: 0, y: 28 },
+        { autoAlpha: 1, y: 0, duration, delay, ease: "expressive", scrollTrigger },
+      );
       continue;
     }
 
     const split = splitLines(el);
-    gsap.from(split.lines, {
-      yPercent: 110,
-      duration,
-      ease: "expressive",
-      stagger: isHero ? 0.09 : 0.06,
-      scrollTrigger: { trigger: el, start: "top 85%", once: true },
-      onComplete: () => split.restore(),
-    });
+    gsap.fromTo(
+      split.lines,
+      { yPercent: 110 },
+      {
+        yPercent: 0,
+        duration,
+        delay,
+        ease: "expressive",
+        stagger: isHero ? 0.09 : 0.06,
+        scrollTrigger,
+        onComplete: () => split.restore(),
+      },
+    );
   }
+
+  // Splitting changed layout heights after triggers were measured.
+  ScrollTrigger.refresh();
 }

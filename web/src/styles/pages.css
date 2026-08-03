@@ -12,6 +12,7 @@ main {
 /* ── landing: the hero ──────────────────────────────────────────────────── */
 
 .hero {
+  position: relative; /* anchors the absolute scroll cue to the hero, not main */
   min-height: 100svh;
   display: grid;
   align-content: center;
