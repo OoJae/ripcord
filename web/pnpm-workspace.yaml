@@ -1,0 +1,4 @@
+# marks web/ as its own workspace root so pnpm stops walking up to the repo root
+packages: []
+allowBuilds:
+  esbuild: true

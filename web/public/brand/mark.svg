@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Ripcord mark: a pull handle with three cords">
+  <!-- three cords, rising from the handle and fanning toward the canopy -->
+  <path d="M32 38 V10" stroke="#EDEAE3" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M26 38 C26 26 20 20 16 12" stroke="#EDEAE3" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M38 38 C38 26 44 20 48 12" stroke="#EDEAE3" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- the D-ring pull handle — blaze orange, stadium shape -->
+  <rect x="17" y="40" width="30" height="14" rx="7" stroke="#FF4F00" stroke-width="5"/>
+</svg>

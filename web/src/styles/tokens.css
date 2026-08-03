@@ -1,0 +1,101 @@
+/*
+ * RIPCORD design tokens — the single source of truth.
+ * Palette drawn from the subject's world: night-jump sky, ripstop nylon,
+ * the blaze-orange pull handle, altimeter phosphor. See docs/brand/BRAND.md.
+ */
+
+:root {
+  /* color */
+  --void: #0a0b10; /* bg — night-jump sky, instrument-panel black */
+  --silk: #edeae3; /* ink on dark — ripstop nylon off-white */
+  --handle: #ff4f00; /* THE accent — ripcord-handle blaze orange; the pull only */
+  --phosphor: #7cf5c4; /* altimeter "safe" state after the save; never decorative */
+  --hairline: #23262f; /* rules, dividers, strokes */
+  --dim: #8a8f9c; /* secondary text, labels */
+
+  /* type */
+  --font-display: "Clash Display", "Clash Display Fallback", sans-serif;
+  --font-body: "Satoshi", "Satoshi Fallback", sans-serif;
+  --font-mono: "Space Mono", "Space Mono Fallback", monospace;
+
+  --size-hero: clamp(3rem, 10vw, 9.5rem);
+  --size-section: clamp(2rem, 4.5vw, 4.25rem);
+  --size-sub: clamp(1.375rem, 2.2vw, 2rem);
+  --size-body: clamp(1rem, 1.05vw, 1.1875rem);
+  --size-label: 0.6875rem;
+  --size-mono: 0.8125rem;
+
+  /* motion */
+  --ease-expressive: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 0.3s;
+  --dur-reveal: 0.8s;
+  --dur-hero: 1.2s;
+
+  /* layout */
+  --gutter: clamp(1.25rem, 4vw, 4rem);
+  --max-w: 90rem;
+}
+
+/* ---- faces (self-hosted, subset woff2) ---- */
+
+@font-face {
+  font-family: "Clash Display";
+  src: url("/fonts/ClashDisplay-600.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Space Mono";
+  src: url("/fonts/SpaceMono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* metric-compatible fallbacks — kill CLS during the swap window */
+
+@font-face {
+  font-family: "Clash Display Fallback";
+  src: local("Arial");
+  size-adjust: 102%;
+  ascent-override: 94%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Satoshi Fallback";
+  src: local("Arial");
+  size-adjust: 100%;
+  ascent-override: 100%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Space Mono Fallback";
+  src: local("Courier New");
+  size-adjust: 106%;
+  ascent-override: 84%;
+  descent-override: 26%;
+  line-gap-override: 0%;
+}

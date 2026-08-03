@@ -15,7 +15,10 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
-    "lint:fix": "biome check --write ."
+    "lint:fix": "biome check --write .",
+    "web:dev": "pnpm -C web dev",
+    "web:build": "pnpm -C web build",
+    "web:preview": "pnpm -C web preview"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
