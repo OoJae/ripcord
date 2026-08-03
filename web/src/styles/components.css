@@ -416,3 +416,32 @@ html:not(.js) .canopy-poster {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* ── the canopy wipe — page-transition overlay ─────────────────────────── */
+
+.wipe {
+  /* No CSS transform here: gsap owns this element's position exclusively.
+     A CSS resting translateY would be parsed into a separate px offset that
+     yPercent tweens never touch — the overlay would finish its animation
+     and still cover the page. */
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  pointer-events: none;
+  color: var(--handle);
+}
+
+.wipe-body {
+  position: absolute;
+  inset: 0;
+  background: var(--handle);
+}
+
+.wipe-arc {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 11vh;
+  transform: translateY(-98%);
+}

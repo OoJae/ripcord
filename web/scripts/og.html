@@ -1,0 +1,53 @@
+<!doctype html>
+<!-- OG template. Regenerate: see docs/brand/BRAND.md (headless-Chrome screenshot, 1200x630). -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: "Space Mono";
+        src: url("../public/fonts/SpaceMono-400.woff2") format("woff2");
+      }
+      * { margin: 0; }
+      body {
+        width: 1200px;
+        height: 630px;
+        background: #0a0b10;
+        overflow: hidden;
+        display: grid;
+        align-content: center;
+        gap: 40px;
+        padding: 0 80px;
+        box-sizing: border-box;
+        position: relative;
+        font-family: "Space Mono", monospace;
+      }
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(to right, rgb(237 234 227 / 2%) 1px, transparent 1px),
+          linear-gradient(to bottom, rgb(237 234 227 / 2%) 1px, transparent 1px),
+          linear-gradient(to right, rgb(237 234 227 / 3.5%) 1px, transparent 1px),
+          linear-gradient(to bottom, rgb(237 234 227 / 3.5%) 1px, transparent 1px);
+        background-size: 12px 12px, 12px 12px, 96px 96px, 96px 96px;
+      }
+      body::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(70% 90% at 85% 10%, rgb(255 79 0 / 22%), transparent 65%);
+      }
+      img { width: 760px; position: relative; z-index: 1; }
+      .line { position: relative; z-index: 1; color: #8a8f9c; font-size: 26px; letter-spacing: 0.04em; }
+      .line b { color: #7cf5c4; font-weight: 400; }
+      .tag { position: relative; z-index: 1; color: #edeae3; font-size: 30px; letter-spacing: 0.02em; }
+    </style>
+  </head>
+  <body>
+    <img src="../public/brand/wordmark.svg" alt="" />
+    <p class="tag">pull before the drop</p>
+    <p class="line">Aave V3 · Base · autonomous — HF 1.2400 → <b>1.6028</b> on mainnet, 10.7s, gas-sponsored</p>
+  </body>
+</html>

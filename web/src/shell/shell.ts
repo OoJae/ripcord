@@ -8,6 +8,7 @@ import { gsap } from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 import { initReveals } from "../motion/reveal.js";
 import { createSmooth, type Smooth } from "../motion/smooth.js";
+import { initTransitions } from "../ui/transition.js";
 
 gsap.registerPlugin(CustomEase);
 CustomEase.create("expressive", "0.16,1,0.3,1");
@@ -22,6 +23,7 @@ export interface ShellContext {
 export function initShell(): ShellContext {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const smooth = reducedMotion ? null : createSmooth();
+  initTransitions(reducedMotion);
   void initReveals(reducedMotion);
   return { reducedMotion, smooth };
 }
