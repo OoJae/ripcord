@@ -1,4 +1,4 @@
-import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
 // MPA: three real pages, real URLs, real <a href> navigation between them.
@@ -8,9 +8,9 @@ export default defineConfig({
     target: "es2022",
     rollupOptions: {
       input: {
-        index: resolve(import.meta.dirname, "index.html"),
-        evidence: resolve(import.meta.dirname, "evidence.html"),
-        system: resolve(import.meta.dirname, "system.html"),
+        index: fileURLToPath(new URL("index.html", import.meta.url)),
+        evidence: fileURLToPath(new URL("evidence.html", import.meta.url)),
+        system: fileURLToPath(new URL("system.html", import.meta.url)),
       },
     },
   },
