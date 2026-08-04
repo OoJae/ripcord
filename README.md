@@ -2,6 +2,8 @@
 
 [![ci](https://github.com/OoJae/ripcord/actions/workflows/ci.yml/badge.svg)](https://github.com/OoJae/ripcord/actions/workflows/ci.yml)
 
+**Site: <https://oojae.github.io/ripcord/>** — the save, replayed: scroll the descent, watch the altimeter, pull.
+
 **Autonomous, MEV-aware liquidation protection for Aave V3 on Base — decisions by AI agents, execution guaranteed by [KeeperHub](https://keeperhub.com).**
 
 When a DeFi position slides toward liquidation, every second and every mempool snoop matters. Ripcord watches your Aave V3 health factor, plans a defense with a Planner agent, forces an independent Critic agent to approve it, passes a deterministic safety Guard — and then lands the rescue transaction through KeeperHub with retries, smart gas, sponsorship, and a full audit trail — MEV-aware by design (see the routing analysis in docs/architecture.md).
