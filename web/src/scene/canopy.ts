@@ -40,10 +40,13 @@ export function mountCanopy(canvas: HTMLCanvasElement, smooth: Smooth | null): C
   const restX = () => (desktop() ? 0.55 : 0.42);
 
   // Reduced motion: the canopy poster — fully bloomed, one frame, stop.
+  // Held well back: at full strength, centred, it drove body copy to ~1.3:1 for
+  // exactly the users the setting exists to protect.
   if (!smooth) {
     uniforms.uMorph.value = 1;
     uniforms.uTurbulence.value = 0;
-    cloth.mesh.position.x = 0;
+    uniforms.uOpacity.value = 0.16;
+    cloth.mesh.position.x = restX();
     shell.start(() => {});
     requestAnimationFrame(() => shell.stop());
     return { uniforms, stop: shell.stop };

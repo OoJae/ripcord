@@ -77,7 +77,10 @@ main {
   color: var(--dim);
 }
 
-/* the threshold, huge and quiet, on the right edge — the section's number */
+/* the threshold, huge and quiet, on the right edge — the section's number.
+   Selector must out-specify `.band > p { color: var(--dim) }` or these render
+   as solid grey numerals competing with the headings. */
+.band > p.band-marker,
 .band-marker {
   position: absolute;
   top: 50%;
@@ -270,6 +273,11 @@ main {
     position: static;
     transform: none;
     order: -1;
+  }
+
+  .logbook th,
+  .logbook tbody th {
+    overflow-wrap: break-word;
   }
 
   .receipt-grid > div,

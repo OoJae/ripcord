@@ -41,6 +41,18 @@ export function initTransitions(reducedMotion: boolean): void {
     );
   }
 
+  // BACK BUTTON. Departure leaves the overlay covering the viewport and then
+  // navigates, so the page enters the bfcache *covered*. A Back restores that
+  // DOM verbatim — module scope never re-runs, the arrival flag was already
+  // consumed — and the visitor lands on a full-screen orange rectangle with no
+  // content and no way out but a manual reload. Reset on restore.
+  window.addEventListener("pageshow", (ev) => {
+    if (ev.persisted) {
+      sessionStorage.removeItem(FLAG);
+      gsap.set(overlay, { yPercent: 112 });
+    }
+  });
+
   // Departure: same-origin, same-tab page links get the wipe.
   document.addEventListener("click", (ev) => {
     if (ev.defaultPrevented || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;

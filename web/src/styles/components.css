@@ -3,6 +3,32 @@
  * The WebGL canvas sits at z 1; all content at z 2+; grain film at z 100.
  */
 
+/* Legibility scrim. The canopy is fixed behind everything, so as it drifts it
+   was dropping body copy to ~2.6:1 and, under reduced motion, to 1.3:1. This
+   sits between the canvas (z1) and the content (z2) and veils the text column
+   without flattening the plume. Measured, not eyeballed. */
+.canopy-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    var(--void) 0%,
+    rgb(10 11 16 / 94%) 34%,
+    rgb(10 11 16 / 74%) 52%,
+    rgb(10 11 16 / 34%) 70%,
+    rgb(10 11 16 / 12%) 100%
+  );
+}
+
+/* Narrow viewports have no side column to hide behind — veil the whole field. */
+@media (max-width: 1100px) {
+  .canopy-scrim {
+    background: rgb(10 11 16 / 82%);
+  }
+}
+
 .canopy-canvas,
 .canopy-poster {
   position: fixed;

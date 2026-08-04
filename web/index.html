@@ -12,7 +12,7 @@
     <meta property="og:title" content="Ripcord — pull before the drop" />
     <meta
       property="og:description"
-      content="Autonomous liquidation protection for Aave V3 on Base. HF 1.24 pulled to 1.60 on mainnet, gas-sponsored, 10.7s end to end."
+      content="Autonomous liquidation protection for Aave V3 on Base. HF 1.24 pulled to 1.60 on mainnet, gas-sponsored, 21s from sensing to landed."
     />
     <meta property="og:image" content="https://oojae.github.io/ripcord/brand/og.png" />
     <meta property="og:type" content="website" />
@@ -25,10 +25,18 @@
       crossorigin
     />
     <link rel="preload" href="/fonts/Satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/Satoshi-500.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/SpaceMono-400.woff2" as="font" type="font/woff2" crossorigin />
     <script>
+      // Hiding content from CSS is safe only if something is guaranteed to
+      // un-hide it. If the module bundle never boots (failed request, blocked
+      // CDN, parse error) this failsafe drops the class so every word is
+      // readable rather than invisible forever.
       document.documentElement.classList.add("js");
+      setTimeout(() => {
+        if (!document.documentElement.hasAttribute("data-booted")) {
+          document.documentElement.classList.remove("js");
+        }
+      }, 2500);
     </script>
     <script type="module" src="/src/pages/index.ts"></script>
   </head>
@@ -37,6 +45,7 @@
 
     <!-- The signature: one WebGL scene behind everything. aria-hidden; the copy carries the story. -->
     <canvas id="canopy" class="canopy-canvas" aria-hidden="true"></canvas>
+    <div class="canopy-scrim" aria-hidden="true"></div>
     <div id="poster" class="canopy-poster" aria-hidden="true" hidden></div>
 
     <header class="site-header">
@@ -104,10 +113,10 @@
         <p class="label" data-reveal>Warn band</p>
         <h2 id="warn-title" data-reveal>At 1.50, Ripcord starts talking.</h2>
         <p data-reveal>
-          Below the warn band it alerts and drafts. One model proposes a single action with a
-          single amount. An independent second model must approve it. Neither is trusted with
-          anything: fourteen deterministic Guard rules re-derive every number before a dollar
-          moves.
+          Crossing 1.50 it alerts you, once, and keeps watching — it does not act yet. Below
+          1.25 the agents wake up: one model proposes a single action with a single amount, an
+          independent second model must approve it, and neither is trusted with anything.
+          Fourteen deterministic Guard rules re-derive every number before a dollar moves.
         </p>
       </section>
 
@@ -132,8 +141,9 @@
             <div><dt>decision</dt><dd>01KYZKX5R00C9F8D6G3ZS55CE0</dd></div>
             <div><dt>run</dt><dd>deqcbg6pwj968qlvqmri5</dd></div>
             <div><dt>gas</dt><dd>184,531 — sponsored, $0 to the position</dd></div>
-            <div><dt>sense → landed</dt><dd>10.7 seconds</dd></div>
-            <div><dt>guard</dt><dd>12/12 checks, 0 violations</dd></div>
+            <div><dt>sense → landed</dt><dd>21 seconds (22:32:58 → 22:33:19)</dd></div>
+            <div><dt>keeperhub run</dt><dd>10.7s, repay → confirm</dd></div>
+            <div><dt>guard</dt><dd>12/12 checks, 0 violations — the Guard has since grown to 14 rules</dd></div>
             <div>
               <dt>transaction</dt>
               <dd>
@@ -225,7 +235,7 @@
           </article>
           <article data-reveal>
             <h3 class="mono">autopilot</h3>
-            <p>Acts on its own, but announces a cancel window first. Panic skips the wait.</p>
+            <p>Acts on its own. Give it a cancel window and it announces the defense first, then waits. Panic skips the wait.</p>
           </article>
         </div>
         <p class="modes-panic" data-reveal>
@@ -240,7 +250,7 @@
         <p class="mono strip-row" data-reveal>
           <span>322 tests</span>
           <span>3 consecutive autonomous testnet saves</span>
-          <span>$12.61 spent of a $30 daily cap</span>
+          <span>$16.81 counted against a $30 daily cap</span>
           <span>paid x402 listing · $0.02/call</span>
         </p>
         <a class="btn-quiet" href="./evidence.html" data-reveal>Open the flight log</a>
@@ -253,7 +263,7 @@
         <a href="https://github.com/OoJae/ripcord" rel="noopener">GitHub</a>
         <a href="./evidence.html">Flight log</a>
         <a href="./system.html">System</a>
-        <a href="https://app.keeperhub.com/api/mcp/workflows" rel="noopener">Marketplace listing</a>
+        <a href="https://github.com/OoJae/ripcord/blob/main/docs/evidence/EVIDENCE.md#-ripcord-pays-for-itself--paid-x402-calls-on-base-mainnet" rel="noopener">Marketplace listing</a>
       </nav>
       <p class="mono footer-fine">
         Built for the KeeperHub "Agents Onchain" hackathon. DRY_RUN by default — mainnet writes

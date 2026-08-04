@@ -42,8 +42,8 @@ Ripcord read the chain. Drafted a defense. Made a second model argue with the
 first. Cleared the Guard — zero violations. Then repaid six dollars and
 seventy-eight cents of debt through a KeeperHub workflow.
 
-Ten point seven seconds, from sensing to landed. Gas sponsored. Health factor:
-one point six oh.
+Twenty-one seconds, from sensing the danger to the transaction landing. Gas
+sponsored. Health factor: one point six oh.
 
 That transaction is on Base. Go and read it.
 
@@ -58,8 +58,8 @@ Then the Guard. Fourteen deterministic rules that re-derive every number the
 models claimed. It can veto them both. Nothing vetoes the Guard.
 
 And you choose how much rope it gets. Advisory only recommends. Co-pilot waits
-for your yes. Autopilot acts — but announces a cancel window first, so you can
-stop it.
+for your yes. And autopilot acts on its own — but give it a cancel window and it
+announces the defense first, then waits for you to stop it.
 
 Except in panic. An unreachable owner shouldn't become a liquidation.
 
@@ -87,7 +87,7 @@ real audio I retime every scene to the actual waveform, not to this table.
 | 04 | 0:39 | 0:08 | "Ripcord is the part that acts…" | Wordmark resolve — the rip closing. Then hero headline. |
 | 05 | 0:47 | 0:12 | "On the first of August…" | Site scroll: the descent, 1.60 → 1.50 → 1.25. Altimeter in frame. |
 | 06 | 0:59 | 0:20 | "Ripcord read the chain…" | **THE PULL.** Canopy blooms. Then the receipt card builds row by row. |
-| 07 | 1:19 | 0:09 | "Ten point seven seconds…" | Three stat hits, staggered: 10.7s · sponsored · 1.6028 (phosphor). |
+| 07 | 1:19 | 0:09 | "Twenty-one seconds…" | Three stat hits, staggered: 21s sense→landed · sponsored · 1.6028 (phosphor). |
 | 08 | 1:28 | 0:05 | "That transaction is on Base…" | Real Basescan page for `0x6e314ece…9cd05`. Success + tx hash highlighted. |
 | 09 | 1:33 | 0:18 | "Here's how it works. A sensor reads…" | Terminal: live `pnpm dev` decision loop. Oracle cross-check line called out. |
 | 10 | 1:51 | 0:13 | "A planner proposes exactly one action…" | Planner JSON → Critic APPROVE, side by side. Two voices arguing. |
@@ -119,11 +119,12 @@ real audio I retime every scene to the actual waveform, not to this table.
 
 | Claim | Source |
 |---|---|
-| HF 1.2400 → 1.6028, $6.78 repay, 10.7s, gas sponsored | `docs/evidence/EVIDENCE.md:226-261` |
+| HF 1.2400 → 1.6028, $6.78 repay, gas sponsored | `docs/evidence/EVIDENCE.md:226-261` |
+| **21s sense→landed** (tick 22:32:58 → run success 22:33:19). NOT 10.7s — that is the KeeperHub run's internal repay→confirm time (EVIDENCE.md:254) and mislabelling it was a real QA finding | `EVIDENCE.md:233,242,254` |
 | Guard cleared with zero violations on that run (12/12 that day) | same |
 | 14 deterministic Guard rules today | `src/guard/guard.ts` |
 | Bands 1.50 / 1.25 / 1.10, target 1.60 | `src/config.ts:17-24` |
-| Mode behaviour | `src/approval/gate.ts:10-19` |
+| Mode behaviour. NB: the cancel window is opt-in (`RIPCORD_CANCEL_WINDOW_SEC` defaults to 0), so the VO says "give it a cancel window" rather than claiming it always announces | `src/approval/gate.ts:10-19`, `src/config.ts` |
 | Paid x402 calls into the defended wallet | `docs/evidence/EVIDENCE.md:263-304` |
 | 322 tests | `pnpm test` |
 | Oct 2025 $19B cascade | `README.md:9` |

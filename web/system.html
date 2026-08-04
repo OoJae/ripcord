@@ -25,10 +25,18 @@
       crossorigin
     />
     <link rel="preload" href="/fonts/Satoshi-400.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/Satoshi-500.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/SpaceMono-400.woff2" as="font" type="font/woff2" crossorigin />
     <script>
+      // Hiding content from CSS is safe only if something is guaranteed to
+      // un-hide it. If the module bundle never boots (failed request, blocked
+      // CDN, parse error) this failsafe drops the class so every word is
+      // readable rather than invisible forever.
       document.documentElement.classList.add("js");
+      setTimeout(() => {
+        if (!document.documentElement.hasAttribute("data-booted")) {
+          document.documentElement.classList.remove("js");
+        }
+      }, 2500);
     </script>
     <script type="module" src="/src/pages/system.ts"></script>
   </head>
@@ -119,7 +127,7 @@
           </thead>
           <tbody>
             <tr><th scope="row">healthy</th><td>≥ 1.50</td><td>watch, say nothing</td></tr>
-            <tr><th scope="row">warn</th><td>&lt; 1.50</td><td>alert and draft</td></tr>
+            <tr><th scope="row">warn</th><td>&lt; 1.50</td><td>alert on entry, then keep watching</td></tr>
             <tr><th scope="row">act</th><td>&lt; 1.25</td><td>defend, toward target 1.60</td></tr>
             <tr><th scope="row">panic</th><td>&lt; 1.10</td><td>defend now — overrides modes, cooldowns, latches</td></tr>
           </tbody>
@@ -168,7 +176,7 @@
           </article>
           <article data-reveal>
             <h3 class="mono">autopilot</h3>
-            <p>Acts on its own, but announces a cancel window first. Silence means go.</p>
+            <p>Acts on its own. With a cancel window configured it announces first and waits — silence means go.</p>
           </article>
         </div>
         <p data-reveal>
@@ -196,7 +204,7 @@
         <a href="https://github.com/OoJae/ripcord" rel="noopener">GitHub</a>
         <a href="./">Home</a>
         <a href="./evidence.html">Flight log</a>
-        <a href="https://app.keeperhub.com/api/mcp/workflows" rel="noopener">Marketplace listing</a>
+        <a href="https://github.com/OoJae/ripcord/blob/main/docs/evidence/EVIDENCE.md#-ripcord-pays-for-itself--paid-x402-calls-on-base-mainnet" rel="noopener">Marketplace listing</a>
       </nav>
       <p class="mono footer-fine">
         Built for the KeeperHub "Agents Onchain" hackathon. DRY_RUN by default — mainnet writes

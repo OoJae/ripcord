@@ -21,6 +21,9 @@ export interface ShellContext {
 }
 
 export function initShell(): ShellContext {
+  // Tells the head's failsafe the bundle booted; without this it un-hides
+  // everything after 2.5s (see the inline script in each page head).
+  document.documentElement.setAttribute("data-booted", "1");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const smooth = reducedMotion ? null : createSmooth();
   initTransitions(reducedMotion);

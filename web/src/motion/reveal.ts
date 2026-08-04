@@ -48,6 +48,9 @@ function splitLines(el: HTMLElement): SplitResult {
   el.setAttribute("aria-label", authored.join(" "));
 
   const lines: HTMLElement[] = [];
+  // The masks do the hiding from here on, so the element itself must be visible
+  // (and therefore present in the a11y tree and tab order).
+  el.style.opacity = "1";
 
   if (authored.length > 1) {
     // Explicit breaks: each chunk IS a line — no measurement needed.
@@ -84,9 +87,7 @@ function splitLines(el: HTMLElement): SplitResult {
     restore() {
       el.innerHTML = original;
       el.removeAttribute("aria-label");
-      // The CSS pre-hide (html.js [data-reveal]) still applies to the parent;
-      // the .line children that made it visible are gone now, so pin it open.
-      el.style.visibility = "visible";
+      el.style.opacity = "1"; // pin past the CSS pre-hide
     },
   };
 }
@@ -105,9 +106,9 @@ export async function initReveals(reducedMotion: boolean): Promise<void> {
     for (const el of targets) {
       gsap.fromTo(
         el,
-        { autoAlpha: 0 },
+        { opacity: 0 },
         {
-          autoAlpha: 1,
+          opacity: 1,
           duration: 0.4,
           scrollTrigger: { trigger: el, start: "top 92%", once: true },
         },
@@ -142,8 +143,8 @@ export async function initReveals(reducedMotion: boolean): Promise<void> {
       // values pin the element open.
       gsap.fromTo(
         el,
-        { autoAlpha: 0, y: 28 },
-        { autoAlpha: 1, y: 0, duration, delay, ease: "expressive", scrollTrigger },
+        { opacity: 0, y: 28 },
+        { opacity: 1, y: 0, duration, delay, ease: "expressive", scrollTrigger },
       );
       continue;
     }
