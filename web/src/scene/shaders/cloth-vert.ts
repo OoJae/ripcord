@@ -52,9 +52,13 @@ vec3 displaced(vec2 st) {
   vec3 pos = mix(basePlane(st), baseCanopy(st), m);
 
   // Freefall flutter: curl noise, fast when scrolling fast, calm under canopy.
-  float flow = uTime * (0.55 + uTurbulence * 1.6);
+  float flow = uTime * (0.7 + uTurbulence * 1.5);
   vec3 n = curlNoise(pos * 2.1 + vec3(0.0, flow, 0.0));
-  float amp = (0.05 + 0.24 * uTurbulence) * (1.0 - 0.85 * m);
+  // Ambient breath: the silk is ALWAYS alive, even at zero scroll velocity.
+  // Without this floor a visitor who lands and doesn't scroll sees a frozen
+  // canvas and reads it as broken. Scroll then adds urgency on top of the idle.
+  float breathe = 0.115 + 0.035 * sin(uTime * 0.42);
+  float amp = (breathe + 0.22 * uTurbulence) * (1.0 - 0.85 * m);
 
   // The arrest: one violent damped kick through the whole fabric.
   amp += uArrest * 0.32 * sin(st.y * 9.0 - uTime * 22.0);
