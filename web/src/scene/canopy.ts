@@ -34,10 +34,11 @@ export function mountCanopy(canvas: HTMLCanvasElement, smooth: Smooth | null): C
   shell.scene.add(cloth.mesh);
   const { uniforms } = cloth;
 
-  const desktop = () => window.innerWidth >= 768;
-  // Mobile: the streamer hugs the right edge and shrinks — it must never
-  // sit on top of the copy on a narrow viewport.
-  const restX = () => (desktop() ? 0.55 : 0.42);
+  const desktop = () => window.innerWidth >= 1100;
+  // Narrow viewports have no side column — the copy runs full width, so the
+  // streamer is pushed almost off the right edge rather than veiled into mud.
+  // A sliver of the signature beats a grey smear behind unreadable text.
+  const restX = () => (desktop() ? 0.55 : 1.05);
 
   // Reduced motion: the canopy poster — fully bloomed, one frame, stop.
   // Held well back: at full strength, centred, it drove body copy to ~1.3:1 for
@@ -53,7 +54,7 @@ export function mountCanopy(canvas: HTMLCanvasElement, smooth: Smooth | null): C
   }
 
   cloth.mesh.position.x = restX();
-  cloth.mesh.scale.setScalar(desktop() ? 1 : 0.78);
+  cloth.mesh.scale.setScalar(desktop() ? 1 : 0.72);
 
   // The bloom, scrubbed across the pull section — reversible by construction.
   gsap.to(uniforms.uMorph, {
