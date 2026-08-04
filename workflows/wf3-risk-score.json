@@ -1,7 +1,7 @@
 {
   "id": "70sds40dse7wckofqe7lx",
   "name": "Ripcord WF-3 risk-score",
-  "description": "Deterministic Aave V3 liquidation-risk snapshot for any Base address, from the same audited pipeline that executed a real autonomous mainnet defense (on-chain evidence trail in the Ripcord repo). The paid response returns raw verifiable figures -- health factor, 8-decimal base-USD aggregates (collateral, debt, available borrows), LT/LTV bps -- read fresh on-chain. Ripcord's threshold bands (warn <1.50, act <1.25, panic <1.10, no-debt), the risk score, and liquidation price are computed LOCALLY from those figures, not returned inline: run `tsx scripts/risk-score.ts --json response.json`. Nothing is hidden -- the score formula is open source (45% HF distance, 20% buffer-to-liquidation, 15% HF velocity, 10% collateral volatility, 10% borrow-capacity utilization; src/risk/engine.ts); liquidation price = oracle collateral price x (1 - 1/HF) from the returned figures.",
+  "description": "Raw Aave V3 liquidation-risk figures for any Base address: health factor, collateral, debt, LT/LTV \u2014 read fresh on-chain. Bands and score are computed locally from them, not returned inline. From the audited pipeline that executed a real autonomous mainnet defense (HF 1.2400 -> 1.6028, gas-sponsored, 10.7s; full on-chain evidence trail in the Ripcord repo). Nothing is hidden: the score formula is open source (45% HF distance, 20% buffer-to-liquidation, 15% HF velocity, 10% collateral volatility, 10% borrow-capacity utilization; src/risk/engine.ts) \u2014 run `tsx scripts/risk-score.ts --json response.json`. Liquidation price = oracle collateral price x (1 - 1/HF) from the returned figures.",
   "nodes": [
     {
       "id": "trigger-1",
