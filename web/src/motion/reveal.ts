@@ -23,7 +23,6 @@ function buildLine(text: string): { line: HTMLElement; inner: HTMLElement } {
   line.className = "line";
   line.style.display = "block";
   line.style.overflow = "hidden";
-  line.setAttribute("aria-hidden", "true"); // the element's aria-label carries the text
   const inner = document.createElement("span");
   inner.className = "line-inner";
   inner.style.display = "block";
@@ -45,7 +44,6 @@ function splitLines(el: HTMLElement): SplitResult {
         .trim(),
     )
     .filter(Boolean);
-  el.setAttribute("aria-label", authored.join(" "));
 
   const lines: HTMLElement[] = [];
   // The masks do the hiding from here on, so the element itself must be visible
@@ -86,7 +84,6 @@ function splitLines(el: HTMLElement): SplitResult {
     lines,
     restore() {
       el.innerHTML = original;
-      el.removeAttribute("aria-label");
       el.style.opacity = "1"; // pin past the CSS pre-hide
     },
   };
