@@ -3,6 +3,7 @@
 [![ci](https://github.com/OoJae/ripcord/actions/workflows/ci.yml/badge.svg)](https://github.com/OoJae/ripcord/actions/workflows/ci.yml)
 
 **Site: <https://oojae.github.io/ripcord/>** — the save, replayed: scroll the descent, watch the altimeter, pull.
+**Demo film:** [`docs/video/ripcord-demo.mp4`](docs/video/ripcord-demo.mp4) — 2:20, the whole loop end to end.
 
 **Autonomous, MEV-aware liquidation protection for Aave V3 on Base — decisions by AI agents, execution guaranteed by [KeeperHub](https://keeperhub.com).**
 

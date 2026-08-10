@@ -606,5 +606,8 @@ never be called successfully.
 **Impact / resolution:** 9 code findings fixed with 23 new tests (6 mutation-checked); Guard grew a 15th rule (deterministic wallet-solvency). 7 doc/workflow-honesty findings fixed in the repo. Full write-ups are in the two audit commits.
 
 **Residual — live-platform actions this session could not perform (MCP disconnected; do before submission):**
+- **RESOLVED 2026-08-10: the deployed `wf4-defend` is now `enabled: false`** (verified via
+  `get_workflow` after the update, not just from the write response). The un-Guarded
+  mainnet write path is closed.
 - **Rotate the exposed `kh_` org key.** Standing item — but the audit sharpened why: `wf4-defend` was left `enabled: true` on the platform, a mainnet write callable by anyone holding that key (`POST /workflows/{id}/execute` with an arbitrary underwater address), bypassing DRY_RUN / ARM / caps / Guard entirely. The repo artifact is now `enabled: false`; **the deployed workflow must be disabled on app.keeperhub.com and the key rotated.**
 - **Sync the deployed WF-3 listing description** to the corrected repo text (the paid response returns raw figures; bands/score are computed locally — the platform does not apply the stored `outputMapping`, per the 2026-08-02 entry).
