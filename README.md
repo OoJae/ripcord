@@ -52,7 +52,7 @@ When a DeFi position slides toward liquidation, every second and every mempool s
 | Gas sponsorship | Every setup and defense tx, `sponsored: true` | ✅ all setup txs sponsored |
 | Audit trail | `decisionId` threads log → SQLite → payload → execution → tx | ✅ one ULID end to end |
 | Private routing | Ethereum-only (`/api/chains` proof); Base tradeoff documented, defense gains sponsorship instead | ✅ [architecture.md](docs/architecture.md) § MEV posture |
-| Marketplace + x402 (WF-3 `risk-score`) | Paid risk scoring — **Ripcord pays for itself** | ✅ [`ripcord-risk-score`](https://app.keeperhub.com/api/mcp/workflows) $0.02/call, 2 paid x402 calls settled to the org wallet |
+| Marketplace + x402 (WF-3 `risk-score`) | Paid risk scoring — **Ripcord pays for itself** | ✅ `ripcord-risk-score` · $0.02/call · [verify it live in one command](#verify-the-listing-yourself) — the 402 challenge names our own wallet as `payTo` |
 
 ## Transactions
 
@@ -67,6 +67,29 @@ Private routing is **not available on Base** (KeeperHub `/api/chains`: Flashbots
 Protect on Ethereum only) — the hero tx runs public-route with the tradeoff
 analysed in [docs/architecture.md](docs/architecture.md), and gains sponsorship
 in exchange (private-mempool txs are never sponsored).
+
+### Verify the listing yourself
+
+The marketplace catalog is paginated (114 listings and counting), so rather than
+hunting for us, ask the endpoint directly. This needs no account and costs
+nothing — an unpaid call returns the x402 payment challenge:
+
+```bash
+curl -s -X POST https://app.keeperhub.com/api/mcp/workflows/ripcord-risk-score/call \
+  -H 'content-type: application/json' \
+  -d '{"address":"0x30C8A36e99f0708c3e3301b1Ed99cf418BDCf27a"}' | jq .accepts
+```
+
+```
+"maxAmountRequired": "20000"            ← $0.02 USDC, 6 decimals
+"asset":  "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"   ← USDC on Base
+"network": "eip155:8453"
+"payTo":  "0x30c8a36e99f0708c3e3301b1ed99cf418bdcf27a"   ← the wallet the daemon defends
+```
+
+That last line is the whole "pays for itself" claim in one field: revenue from
+the listing settles into the same position Ripcord protects. HTTP 402 back means
+the product is live and priced — not a screenshot of one.
 
 ## Quickstart (works in under a minute, zero secrets)
 
