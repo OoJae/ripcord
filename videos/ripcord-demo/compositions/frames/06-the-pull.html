@@ -1,0 +1,131 @@
+<template>
+  <style>
+    @font-face { font-family: "Satoshi"; font-weight: 400; font-style: normal; font-display: block; src: url("assets/fonts/Satoshi-Regular.woff2") format("woff2"); }
+    @font-face { font-family: "Space Mono"; font-weight: 400; font-style: normal; font-display: block; src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2"); }
+
+    /* Styled via #root, never a class on the data-composition-id element.
+       #root paints NO ground of its own — the full-bleed void is the .clip
+       layer below it. Layout in px against the fixed 1920x1080 canvas. */
+    #root {
+      position: absolute; top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      container-type: size; overflow: hidden;
+      background: transparent; color: #edeae3;
+      font-family: "Satoshi", sans-serif;
+      -webkit-font-smoothing: antialiased; text-rendering: geometricPrecision;
+      /* z-index is load-bearing, not decoration: assemble-index HOISTS the
+         approved clip out of this file and mounts it at the host root AFTER
+         the frame, so by DOM order the footage paints on top of every overlay
+         in here. The frame root must claim the higher layer or the ticks
+         render underneath the video. */
+      z-index: 2;
+    }
+
+    /* ---- full-bleed ground, lowest track ----
+       TRANSPARENT on purpose. This frame sits at z-index 2 so its overlay
+       paints above the hoisted footage; an opaque ground here would cover the
+       video completely. The host root already paints the void base beneath
+       everything, so the field still reads #0A0B10 wherever the footage does
+       not. */
+    .f06pull-ground { position: absolute; inset: 0; background: transparent; }
+
+    /* ---- the ONLY overlay: four step-ticks, bottom-left ----
+       The footage is a capture of the live site's own PULL section: it already
+       carries the "THE PULL" title AND the flight record, and the site's own
+       content column starts at x=300. So nothing is retypeset here — the
+       ticks live in the outer left gutter (x 72, aligned with the site's own
+       chrome edge) and below the settled body copy (y 794+), clear of the
+       record at every moment of the scroll. */
+    .f06pull-ticks {
+      position: absolute; left: 72px; top: 794px;
+      display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    }
+    .f06pull-tick {
+      display: block; width: max-content;
+      padding: 9px 14px;
+      background: rgba(10, 11, 16, 0.82);
+      border: 1px solid #23262f;
+      font-family: "Space Mono", monospace; font-weight: 400;
+      font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+      font-size: 22px; line-height: 1.2; letter-spacing: 0.14em;
+      text-transform: uppercase; white-space: nowrap; color: #edeae3;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="06-the-pull" data-duration="13.94"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div
+      id="f06pull-ground"
+      class="clip f06pull-ground"
+      data-start="0"
+      data-duration="13.94"
+      data-track-index="0"
+    ></div>
+
+    <!-- Real captured footage: the live site's own PULL section — the taut
+         streamer blooming into the canopy, its title, its flight record. It
+         plays FULL-BLEED and untouched for the entire frame: no plate move,
+         no slide-aside, no scale-down, no dim. The product is the shot. -->
+    <!-- approved frame video hoisted by assemble-index -->
+
+    <div class="f06pull-ticks">
+      <div id="f06pull-t1" class="f06pull-tick">SENSED</div>
+      <div id="f06pull-t2" class="f06pull-tick">PLANNED</div>
+      <div id="f06pull-t3" class="f06pull-tick">CRITIQUED</div>
+      <div id="f06pull-t4" class="f06pull-tick">GUARD 12/12</div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var ID = "06-the-pull";
+      var DURATION = 13.94;
+      var byId = function (id) { return document.getElementById(id); };
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* ---------------------------------------------------------------
+         0.00 - 4.60 — THE BLOOM, alone.
+         Nothing on screen. No tween touches the footage: it runs
+         full-bleed at its own opacity and its own scale for the whole
+         13.94s. The restraint IS the design — the site's bloom, its
+         title and its record are already the shot, and covering them
+         with a second typeset copy is what this rebuild removes.
+
+         4.60 - 7.40 — the ticks stamp, one per spoken clause.
+         "read the chain" / "drafted a defense" / "made a second model
+         argue" / "cleared the Guard". Small, quiet, bottom-left, on a
+         near-opaque ink plate so they survive the footage's own bloom
+         and grid without ever entering the site's content column.
+         --------------------------------------------------------------- */
+      [
+        { id: "f06pull-t1", at: 4.60 },
+        { id: "f06pull-t2", at: 5.30 },
+        { id: "f06pull-t3", at: 6.05 },
+        { id: "f06pull-t4", at: 6.90 }
+      ].forEach(function (step) {
+        var el = byId(step.id);
+        if (!el) return;
+        tl.fromTo(el,
+          { opacity: 0, x: -12 },
+          { opacity: 1, x: 0, duration: 0.42, ease: "power3.out" },
+          step.at);
+      });
+
+      /* ---------------------------------------------------------------
+         7.32 - 13.94 — DEAD STILL.
+         No push, no drift, no breathing. The four ticks hold exactly
+         where they landed and the footage keeps playing underneath.
+         This tween only pins the timeline to the frame's length.
+         --------------------------------------------------------------- */
+      tl.to({}, { duration: DURATION }, 0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[ID] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,431 @@
+<template data-info="12-your-hand — three modes, one per spoken cue, then the cancel window ticking">
+  <style>
+    /* ---- fonts (staged local files only, project-root relative) ---- */
+    @font-face {
+      font-family: "Satoshi";
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url("assets/fonts/Satoshi-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Space Mono";
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    /* ---- frame root (contract: styled via #root, never a class) ---- */
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    /* ---- track 0 — the full-bleed void ground (never on #root) ---- */
+    [id="f12-your-hand-ground"] {
+      position: absolute;
+      inset: 0;
+      background: #0a0b10;
+    }
+
+    /* ---- track 1 — chrome: orange rule stub + dim mono kicker, upper-left ---- */
+    [id="f12-your-hand-head"] {
+      position: absolute;
+      inset: 0;
+    }
+    [id="f12-your-hand-stub"] {
+      position: absolute;
+      left: 110px;
+      top: 96px;
+      width: 36px;
+      height: 2px;
+      background: #ff4f00;
+      transform-origin: left center;
+    }
+    [id="f12-your-hand-kicker"] {
+      position: absolute;
+      left: 110px;
+      top: 118px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1cqw;
+      line-height: 1;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+    }
+
+    /* ---- track 2 — the three mode cards ---- */
+    [id="f12-your-hand-cards"] {
+      position: absolute;
+      inset: 0;
+      will-change: transform;
+    }
+    .f12-card {
+      position: absolute;
+      top: 250px;
+      width: 540px;
+      height: 380px;
+      border: 1px solid #23262f;
+      will-change: transform;
+    }
+    [id="f12-your-hand-card-1"] {
+      left: 110px;
+    }
+    [id="f12-your-hand-card-2"] {
+      left: 690px;
+    }
+    [id="f12-your-hand-card-3"] {
+      left: 1270px;
+    }
+    /* the "filled" ground — a breath of ink lifting off the void */
+    .f12-fill {
+      position: absolute;
+      inset: 0;
+      background: rgba(237, 234, 227, 0.035);
+      opacity: 0;
+    }
+    /* the fill signal — a 2px fire-orange bar wiping across the card top */
+    .f12-top {
+      position: absolute;
+      left: -1px;
+      top: -1px;
+      width: calc(100% + 2px);
+      height: 2px;
+      background: #ff4f00;
+      transform-origin: left center;
+    }
+    .f12-num {
+      position: absolute;
+      left: 36px;
+      top: 36px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 0.85cqw;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      color: #8a8f9c;
+    }
+    .f12-name {
+      position: absolute;
+      left: 36px;
+      top: 172px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.85cqw;
+      line-height: 1;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #ff4f00;
+      white-space: nowrap;
+    }
+    .f12-desc {
+      position: absolute;
+      left: 36px;
+      top: 236px;
+      width: 468px;
+      font-family: "Satoshi", sans-serif;
+      font-weight: 400;
+      font-size: 1.4cqw;
+      line-height: 1.6;
+      color: rgba(237, 234, 227, 0.72);
+    }
+
+    /* ---- track 3 — the payoff: the live cancel-window notice ---- */
+    [id="f12-your-hand-notice"] {
+      position: absolute;
+      inset: 0;
+    }
+    [id="f12-your-hand-eyebrow"] {
+      position: absolute;
+      left: 110px;
+      top: 682px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 0.9cqw;
+      line-height: 1;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+    }
+    [id="f12-your-hand-box"] {
+      position: absolute;
+      left: 110px;
+      top: 716px;
+      width: 1700px;
+      height: 150px;
+      box-sizing: border-box;
+      border: 1px solid #ff4f00;
+      display: flex;
+      align-items: center;
+      padding-left: 56px;
+      will-change: transform;
+    }
+    [id="f12-your-hand-line"] {
+      display: flex;
+      align-items: center;
+      height: 76px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 3.3cqw;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #edeae3;
+      white-space: nowrap;
+    }
+    .f12-gap {
+      display: block;
+      width: 0.6em;
+      height: 1px;
+    }
+    /* the odometer window — one 76px slot over a strip of pre-rendered values.
+       The whole countdown is ONE stepped transform driven by timeline progress:
+       deterministic, seek-safe, and it never reaches zero. */
+    [id="f12-your-hand-cd"] {
+      display: block;
+      width: 3.25em;
+      height: 76px;
+      overflow: hidden;
+    }
+    [id="f12-your-hand-cd-strip"] {
+      display: block;
+      will-change: transform;
+    }
+    .f12-cdv {
+      display: block;
+      height: 76px;
+      line-height: 76px;
+      letter-spacing: 0.02em;
+      color: #ff4f00;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="12-your-hand"
+    data-width="1920"
+    data-height="1080"
+    data-duration="13.72"
+  >
+    <!-- track 0 — full-bleed void ground -->
+    <div
+      id="f12-your-hand-ground"
+      class="clip"
+      data-start="0"
+      data-duration="13.72"
+      data-track-index="0"
+    ></div>
+
+    <!-- track 1 — chrome -->
+    <div
+      id="f12-your-hand-head"
+      class="clip"
+      data-start="0"
+      data-duration="13.72"
+      data-track-index="1"
+    >
+      <div id="f12-your-hand-stub"></div>
+      <div id="f12-your-hand-kicker">Whose hand is on the handle</div>
+    </div>
+
+    <!-- track 2 — three empty hairline outlines that fill one per spoken cue -->
+    <div
+      id="f12-your-hand-cards"
+      class="clip"
+      data-start="0"
+      data-duration="13.72"
+      data-track-index="2"
+    >
+      <div id="f12-your-hand-card-1" class="f12-card">
+        <div id="f12-your-hand-fill-1" class="f12-fill"></div>
+        <div id="f12-your-hand-top-1" class="f12-top"></div>
+        <div class="f12-num">01</div>
+        <div id="f12-your-hand-name-1" class="f12-name">Advisory</div>
+        <div id="f12-your-hand-desc-1" class="f12-desc">
+          full pipeline, real alerts, never executes.
+        </div>
+      </div>
+
+      <div id="f12-your-hand-card-2" class="f12-card">
+        <div id="f12-your-hand-fill-2" class="f12-fill"></div>
+        <div id="f12-your-hand-top-2" class="f12-top"></div>
+        <div class="f12-num">02</div>
+        <div id="f12-your-hand-name-2" class="f12-name">Copilot</div>
+        <div id="f12-your-hand-desc-2" class="f12-desc">
+          the defense is built and held for your explicit approval.
+        </div>
+      </div>
+
+      <div id="f12-your-hand-card-3" class="f12-card">
+        <div id="f12-your-hand-fill-3" class="f12-fill"></div>
+        <div id="f12-your-hand-top-3" class="f12-top"></div>
+        <div class="f12-num">03</div>
+        <div id="f12-your-hand-name-3" class="f12-name">Autopilot</div>
+        <div id="f12-your-hand-desc-3" class="f12-desc">
+          acts on its own; announces a cancel window first.
+        </div>
+      </div>
+    </div>
+
+    <!-- track 3 — the payoff notice, lower third, ticking down -->
+    <div
+      id="f12-your-hand-notice"
+      class="clip"
+      data-start="10.2"
+      data-duration="3.52"
+      data-track-index="3"
+    >
+      <div id="f12-your-hand-eyebrow">Autopilot &middot; cancel window</div>
+      <div id="f12-your-hand-box">
+        <div id="f12-your-hand-line">
+          <span>Defending in</span>
+          <span class="f12-gap"></span>
+          <span id="f12-your-hand-cd">
+            <span id="f12-your-hand-cd-strip">
+              <span class="f12-cdv">00:38</span>
+              <span class="f12-cdv">00:37</span>
+              <span class="f12-cdv">00:36</span>
+              <span class="f12-cdv">00:35</span>
+            </span>
+          </span>
+          <span class="f12-gap"></span>
+          <span>&mdash; tap cancel</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+
+      var byId = function (id) {
+        return document.getElementById(id);
+      };
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* ---------------------------------------------------------------
+         Scene 1 (0.0–2.2) — the empty stage.
+         Orange rule stub, dim mono kicker, then three EMPTY hairline
+         outlines. Hero (the card row) is on screen well before 0.5s.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        byId("f12-your-hand-stub"),
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.5, ease: "power2.out" },
+        0.08
+      );
+      tl.fromTo(
+        byId("f12-your-hand-kicker"),
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+        0.16
+      );
+      tl.fromTo(
+        [
+          byId("f12-your-hand-card-1"),
+          byId("f12-your-hand-card-2"),
+          byId("f12-your-hand-card-3")
+        ],
+        { opacity: 0, y: 22 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", stagger: 0.16 },
+        0.2
+      );
+
+      /* macro camera underneath — the whole row lifts 14px across the three
+         reveals, opening the lower third for the payoff, and stops dead at
+         10.2 so the countdown is the only thing moving after that. */
+      tl.fromTo(
+        byId("f12-your-hand-cards"),
+        { y: 0 },
+        { y: -14, duration: 10.2, ease: "sine.inOut" },
+        0
+      );
+
+      /* ---------------------------------------------------------------
+         Scenes 2–4 — ONE card fills per spoken cue. Never all at once.
+         2.20 "advisory only recommends"
+         4.80 "co-pilot waits for your yes"
+         7.40 "autopilot acts on its own"
+         --------------------------------------------------------------- */
+      var fillCard = function (n, at) {
+        tl.fromTo(
+          byId("f12-your-hand-fill-" + n),
+          { opacity: 0 },
+          { opacity: 1, duration: 0.55, ease: "sine.out" },
+          at
+        );
+        tl.fromTo(
+          byId("f12-your-hand-top-" + n),
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.62, ease: "power3.out" },
+          at
+        );
+        tl.fromTo(
+          byId("f12-your-hand-name-" + n),
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+          at + 0.08
+        );
+        tl.fromTo(
+          byId("f12-your-hand-desc-" + n),
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+          at + 0.32
+        );
+      };
+
+      fillCard(1, 2.2);
+      fillCard(2, 4.8);
+      fillCard(3, 7.4);
+
+      /* ---------------------------------------------------------------
+         Scene 5 (10.2–13.72) — payoff. The three cards drop to 45% and the
+         live cancel notice takes the lower third.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        byId("f12-your-hand-cards"),
+        { opacity: 1 },
+        { opacity: 0.45, duration: 0.8, ease: "sine.inOut" },
+        10.2
+      );
+      tl.fromTo(
+        byId("f12-your-hand-eyebrow"),
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+        10.28
+      );
+      tl.fromTo(
+        byId("f12-your-hand-box"),
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        10.34
+      );
+
+      /* The countdown. Four pre-rendered values (00:38 → 00:35) stacked in a
+         76px odometer window; a single stepped transform on the strip picks
+         the value straight from timeline progress. steps(3) yields exactly
+         four equal segments of 0.845s, so the digits tick down for the rest
+         of the frame, land on 00:35, and never reach zero. No clock, no
+         interval, no randomness — seeking to any t gives the same digit. */
+      tl.fromTo(
+        byId("f12-your-hand-cd-strip"),
+        { y: 0 },
+        { y: -228, duration: 3.38, ease: "steps(3)" },
+        10.34
+      );
+
+      /* hold the timeline out to the full 13.72s window (no exit — frame 13 cuts in) */
+      tl.to({}, { duration: 0.01 }, 13.71);
+
+      window.__timelines["12-your-hand"] = tl;
+    })();
+  </script>
+</template>

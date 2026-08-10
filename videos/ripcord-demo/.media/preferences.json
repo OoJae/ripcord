@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "preferences": {
+    "destination": {
+      "value": "youtube",
+      "confirmed_in": [
+        "ripcord-demo"
+      ],
+      "updated_at": "2026-08-09T21:37:23.230Z"
+    },
+    "aspect": {
+      "value": "1920x1080",
+      "confirmed_in": [
+        "ripcord-demo"
+      ],
+      "updated_at": "2026-08-09T21:37:23.277Z"
+    },
+    "language": {
+      "value": "en",
+      "confirmed_in": [
+        "ripcord-demo"
+      ],
+      "updated_at": "2026-08-09T21:37:23.324Z"
+    },
+    "flow": {
+      "value": "automation",
+      "confirmed_in": [
+        "ripcord-demo"
+      ],
+      "updated_at": "2026-08-09T21:37:23.372Z"
+    },
+    "storyboard": {
+      "value": "no",
+      "confirmed_in": [
+        "ripcord-demo"
+      ],
+      "updated_at": "2026-08-09T21:37:23.418Z"
+    },
+    "style_preset.product-launch-video": {
+      "value": "broadside",
+      "confirmed_in": [
+        "ripcord-demo"
+      ],
+      "updated_at": "2026-08-09T21:43:03.111Z"
+    }
+  },
+  "sightings": {}
+}

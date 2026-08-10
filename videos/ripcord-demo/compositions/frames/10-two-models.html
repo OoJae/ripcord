@@ -1,0 +1,506 @@
+<template data-info="10-two-models — planner and critic book-open into a held spread, then the distrust line">
+  <style>
+    /* ---- shipped fonts (project-root-relative paths, local files only) ---- */
+    @font-face {
+      font-family: "Space Mono";
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    /* ---- frame root (contract: styled via #root, never a class) ---- */
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    /* ---- track 0 — full-bleed void ground (never painted on #root) ---- */
+    [id="f10-ground"] {
+      position: absolute;
+      inset: 0;
+      background: #0a0b10;
+    }
+
+    /* ---- track 1 — ripstop weave ---- */
+    [id="f10-weave"] {
+      position: absolute;
+      inset: -6%;
+      opacity: 0.18;
+      transform-origin: 50% 46%;
+      will-change: transform;
+      background-image:
+        repeating-linear-gradient(90deg, #23262f 0 1px, rgba(35, 38, 47, 0) 1px 44px),
+        repeating-linear-gradient(0deg, #23262f 0 1px, rgba(35, 38, 47, 0) 1px 44px),
+        repeating-linear-gradient(90deg, #23262f 0 2px, rgba(35, 38, 47, 0) 2px 220px),
+        repeating-linear-gradient(0deg, #23262f 0 2px, rgba(35, 38, 47, 0) 2px 220px);
+    }
+
+    /* ---- track 2 — chrome ---- */
+    [id="f10-chrome"] {
+      position: absolute;
+      inset: 0;
+    }
+    [id="f10-stub"] {
+      position: absolute;
+      left: 110px;
+      top: 100px;
+      width: 36px;
+      height: 2px;
+      background: #ff4f00;
+      transform-origin: left center;
+    }
+    [id="f10-kicker"] {
+      position: absolute;
+      left: 110px;
+      top: 122px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 0.95cqw;
+      line-height: 1;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+
+    /* ---- track 3 — the split stage. perspective is REQUIRED or the
+           mirrored rotateY flattens into a plain 2D layout. ---- */
+    [id="f10-stage"] {
+      position: absolute;
+      inset: 0;
+      perspective: 1900px;
+      perspective-origin: 50% 46%;
+    }
+    [id="f10-split"] {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    /* the two equal panels — symmetric weight, hairline, zero radius.
+       No box-shadow: the brand plane is flat, so the tilt carries alone. */
+    .f10-panel {
+      position: absolute;
+      top: 300px;
+      width: 815px;
+      height: 372px;
+      box-sizing: border-box;
+      border: 1px solid #23262f;
+      background: #0d0f16;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+    [id="f10-planner"] {
+      left: 110px;
+    }
+    [id="f10-critic"] {
+      left: 995px;
+    }
+
+    .f10-bar {
+      position: absolute;
+      left: -1px;
+      top: -1px;
+      width: calc(100% + 2px);
+      height: 2px;
+      background: #ff4f00;
+      transform-origin: left center;
+    }
+    .f10-title {
+      position: absolute;
+      left: 48px;
+      top: 48px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.5cqw;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #ff4f00;
+      white-space: nowrap;
+    }
+    .f10-hair {
+      position: absolute;
+      left: 48px;
+      top: 112px;
+      width: 719px;
+      height: 1px;
+      background: #23262f;
+      transform-origin: left center;
+    }
+    .f10-line {
+      position: absolute;
+      left: 48px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.78cqw;
+      line-height: 46px;
+      letter-spacing: 0;
+      white-space: pre;
+      color: #edeae3;
+    }
+    .f10-l1 {
+      top: 168px;
+    }
+    .f10-l2 {
+      top: 222px;
+    }
+    .f10-tok {
+      display: inline-block;
+      will-change: transform;
+    }
+    .f10-k {
+      color: #8a8f9c;
+    }
+    .f10-sep {
+      color: #8a8f9c;
+    }
+
+    /* the seam — the real vertical gap between the two minds */
+    [id="f10-seam"] {
+      position: absolute;
+      left: 960px;
+      top: 300px;
+      width: 1px;
+      height: 372px;
+      background: #23262f;
+      transform-origin: center top;
+    }
+
+    /* the APPROVE pill lives on the PARENT, never inside the card —
+       inside it would inherit the rotateY and tilt off-axis. */
+    [id="f10-approve"] {
+      position: absolute;
+      left: 971px;
+      top: 566px;
+      height: 66px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      padding: 0 34px;
+      background: #7cf5c4;
+      transform-origin: 0% 50%;
+      will-change: transform;
+    }
+    [id="f10-approve-text"] {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.4cqw;
+      line-height: 1;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #0a0b10;
+      white-space: nowrap;
+    }
+
+    /* ---- track 4 — the line that types across the seam ---- */
+    [id="f10-distrust"] {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 748px;
+      text-align: center;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.8cqw;
+      line-height: 1.25;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      color: #8a8f9c;
+    }
+    .f10-w {
+      display: inline-block;
+      will-change: transform;
+    }
+    .f10-dash {
+      color: #ff4f00;
+    }
+    .f10-hi {
+      color: #edeae3;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="10-two-models"
+    data-width="1920"
+    data-height="1080"
+    data-duration="10.62"
+  >
+    <!-- track 0 — full-bleed void ground -->
+    <div
+      id="f10-ground"
+      class="clip"
+      data-start="0"
+      data-duration="10.62"
+      data-track-index="0"
+    ></div>
+
+    <!-- track 1 — ripstop weave -->
+    <div
+      id="f10-weave"
+      class="clip"
+      data-start="0"
+      data-duration="10.62"
+      data-track-index="1"
+      aria-hidden="true"
+    ></div>
+
+    <!-- track 2 — chrome -->
+    <div
+      id="f10-chrome"
+      class="clip"
+      data-start="0"
+      data-duration="10.62"
+      data-track-index="2"
+    >
+      <div id="f10-stub" aria-hidden="true"></div>
+      <div id="f10-kicker">Propose &middot; approve</div>
+    </div>
+
+    <!-- track 3 — the mirrored book-open pair -->
+    <div
+      id="f10-stage"
+      class="clip"
+      data-start="0"
+      data-duration="10.62"
+      data-track-index="3"
+    >
+      <div id="f10-split">
+        <div id="f10-seam" aria-hidden="true"></div>
+
+        <!-- LEFT wing — the planner's real payload -->
+        <div id="f10-planner" class="f10-panel">
+          <div id="f10-planner-bar" class="f10-bar" aria-hidden="true"></div>
+          <div id="f10-planner-title" class="f10-title">Planner</div>
+          <div id="f10-planner-hair" class="f10-hair" aria-hidden="true"></div>
+          <div class="f10-line f10-l1"><span id="f10-p-tok-1" class="f10-tok"><span class="f10-k">action</span> repay</span><span id="f10-p-tok-2" class="f10-tok"> <span class="f10-sep">&middot;</span> <span class="f10-k">asset</span> USDC</span></div>
+          <div class="f10-line f10-l2"><span id="f10-p-tok-3" class="f10-tok"><span class="f10-k">amount</span> $4.79</span><span id="f10-p-tok-4" class="f10-tok"> <span class="f10-sep">&middot;</span> <span class="f10-k">expected HF</span> 1.6003</span></div>
+        </div>
+
+        <!-- RIGHT wing — the critic's real reason string -->
+        <div id="f10-critic" class="f10-panel">
+          <div id="f10-critic-bar" class="f10-bar" aria-hidden="true"></div>
+          <div id="f10-critic-title" class="f10-title">Critic</div>
+          <div id="f10-critic-hair" class="f10-hair" aria-hidden="true"></div>
+          <div class="f10-line f10-l1"><span id="f10-c-tok-1" class="f10-tok">"recomputed </span><span id="f10-c-tok-2" class="f10-tok">health factor </span><span id="f10-c-tok-3" class="f10-tok">1.6003</span></div>
+          <div class="f10-line f10-l2"><span id="f10-c-tok-4" class="f10-tok">clears </span><span id="f10-c-tok-5" class="f10-tok">the target </span><span id="f10-c-tok-6" class="f10-tok">1.6"</span></div>
+        </div>
+
+        <!-- the pill: phosphor, and only here — a verified state, earned -->
+        <div id="f10-approve">
+          <div id="f10-approve-text">Approve</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- track 4 — the distrust line, across the seam -->
+    <div
+      id="f10-distrust"
+      class="clip"
+      data-start="0"
+      data-duration="10.62"
+      data-track-index="4"
+    >
+      <span id="f10-w-1" class="f10-w">neither</span>
+      <span id="f10-w-2" class="f10-w">may</span>
+      <span id="f10-w-3" class="f10-w">name</span>
+      <span id="f10-w-4" class="f10-w">an</span>
+      <span id="f10-w-5" class="f10-w">address</span>
+      <span id="f10-w-6" class="f10-w f10-dash">&mdash;</span>
+      <span id="f10-w-7" class="f10-w">addresses</span>
+      <span id="f10-w-8" class="f10-w">exist</span>
+      <span id="f10-w-9" class="f10-w">only</span>
+      <span id="f10-w-10" class="f10-w">in</span>
+      <span id="f10-w-11" class="f10-w f10-hi">config</span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+
+      var root = document.querySelector('[data-composition-id="10-two-models"]');
+      if (!root) return;
+      var q = function (sel) {
+        return root.querySelector(sel);
+      };
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* macro: the weave drifts under everything, nothing else moves */
+      tl.fromTo(
+        q("#f10-weave"),
+        { scale: 1, y: 0 },
+        { scale: 1.04, y: -8, duration: 10.12, ease: "sine.inOut" },
+        0
+      );
+
+      tl.fromTo(
+        q("#f10-stub"),
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.46, ease: "power2.out" },
+        0.06
+      );
+      tl.fromTo(
+        q("#f10-kicker"),
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" },
+        0.14
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 1 (0.0-3.4) — the LEFT wing arrives with the book-open tilt
+         (signature move): from off-axis at TILT + OVERSHOOT, settling to
+         TILT. Inner edge recedes, exactly like an opened book.
+         Hero is on screen well before 0.5s.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        q("#f10-planner"),
+        { x: -420, rotateY: 20, opacity: 0 },
+        { x: 0, rotateY: 12, opacity: 1, duration: 0.9, ease: "power3.out" },
+        0.08
+      );
+      tl.fromTo(
+        q("#f10-planner-title"),
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+        0.46
+      );
+      tl.fromTo(
+        q("#f10-planner-hair"),
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.55, ease: "power2.out" },
+        0.6
+      );
+
+      /* the real payload arrives token by token — pre-laid-out text, only
+         opacity + a short rise; nothing is ever written on a timer */
+      var tok = function (sel, at) {
+        tl.fromTo(
+          q(sel),
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.46, ease: "power2.out" },
+          at
+        );
+      };
+      tok("#f10-p-tok-1", 0.95);
+      tok("#f10-p-tok-2", 1.55);
+      tok("#f10-p-tok-3", 2.15);
+      tok("#f10-p-tok-4", 2.72);
+
+      tl.fromTo(
+        q("#f10-planner-bar"),
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.6, ease: "power3.out" },
+        3.04
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 2 (3.4-6.6) — the seam draws, then the RIGHT wing arrives
+         with the mirrored tilt, and the APPROVE pill pops on its inner edge.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        q("#f10-seam"),
+        { scaleY: 0 },
+        { scaleY: 1, duration: 0.6, ease: "power2.out" },
+        3.26
+      );
+      tl.fromTo(
+        q("#f10-critic"),
+        { x: 420, rotateY: -20, opacity: 0 },
+        { x: 0, rotateY: -12, opacity: 1, duration: 0.9, ease: "power3.out" },
+        3.34
+      );
+      tl.fromTo(
+        q("#f10-critic-title"),
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+        3.72
+      );
+      tl.fromTo(
+        q("#f10-critic-hair"),
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.55, ease: "power2.out" },
+        3.86
+      );
+      tok("#f10-c-tok-1", 4.22);
+      tok("#f10-c-tok-2", 4.52);
+      tok("#f10-c-tok-3", 4.82);
+      tok("#f10-c-tok-4", 5.06);
+      tok("#f10-c-tok-5", 5.3);
+      tok("#f10-c-tok-6", 5.54);
+
+      tl.fromTo(
+        q("#f10-critic-bar"),
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.6, ease: "power3.out" },
+        5.62
+      );
+
+      /* the one overshoot-free spring in the shot, origin on the inner edge
+         so it reads as emerging FROM the panel, not inflating over it */
+      tl.fromTo(
+        q("#f10-approve"),
+        { scaleX: 0, scaleY: 0.6, opacity: 0 },
+        { scaleX: 1, scaleY: 1, opacity: 1, duration: 0.55, ease: "power3.out" },
+        5.88
+      );
+      tl.fromTo(
+        q("#f10-approve-text"),
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, ease: "sine.out" },
+        6.12
+      );
+
+      /* counter-phase drift so the held pair never conveyor-belts */
+      tl.fromTo(
+        q("#f10-planner"),
+        { y: 0 },
+        { y: -6, duration: 3.0, ease: "sine.inOut" },
+        4.3
+      );
+      tl.fromTo(
+        q("#f10-critic"),
+        { y: 0 },
+        { y: 6, duration: 3.0, ease: "sine.inOut" },
+        4.3
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 3 (6.6-10.12) — both panels drop back and the distrust line
+         types across the seam in two clauses. Then hold.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        q("#f10-split"),
+        { opacity: 1 },
+        { opacity: 0.55, duration: 0.7, ease: "sine.inOut" },
+        6.6
+      );
+
+      var clause = function (from, to, at, gap) {
+        for (var i = from; i <= to; i++) {
+          tl.fromTo(
+            q("#f10-w-" + i),
+            { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: 0.42, ease: "power2.out" },
+            at + (i - from) * gap
+          );
+        }
+      };
+      clause(1, 5, 6.86, 0.095);
+      clause(6, 11, 7.86, 0.085);
+
+      /* hold out the full window — no exit; the root transition is the exit */
+      tl.to({}, { duration: 0.01 }, 10.11);
+
+      window.__timelines["10-two-models"] = tl;
+    })();
+  </script>
+</template>

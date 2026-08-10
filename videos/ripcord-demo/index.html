@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0A0B10;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="140.14"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div
+        id="el-01-the-number"
+        class="scene"
+        data-composition-id="01-the-number"
+        data-composition-src="compositions/frames/01-the-number.html"
+        data-start="0"
+        data-duration="10.94"
+        data-track-index="0"
+      ></div>
+      <audio
+        id="el-01-the-number-voice"
+        src="assets/voice/01.wav"
+        data-start="0"
+        data-duration="10.44"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-02-the-slow-leak"
+        class="scene"
+        data-composition-id="02-the-slow-leak"
+        data-composition-src="compositions/frames/02-the-slow-leak.html"
+        data-start="10.44"
+        data-duration="18.72"
+        data-track-index="1"
+      ></div>
+      <audio
+        id="el-02-the-slow-leak-voice"
+        src="assets/voice/02.wav"
+        data-start="10.44"
+        data-duration="18.72"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-03-watching"
+        class="scene"
+        data-composition-id="03-watching"
+        data-composition-src="compositions/frames/03-watching.html"
+        data-start="29.159999999999997"
+        data-duration="1.76"
+        data-track-index="0"
+      ></div>
+      <audio
+        id="el-03-watching-voice"
+        src="assets/voice/03.wav"
+        data-start="29.159999999999997"
+        data-duration="1.76"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-04-the-actor"
+        class="scene"
+        data-composition-id="04-the-actor"
+        data-composition-src="compositions/frames/04-the-actor.html"
+        data-start="30.919999999999998"
+        data-duration="6.22"
+        data-track-index="1"
+      ></div>
+      <audio
+        id="el-04-the-actor-voice"
+        src="assets/voice/04.wav"
+        data-start="30.919999999999998"
+        data-duration="5.72"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-05-the-fall"
+        class="scene"
+        data-composition-id="05-the-fall"
+        data-composition-src="compositions/frames/05-the-fall.html"
+        data-start="36.64"
+        data-duration="7.88"
+        data-track-index="0"
+      ></div>
+      <audio
+        id="el-05-the-fall-voice"
+        src="assets/voice/05.wav"
+        data-start="36.64"
+        data-duration="7.88"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-06-the-pull"
+        class="scene"
+        data-composition-id="06-the-pull"
+        data-composition-src="compositions/frames/06-the-pull.html"
+        data-start="44.52"
+        data-duration="13.94"
+        data-track-index="1"
+      ></div>
+      <audio
+        id="el-06-the-pull-voice"
+        src="assets/voice/06.wav"
+        data-start="44.52"
+        data-duration="13.44"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-07-the-numbers"
+        class="scene"
+        data-composition-id="07-the-numbers"
+        data-composition-src="compositions/frames/07-the-numbers.html"
+        data-start="57.96"
+        data-duration="8.56"
+        data-track-index="0"
+      ></div>
+      <audio
+        id="el-07-the-numbers-voice"
+        src="assets/voice/07.wav"
+        data-start="57.96"
+        data-duration="8.56"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-08-on-chain"
+        class="scene"
+        data-composition-id="08-on-chain"
+        data-composition-src="compositions/frames/08-on-chain.html"
+        data-start="66.52"
+        data-duration="3.62"
+        data-track-index="1"
+      ></div>
+      <audio
+        id="el-08-on-chain-voice"
+        src="assets/voice/08.wav"
+        data-start="66.52"
+        data-duration="3.12"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-09-sense"
+        class="scene"
+        data-composition-id="09-sense"
+        data-composition-src="compositions/frames/09-sense.html"
+        data-start="69.64"
+        data-duration="14.28"
+        data-track-index="0"
+      ></div>
+      <audio
+        id="el-09-sense-voice"
+        src="assets/voice/09.wav"
+        data-start="69.64"
+        data-duration="14.28"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-10-two-models"
+        class="scene"
+        data-composition-id="10-two-models"
+        data-composition-src="compositions/frames/10-two-models.html"
+        data-start="83.92"
+        data-duration="10.62"
+        data-track-index="1"
+      ></div>
+      <audio
+        id="el-10-two-models-voice"
+        src="assets/voice/10.wav"
+        data-start="83.92"
+        data-duration="10.12"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-11-the-guard"
+        class="scene"
+        data-composition-id="11-the-guard"
+        data-composition-src="compositions/frames/11-the-guard.html"
+        data-start="94.04"
+        data-duration="9.5"
+        data-track-index="0"
+      ></div>
+      <audio
+        id="el-11-the-guard-voice"
+        src="assets/voice/11.wav"
+        data-start="94.04"
+        data-duration="9"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-12-your-hand"
+        class="scene"
+        data-composition-id="12-your-hand"
+        data-composition-src="compositions/frames/12-your-hand.html"
+        data-start="103.04"
+        data-duration="13.72"
+        data-track-index="1"
+      ></div>
+      <audio
+        id="el-12-your-hand-voice"
+        src="assets/voice/12.wav"
+        data-start="103.04"
+        data-duration="13.72"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-13-panic"
+        class="scene"
+        data-composition-id="13-panic"
+        data-composition-src="compositions/frames/13-panic.html"
+        data-start="116.76"
+        data-duration="5.06"
+        data-track-index="0"
+      ></div>
+      <audio
+        id="el-13-panic-voice"
+        src="assets/voice/13.wav"
+        data-start="116.76"
+        data-duration="4.56"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-14-it-earns"
+        class="scene"
+        data-composition-id="14-it-earns"
+        data-composition-src="compositions/frames/14-it-earns.html"
+        data-start="121.32000000000001"
+        data-duration="10.82"
+        data-track-index="1"
+      ></div>
+      <audio
+        id="el-14-it-earns-voice"
+        src="assets/voice/14.wav"
+        data-start="121.32000000000001"
+        data-duration="10.32"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <div
+        id="el-15-pull-before-the-drop"
+        class="scene"
+        data-composition-id="15-pull-before-the-drop"
+        data-composition-src="compositions/frames/15-pull-before-the-drop.html"
+        data-start="131.64000000000001"
+        data-duration="8.5"
+        data-track-index="0"
+      ></div>
+      <audio
+        id="el-15-pull-before-the-drop-voice"
+        src="assets/voice/15.wav"
+        data-start="131.64000000000001"
+        data-duration="8.5"
+        data-track-index="10"
+        data-volume="1"
+      ></audio>
+
+      <video id="slowleak02-hero" src="assets/footage/hero.mp4" preload="auto" aria-label="Ripcord live site, hero" muted playsinline loop
+        class="clip"
+        style="position:absolute;left:0px;top:0px;width:1920px;height:1080px;object-fit:cover"
+        data-start="10.44"
+        data-duration="18.72"
+        data-track-index="2001"
+      ></video>
+
+      <video id="f05fall-descent" src="assets/footage/descent.mp4" preload="auto" aria-label="Ripcord live site scrolling past its policy bands" data-media-start="3.4" muted playsinline
+        class="clip"
+        style="position:absolute;left:0px;top:0px;width:1920px;height:1080px;object-fit:cover"
+        data-start="36.64"
+        data-duration="7.88"
+        data-track-index="5001"
+      ></video>
+
+      <video id="f06pull-canopy" src="assets/footage/pull.mp4" preload="auto" aria-label="The Ripcord canopy blooming on the live site" data-media-start="3" muted playsinline
+        class="clip"
+        style="position:absolute;left:0px;top:0px;width:1920px;height:1080px;object-fit:cover"
+        data-start="44.52"
+        data-duration="13.94"
+        data-track-index="6001"
+      ></video>
+
+      <video id="f14-earns-evidence" src="assets/footage/evidence.mp4" preload="auto" aria-label="Ripcord flight log, scrolling" muted playsinline
+        class="clip"
+        style="position:absolute;left:0px;top:0px;width:1920px;height:1080px;object-fit:cover"
+        data-start="121.32"
+        data-duration="10.82"
+        data-track-index="14001"
+      ></video>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+      // ── frame transitions (injected by transitions.mjs) ──
+      (function () { var tl = window.__timelines["main"];
+        tl.to("#el-01-the-number", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 10.44);
+        tl.fromTo("#el-02-the-slow-leak", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 10.44);
+        tl.to("#el-04-the-actor", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 36.64);
+        tl.fromTo("#el-05-the-fall", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 36.64);
+        tl.to("#el-06-the-pull", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 57.96);
+        tl.fromTo("#el-07-the-numbers", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 57.96);
+        tl.to("#el-08-on-chain", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 69.64);
+        tl.fromTo("#el-09-sense", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 69.64);
+        tl.to("#el-10-two-models", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 94.04);
+        tl.fromTo("#el-11-the-guard", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 94.04);
+        tl.to("#el-11-the-guard", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 103.04);
+        tl.fromTo("#el-12-your-hand", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 103.04);
+        tl.to("#el-13-panic", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 121.32);
+        tl.fromTo("#el-14-it-earns", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 121.32);
+        tl.to("#el-14-it-earns", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 131.64);
+        tl.fromTo("#el-15-pull-before-the-drop", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 131.64);
+        tl.to({}, { duration: 140.14 }, 0); // full-span anchor — main.duration() == composition total (Studio master duration)
+      })();
+    </script>
+  </body>
+</html>

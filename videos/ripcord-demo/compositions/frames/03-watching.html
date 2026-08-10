@@ -1,0 +1,128 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Clash Display";
+      font-weight: 600;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/ClashDisplay-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Satoshi";
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/Satoshi-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Space Mono";
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    /* full-bleed ground — its own clip layer, never on #root */
+    .f03-watching-ground {
+      position: absolute;
+      inset: 0;
+      background: #0a0b10;
+    }
+
+    .f03-watching-stage {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* bias the single line just above true centre (0.46 x height) */
+      padding-bottom: 4.17cqw;
+    }
+
+    /* the overflow mask: cropped a touch below the baseline so the rise
+       genuinely emerges from a hard edge (Clash cap 0.67em, baseline 0.82em) */
+    .f03-watching-mask {
+      font-family: "Clash Display", sans-serif;
+      font-weight: 600;
+      font-size: 5cqw;
+      height: 0.875em;
+      overflow: hidden;
+    }
+
+    .f03-watching-line {
+      display: block;
+      font-family: "Clash Display", sans-serif;
+      font-weight: 600;
+      font-size: 1em;
+      line-height: 1;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #edeae3;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="03-watching" data-duration="1.76"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div
+      id="f03-watching-ground"
+      class="clip f03-watching-ground"
+      data-start="0"
+      data-duration="1.76"
+      data-track-index="0"
+    ></div>
+
+    <div
+      id="f03-watching-stage"
+      class="clip f03-watching-stage"
+      data-start="0"
+      data-duration="1.76"
+      data-track-index="1"
+    >
+      <div class="f03-watching-mask">
+        <div class="f03-watching-line">WATCHING IS NOT PROTECTION.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var FRAME_ID = "03-watching";
+      var DURATION = 1.76;
+
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      var line = document.querySelector(".f03-watching-line");
+
+      // Scene 1 (0.0-0.7s) — the ONE move: a 14px rise under the overflow mask.
+      if (line) {
+        tl.fromTo(
+          line,
+          { y: 14, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.66, ease: "power4.out" },
+          0.04
+        );
+      }
+
+      // Scene 2 (0.7-1.76s) — absolute stillness. No drift, no breathing loop.
+      // The empty tween only holds the timeline to the frame's full length.
+      tl.to({}, { duration: DURATION }, 0);
+
+      window.__timelines[FRAME_ID] = tl;
+    })();
+  </script>
+</template>

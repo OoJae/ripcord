@@ -1,0 +1,314 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Clash Display";
+      font-weight: 600;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/ClashDisplay-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Satoshi";
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/Satoshi-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Space Mono";
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    /* Root — never carries the full-bleed ground (that rides on .clip layers below). */
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    /* ── track 0 — the void ────────────────────────────────────────────── */
+    #f01-ground {
+      position: absolute;
+      inset: 0;
+      background-color: #0a0b10;
+    }
+
+    /* ── track 1 — ripstop weave, barely visible; carries the macro push ── */
+    #f01-weave {
+      position: absolute;
+      inset: -6%;
+      transform-origin: 50% 44%;
+      opacity: 0.22;
+      background-image:
+        repeating-linear-gradient(90deg, #23262f 0 1px, rgba(35, 38, 47, 0) 1px 44px),
+        repeating-linear-gradient(0deg, #23262f 0 1px, rgba(35, 38, 47, 0) 1px 44px),
+        repeating-linear-gradient(90deg, #23262f 0 2px, rgba(35, 38, 47, 0) 2px 220px),
+        repeating-linear-gradient(0deg, #23262f 0 2px, rgba(35, 38, 47, 0) 2px 220px);
+    }
+
+    /* ── track 2 — the type ────────────────────────────────────────────── */
+    #f01-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* hero: the readout. Row + stamp share one box so they share one centre. */
+    #f01-readout-row,
+    #f01-stamp {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 336px;
+      height: 236px;
+      text-align: center;
+    }
+
+    #f01-readout-row {
+      font-size: 0;
+      line-height: 0;
+    }
+
+    #f01-readout {
+      position: relative;
+      display: inline-block;
+      vertical-align: top;
+      white-space: pre;
+    }
+
+    .f01-hf {
+      display: block;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 9cqw;
+      line-height: 236px;
+      letter-spacing: 0;
+      white-space: pre;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+
+    #f01-hf-silk {
+      color: #edeae3;
+    }
+
+    /* exact twin of the silk readout — the crossing is an opacity swap, never a colour tween */
+    #f01-hf-fire {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      color: #ff4f00;
+      opacity: 0;
+    }
+
+    /* the hairline */
+    #f01-rule {
+      position: absolute;
+      top: 616px;
+      left: 494px;
+      width: 932px;
+      height: 2px;
+      background-color: #23262f;
+      transform-origin: 0% 50%;
+    }
+
+    /* supporting: the band label */
+    #f01-label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 650px;
+      text-align: center;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.4cqw;
+      line-height: 40px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+      opacity: 0;
+    }
+
+    /* the stamp — two exact copies: a void knockout behind, the silk face on top.
+       That is an overprint, not a shadow: the ground itself is what separates the
+       stamp from the readout, so the plane stays flat. */
+    #f01-stamp {
+      top: 342px;
+      opacity: 0;
+    }
+
+    .f01-stamp-word {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      font-family: "Clash Display", sans-serif;
+      font-weight: 600;
+      font-size: 10cqw;
+      line-height: 236px;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .f01-stamp-knock {
+      color: #0a0b10;
+      -webkit-text-stroke: 32px #0a0b10;
+    }
+
+    .f01-stamp-face {
+      color: #edeae3;
+    }
+  </style>
+
+  <div id="root" data-composition-id="01-the-number" data-duration="10.94" data-width="1920" data-height="1080">
+    <div
+      id="f01-ground"
+      class="clip"
+      data-start="0"
+      data-duration="10.94"
+      data-track-index="0"
+    ></div>
+
+    <div
+      id="f01-weave"
+      class="clip"
+      data-start="0"
+      data-duration="10.94"
+      data-track-index="1"
+      aria-hidden="true"
+    ></div>
+
+    <div id="f01-stage" class="clip" data-start="0" data-duration="10.94" data-track-index="2">
+      <div id="f01-readout-row">
+        <span id="f01-readout">
+          <span id="f01-hf-silk" class="f01-hf">HF 1.6000</span>
+          <span id="f01-hf-fire" class="f01-hf" aria-hidden="true">HF 1.6000</span>
+        </span>
+      </div>
+
+      <div id="f01-rule" aria-hidden="true"></div>
+
+      <div id="f01-label">HEALTH FACTOR</div>
+
+      <div id="f01-stamp">
+        <span class="f01-stamp-word f01-stamp-knock" aria-hidden="true">LIQUIDATED</span>
+        <span class="f01-stamp-word f01-stamp-face">LIQUIDATED</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var root = document.querySelector('[data-composition-id="01-the-number"]');
+      if (!root) return;
+      var q = function (s) {
+        return root.querySelector(s);
+      };
+
+      var weave = q("#f01-weave");
+      var readoutRow = q("#f01-readout-row");
+      var readout = q("#f01-readout");
+      var silk = q("#f01-hf-silk");
+      var fire = q("#f01-hf-fire");
+      var rule = q("#f01-rule");
+      var label = q("#f01-label");
+      var stamp = q("#f01-stamp");
+
+      var DUR = 10.44;
+
+      /* The fall. ONE tween on a proxy (so it is seek-safe in both directions) mapped
+         through a deterministic curve: leaves 1.6000 with real velocity, then accelerates
+         ~6x into the lock. Digits tick and never slide — Space Mono + tabular-nums keep
+         every glyph the same width, so the readout's box never moves.
+
+         The text is written from a `modifiers` hook, NOT from onUpdate: the renderer seeks
+         frame-by-frame and GSAP suppresses tween callbacks on seek, while modifiers run
+         inside every render pass. Same value in, same pixels out, at any playhead. */
+      var HF_FROM = 1.6;
+      var HF_TO = 1.0;
+      var LINEAR_SHARE = 0.3; /* the remainder is cubic — that is the acceleration */
+      var FALL_AT = 3.45; /* on "…factor." */
+      var FALL_DUR = 2.05; /* lands 1.0000 at 5.50, inside the spoken "one point zero" */
+
+      var fall = { p: 0 };
+      var lastText = "";
+
+      function paintAt(p) {
+        var f = LINEAR_SHARE * p + (1 - LINEAR_SHARE) * p * p * p;
+        var v = HF_FROM - (HF_FROM - HF_TO) * f;
+        var t = "HF " + v.toFixed(4);
+        if (t === lastText) return;
+        lastText = t;
+        silk.textContent = t;
+        fire.textContent = t;
+      }
+
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* ── under everything: the macro push. The type never moves; the weave does. ── */
+      tl.fromTo(weave, { scale: 1 }, { scale: 1.06, duration: DUR, ease: "power1.in" }, 0);
+      tl.fromTo(weave, { opacity: 0.22 }, { opacity: 0.8, duration: DUR, ease: "power2.in" }, 0);
+
+      /* ── Scene 1 (0.00–3.09) "Every DeFi loan has one number that matters" ──
+         HF 1.6000 materialises and then sits dead still. Hero readable by t≈0.35s. */
+      tl.fromTo(
+        readout,
+        { opacity: 0.55, scale: 0.992 },
+        { opacity: 1, scale: 1, duration: 0.42, ease: "power2.out" },
+        0,
+      );
+
+      /* ── Scene 2 (3.09–4.20) "health factor." ──
+         the hairline draws left→right, the label decodes "HF", the fall starts. */
+      tl.fromTo(rule, { scaleX: 0 }, { scaleX: 1, duration: 0.66, ease: "power3.inOut" }, 3.09);
+      tl.fromTo(
+        label,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.52, ease: "power2.out" },
+        3.56,
+      );
+      tl.fromTo(
+        fall,
+        { p: 0 },
+        {
+          p: 1,
+          duration: FALL_DUR,
+          ease: "none",
+          modifiers: {
+            p: function (v) {
+              paintAt(v);
+              return v;
+            },
+          },
+        },
+        FALL_AT,
+      );
+
+      /* ── Scene 3 (4.20–5.68) "when it touches one point zero" ──
+         the fall's own cubic tail is the acceleration; the readout ignites as it crosses.
+         Colour change is an opacity crossfade between two identical readouts. */
+      tl.fromTo(silk, { opacity: 1 }, { opacity: 0, duration: 0.22, ease: "power2.out" }, 5.28);
+      tl.fromTo(fire, { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "power2.out" }, 5.28);
+
+      /* ── Scene 4 (5.68–10.44) "your collateral gets SOLD" ──
+         the number is already locked at 1.0000; LIQUIDATED stamps across it on the word
+         "sold" — one hard scale-down from 1.06, no bounce — and both hold dead still. */
+      tl.fromTo(stamp, { opacity: 0 }, { opacity: 1, duration: 0.04, ease: "none" }, 7.08);
+      tl.fromTo(stamp, { scale: 1.06 }, { scale: 1, duration: 0.2, ease: "power4.out" }, 7.08);
+      tl.fromTo(readoutRow, { opacity: 1 }, { opacity: 0.72, duration: 0.1, ease: "none" }, 7.08);
+
+      paintAt(0);
+      window.__timelines["01-the-number"] = tl;
+    })();
+  </script>
+</template>

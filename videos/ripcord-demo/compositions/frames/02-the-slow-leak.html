@@ -1,0 +1,382 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Clash Display";
+      font-weight: 600;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/ClashDisplay-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Satoshi";
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/Satoshi-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Space Mono";
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    /* Root is styled by #root (never a class) and paints NO ground of its own —
+       the full-bleed void rides on the .clip layer below it. */
+    #root {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1920px;
+      height: 1080px;
+      container-type: size;
+      overflow: hidden;
+      background: transparent;
+      color: #edeae3;
+      font-family: "Satoshi", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+          /* z-index is load-bearing, not decoration: assemble-index HOISTS the
+         approved clip out of this file and mounts it at the host root AFTER
+         the frame, so by DOM order the footage paints on top of every overlay
+         in here. The frame root must claim the higher layer or the whole
+         designed composition renders underneath the video. */
+      z-index: 2;
+}
+
+    /* ---- full-bleed ground, lowest track ---- */
+    .slowleak02-ground {
+      position: absolute;
+      inset: 0;
+      /* TRANSPARENT on purpose. This frame sits at z-index 2 so its overlays
+         paint above the hoisted footage; an opaque ground here would then
+         cover the video completely. The host root already paints the void
+         base beneath everything, so the field still reads #0A0B10 wherever
+         the footage does not. */
+      background: transparent;
+}
+
+    /* ---- hairline ring around the footage plate ----
+       Held in px because it must land exactly 1px outside the HOST geometry of the
+       hoisted video element (which assemble-index writes in px). Flat: 1px, no shadow,
+       no radius. The video paints above the frame, so the ring sits just outside it. */
+    .slowleak02-plate-ring {
+      position: absolute;
+      left: 67px;
+      top: 159px;
+      width: 1202px;
+      height: 677px;
+      border: 1px solid #23262f;
+    }
+
+    /* ---- the vacated right column ---- */
+    .slowleak02-col {
+      position: absolute;
+      left: 70cqw;
+      top: 0;
+      width: 26.5cqw;
+      height: 100%;
+    }
+    .slowleak02-col > * {
+      position: absolute;
+      left: 0;
+      width: 100%;
+    }
+
+    /* stat-card: top border only */
+    .slowleak02-statrule {
+      top: 8.3333cqw;
+      height: 1px;
+      background: #23262f;
+      transform-origin: 0% 50%;
+    }
+
+    /* MEASUREMENT — mono, per the brand law "if it is a number, it is set in mono" */
+    .slowleak02-stat {
+      top: 9.375cqw;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 7cqw;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      color: #edeae3;
+    }
+
+    /* mono chrome — uppercase, tracked */
+    .slowleak02-label {
+      top: 18.2292cqw;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 0.78cqw;
+      line-height: 1.4;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #8a8f9c;
+    }
+    .slowleak02-label .accent {
+      color: #ff4f00;
+    }
+
+    .slowleak02-source {
+      top: 20.1042cqw;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 0.68cqw;
+      line-height: 1.4;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #5a5f6c;
+    }
+
+    /* the system's only ornament — the 36x2 stub */
+    .slowleak02-stub {
+      top: 29.1667cqw;
+      width: 36px;
+      height: 2px;
+      background: #ff4f00;
+      transform-origin: 0% 50%;
+    }
+
+    /* STATEMENT — Clash Display, uppercase */
+    .slowleak02-say {
+      top: 31.25cqw;
+      font-family: "Clash Display", sans-serif;
+      font-weight: 600;
+      font-size: 2cqw;
+      line-height: 1.14;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      color: #edeae3;
+    }
+    .slowleak02-say .line {
+      display: block;
+      white-space: nowrap;
+    }
+    .slowleak02-ch {
+      display: inline-block;
+      white-space: pre;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="02-the-slow-leak" data-duration="18.72"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div
+      id="slowleak02-ground"
+      class="clip slowleak02-ground"
+      data-start="0"
+      data-duration="18.72"
+      data-track-index="0"
+    ></div>
+
+    <!-- Real captured footage of the live site. Muted (audio is orchestrator-owned at
+         the root) and looped: the source clip is 10.5s against an 18.72s frame.
+         Declared full-bleed; the move to the left plate is a transform, never a cut. -->
+    <!-- approved frame video hoisted by assemble-index -->
+
+    <div id="slowleak02-ring" class="slowleak02-plate-ring"></div>
+
+    <div class="slowleak02-col">
+      <div id="slowleak02-statrule" class="slowleak02-statrule"></div>
+      <div id="slowleak02-stat" class="slowleak02-stat">$19B</div>
+      <div id="slowleak02-label" class="slowleak02-label">
+        <span class="accent">Oct 2025</span> &middot; Liquidated in one cascade
+      </div>
+      <div id="slowleak02-source" class="slowleak02-source">
+        Derivatives cascade &middot; widely reported
+      </div>
+      <div id="slowleak02-stub" class="slowleak02-stub"></div>
+      <div
+        class="slowleak02-say"
+        role="img"
+        aria-label="Owners were awake. The infrastructure was down."
+      >
+        <span
+          id="slowleak02-lineA"
+          class="line"
+          data-text="Owners were awake."
+          aria-hidden="true"
+        ></span>
+        <span
+          id="slowleak02-lineB"
+          class="line"
+          data-text="The infrastructure"
+          aria-hidden="true"
+        ></span>
+        <span
+          id="slowleak02-lineC"
+          class="line"
+          data-text="was down."
+          aria-hidden="true"
+        ></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var ID = "02-the-slow-leak";
+      var byId = function (id) {
+        return document.getElementById(id);
+      };
+
+      /* Deterministic character split — no randomness, no clocks. */
+      function chars(el) {
+        var out = [];
+        if (!el) return out;
+        var text = el.getAttribute("data-text") || "";
+        el.textContent = "";
+        for (var i = 0; i < text.length; i++) {
+          var s = document.createElement("span");
+          s.className = "slowleak02-ch";
+          s.setAttribute("aria-hidden", "true");
+          s.textContent = text.charAt(i);
+          el.appendChild(s);
+          out.push(s);
+        }
+        return out;
+      }
+
+      var root = byId("root");
+      /* Before assembly the video element is frame-local; after assembly assemble-index
+         hoists it to the host root, keeping this id. getElementById finds it either way. */
+      var hero = byId("slowleak02-hero");
+      var ring = byId("slowleak02-ring");
+      var statrule = byId("slowleak02-statrule");
+      var stat = byId("slowleak02-stat");
+      var label = byId("slowleak02-label");
+      var source = byId("slowleak02-source");
+      var stub = byId("slowleak02-stub");
+
+      var lineA = chars(byId("slowleak02-lineA"));
+      var lineB = chars(byId("slowleak02-lineB")).concat(
+        chars(byId("slowleak02-lineC")),
+      );
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* ---------------------------------------------------------------
+         Scene 1 (0.00-4.20) — the live hero, full-bleed, held.
+         Only the footage plays. A 1.5% creep keeps the plane breathing;
+         transform-origin stays 0 0 for the whole shot so the plate move
+         below is one continuous transform, never a re-anchor jump.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        hero,
+        { scale: 1, x: 0, y: 0, transformOrigin: "0px 0px" },
+        {
+          scale: 1.015,
+          x: -14.4,
+          y: -8.1,
+          duration: 4.2,
+          ease: "none",
+          transformOrigin: "0px 0px",
+        },
+        0,
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 2 (4.20-8.00) — "slow leaks" / "a position drifting for hours".
+         The footage eases from full-bleed to a 62%-width plate on the LEFT:
+         one heavy weight-transfer ease, transform only, no cut. The hairline
+         resolves as the plate lands; the vacated right column then sits empty
+         for a long, uncomfortable beat.
+         --------------------------------------------------------------- */
+      tl.to(
+        hero,
+        {
+          scale: 0.625,
+          x: 68,
+          y: 160,
+          duration: 1.8,
+          ease: "power3.inOut",
+          transformOrigin: "0px 0px",
+        },
+        4.2,
+      );
+      tl.fromTo(
+        ring,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.8, ease: "power2.out" },
+        5.4,
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 3 (8.00-12.60) — "in October 2025, when 19 billion dollars
+         liquidated in a single cascade". The vacated column takes the stat.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        statrule,
+        { scaleX: 0, transformOrigin: "0% 50%" },
+        {
+          scaleX: 1,
+          duration: 0.7,
+          ease: "power2.out",
+          transformOrigin: "0% 50%",
+        },
+        7.84,
+      );
+      /* the stat rises 24px into place on one heavy ease */
+      tl.fromTo(
+        stat,
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1.1, ease: "power3.out" },
+        8.1,
+      );
+      tl.fromTo(
+        label,
+        { y: 10, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" },
+        9.55,
+      );
+      tl.fromTo(
+        source,
+        { y: 8, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: "power2.out" },
+        11.95,
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 4 (12.60-18.72) — "plenty of owners were wide awake, locked
+         out of the infrastructure". The closing statement types on line by
+         line, then everything stops. Only the footage moves to the cut.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        stub,
+        { scaleX: 0, transformOrigin: "0% 50%" },
+        {
+          scaleX: 1,
+          duration: 0.45,
+          ease: "power2.out",
+          transformOrigin: "0% 50%",
+        },
+        12.6,
+      );
+      tl.fromTo(
+        lineA,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.06, ease: "none", stagger: 0.035 },
+        13.3,
+      );
+      tl.fromTo(
+        lineB,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.06, ease: "none", stagger: 0.034 },
+        15.2,
+      );
+
+      /* hold, dead still, to the cut — pins the timeline to the frame length */
+      tl.set(root, { opacity: 1 }, 18.72);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[ID] = tl;
+    })();
+  </script>
+</template>

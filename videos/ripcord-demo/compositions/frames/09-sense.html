@@ -1,0 +1,401 @@
+<template data-info="09-sense — typeset daemon output: real ticks, the oracle cross-check, then a real block">
+  <style>
+    /* ---- shipped fonts (project-root-relative paths, local files only) ---- */
+    @font-face {
+      font-family: "Space Mono";
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    /* ---- frame root (contract: styled via #root, never a class) ---- */
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    /* ---- track 0 — full-bleed void ground (never painted on #root) ---- */
+    [id="f09-ground"] { position: absolute; inset: 0; background: #0a0b10; }
+
+    /* ---- track 1 — ripstop weave, barely there; carries the macro drift ---- */
+    [id="f09-weave"] {
+      position: absolute;
+      inset: -6%;
+      opacity: 0.2;
+      transform-origin: 50% 46%;
+      will-change: transform;
+      background-image:
+        repeating-linear-gradient(90deg, #23262f 0 1px, rgba(35, 38, 47, 0) 1px 44px),
+        repeating-linear-gradient(0deg, #23262f 0 1px, rgba(35, 38, 47, 0) 1px 44px),
+        repeating-linear-gradient(90deg, #23262f 0 2px, rgba(35, 38, 47, 0) 2px 220px),
+        repeating-linear-gradient(0deg, #23262f 0 2px, rgba(35, 38, 47, 0) 2px 220px);
+    }
+
+    /* ---- track 2 — chrome: orange rule stub + dim mono kicker ---- */
+    [id="f09-chrome"] { position: absolute; inset: 0; }
+    [id="f09-stub"] {
+      position: absolute; left: 110px; top: 100px; width: 36px; height: 2px;
+      background: #ff4f00; transform-origin: left center;
+    }
+    [id="f09-kicker"] {
+      position: absolute;
+      left: 110px;
+      top: 122px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 0.95cqw;
+      line-height: 1;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+
+    /* ---- track 3 — the stage: both typeset panes ---- */
+    [id="f09-stage"] {
+      position: absolute; inset: 0; transform-origin: 50% 46%; will-change: transform;
+    }
+
+    /* shared pane shell — hairline border, flat plane, zero radius */
+    .f09-pane {
+      position: absolute;
+      top: 230px;
+      height: 590px;
+      box-sizing: border-box;
+      border: 1px solid #23262f;
+      background: #0d0f16;
+      will-change: transform;
+    }
+    [id="f09-term"] { left: 110px; width: 960px; }
+    [id="f09-oracle"] { left: 1120px; width: 690px; }
+
+    /* pane head chrome */
+    .f09-head {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 64px;
+      box-sizing: border-box;
+      border-bottom: 1px solid #23262f;
+      display: flex;
+      align-items: center;
+      padding-left: 40px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 0.95cqw;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+
+    /* ---- the real captured tick lines ---- */
+    [id="f09-ticks"] { position: absolute; inset: 0; }
+    .f09-tick {
+      position: absolute;
+      left: 40px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.7cqw;
+      line-height: 1.2;
+      letter-spacing: 0;
+      white-space: pre;
+      color: #edeae3;
+    }
+    [id="f09-tick-1"] { top: 112px; }
+    [id="f09-tick-2"] { top: 170px; }
+    [id="f09-tick-3"] { top: 228px; }
+    .f09-t-dim { color: #8a8f9c; }
+    .f09-t-key { color: #8a8f9c; }
+    .f09-t-val { color: #edeae3; }
+    .f09-t-fire { color: #ff4f00; }
+    /* the reveal mask: a pane-coloured cover that collapses to the right,
+       uncovering pre-laid-out text left-to-right. Transform only. */
+    .f09-cover {
+      position: absolute;
+      left: -6px;
+      right: -8px;
+      top: -5px;
+      bottom: -5px;
+      background: #0d0f16;
+      transform-origin: right center;
+      will-change: transform;
+    }
+    [id="f09-caret"] {
+      position: absolute; left: 40px; top: 292px; width: 17px; height: 34px; background: #8a8f9c;
+    }
+
+    /* ---- the payoff: the real BLOCKED stamp across the terminal pane ---- */
+    [id="f09-blocked"] {
+      position: absolute;
+      left: 40px;
+      top: 456px;
+      width: 880px;
+      height: 104px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      padding-left: 40px;
+      background: rgba(10, 11, 16, 0.86);
+      will-change: transform;
+    }
+    [id="f09-blocked-edge"] { position: absolute; inset: 0; border: 1px solid #ff4f00; }
+    [id="f09-blocked-text"] {
+      position: relative;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 2.05cqw;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      color: #ff4f00;
+      white-space: nowrap;
+      will-change: transform;
+    }
+
+    /* ---- the oracle panel ---- */
+    .f09-row { position: absolute; left: 40px; will-change: transform; }
+    [id="f09-row-aave"] { top: 106px; }
+    [id="f09-row-link"] { top: 224px; }
+    [id="f09-row-ratio"] { top: 342px; }
+    .f09-label {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 0.9cqw;
+      line-height: 1;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+    /* odometer window — pre-rendered states stacked, one stepped transform
+       picks the state. Deterministic, seek-safe, no clock. */
+    .f09-win { margin-top: 18px; height: 48px; overflow: hidden; }
+    .f09-strip { will-change: transform; }
+    .f09-v {
+      height: 48px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 2cqw;
+      line-height: 48px;
+      letter-spacing: 0.01em;
+      color: #edeae3;
+      white-space: nowrap;
+    }
+    .f09-v-fire { color: #ff4f00; }
+    [id="f09-divider"] {
+      position: absolute; left: 40px; top: 452px; width: 610px; height: 1px;
+      background: #23262f; transform-origin: left center;
+    }
+    [id="f09-verdict"] { position: absolute; left: 40px; top: 486px; will-change: transform; }
+    [id="f09-verdict-win"] { height: 44px; overflow: hidden; }
+    .f09-vd {
+      height: 44px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.65cqw;
+      line-height: 44px;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+    /* the ONE phosphor in this frame — the verified state, nothing else */
+    .f09-vd-ok { color: #7cf5c4; }
+    .f09-vd-bad { color: #ff4f00; }
+    [id="f09-rule-tag"] {
+      position: absolute;
+      left: 40px;
+      top: 544px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 0.9cqw;
+      line-height: 1.2;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+    /* the corruption signals: a fire bar wiping the panel head + a fire edge */
+    [id="f09-oracle-bar"] {
+      position: absolute; left: -1px; top: -1px; width: calc(100% + 2px); height: 2px;
+      background: #ff4f00; transform-origin: left center;
+    }
+    [id="f09-oracle-edge"] { position: absolute; inset: -1px; border: 1px solid #ff4f00; }
+  </style>
+
+  <div id="root" data-composition-id="09-sense" data-width="1920" data-height="1080" data-duration="14.28">
+    <!-- track 0 — full-bleed void ground -->
+    <div id="f09-ground" class="clip" data-start="0" data-duration="14.28" data-track-index="0"></div>
+
+    <!-- track 1 — ripstop weave -->
+    <div id="f09-weave" class="clip" data-start="0" data-duration="14.28" data-track-index="1" aria-hidden="true"></div>
+
+    <!-- track 2 — chrome -->
+    <div id="f09-chrome" class="clip" data-start="0" data-duration="14.28" data-track-index="2">
+      <div id="f09-stub" aria-hidden="true"></div>
+      <div id="f09-kicker">Sense &middot; oracle cross-check</div>
+    </div>
+
+    <!-- track 3 — the two typeset panes -->
+    <div id="f09-stage" class="clip" data-start="0" data-duration="14.28" data-track-index="3">
+      <!-- LEFT 58% — the daemon terminal, real captured output -->
+      <div id="f09-term" class="f09-pane">
+        <div class="f09-head">RIPCORD &middot; base</div>
+
+        <div id="f09-ticks">
+          <div id="f09-tick-1" class="f09-tick"><span class="f09-t-dim">tick</span>  <span class="f09-t-key">band=</span><span class="f09-t-val">healthy</span>  <span class="f09-t-key">hf=</span><span class="f09-t-val">1.626083</span><span id="f09-cover-1" class="f09-cover"></span></div>
+          <div id="f09-tick-2" class="f09-tick"><span class="f09-t-dim">tick</span>  <span class="f09-t-key">band=</span><span class="f09-t-val">healthy</span>  <span class="f09-t-key">hf=</span><span class="f09-t-val">1.559777</span><span id="f09-cover-2" class="f09-cover"></span></div>
+          <div id="f09-tick-3" class="f09-tick"><span class="f09-t-dim">tick</span>  <span class="f09-t-key">band=</span><span class="f09-t-fire">warn</span>     <span class="f09-t-key">hf=</span><span class="f09-t-val">1.455708</span><span id="f09-cover-3" class="f09-cover"></span></div>
+          <div id="f09-caret" aria-hidden="true"></div>
+        </div>
+
+        <div id="f09-blocked">
+          <div id="f09-blocked-edge" aria-hidden="true"></div>
+          <div id="f09-blocked-text">BLOCKED &mdash; oracle-sanity</div>
+        </div>
+      </div>
+
+      <!-- RIGHT 42% — the oracle cross-check panel -->
+      <div id="f09-oracle" class="f09-pane">
+        <div id="f09-oracle-bar" aria-hidden="true"></div>
+        <div id="f09-oracle-edge" aria-hidden="true"></div>
+        <div class="f09-head">Oracle cross-check</div>
+
+        <div id="f09-row-aave" class="f09-row">
+          <div class="f09-label">Aave oracle</div>
+          <div class="f09-win"><div id="f09-aave-strip" class="f09-strip">
+            <div class="f09-v">$1874.12</div>
+            <div class="f09-v f09-v-fire">$1.12</div>
+          </div></div>
+        </div>
+
+        <div id="f09-row-link" class="f09-row">
+          <div class="f09-label">Chainlink ref</div>
+          <div class="f09-win"><div class="f09-strip"><div class="f09-v">$1874.63</div></div></div>
+        </div>
+
+        <div id="f09-row-ratio" class="f09-row">
+          <div class="f09-label">Ratio</div>
+          <div class="f09-win"><div id="f09-ratio-strip" class="f09-strip">
+            <div class="f09-v">1.0000</div>
+            <div class="f09-v f09-v-fire">0.0006</div>
+          </div></div>
+        </div>
+
+        <div id="f09-divider" aria-hidden="true"></div>
+
+        <div id="f09-verdict">
+          <div id="f09-verdict-win"><div id="f09-verdict-strip" class="f09-strip">
+            <div class="f09-vd f09-vd-ok">-&gt; WITHIN BAND</div>
+            <div class="f09-vd f09-vd-bad">-&gt; DIVERGENT</div>
+          </div></div>
+        </div>
+
+        <div id="f09-rule-tag">rule &middot; oracle-sanity</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+
+      var root = document.querySelector('[data-composition-id="09-sense"]');
+      if (!root) return;
+      var q = function (sel) { return root.querySelector(sel); };
+      var tl = gsap.timeline({ paused: true });
+
+      /* Macro camera — a near-imperceptible push under the whole shot,
+         stopped dead at 11.0 so the payoff holds still. */
+      tl.fromTo(q("#f09-weave"), { scale: 1, y: 0 },
+        { scale: 1.05, y: -10, duration: 14.28, ease: "sine.inOut" }, 0);
+      tl.fromTo(q("#f09-stage"), { scale: 1 },
+        { scale: 1.014, duration: 11, ease: "sine.inOut" }, 0);
+
+      /* ---------------------------------------------------------------
+         Scene 1 (0.0-3.4) — the terminal pane, then the real tick lines
+         typing in one every ~0.9s. Hero is on screen well before 0.5s.
+         --------------------------------------------------------------- */
+      tl.fromTo(q("#f09-stub"), { scaleX: 0 },
+        { scaleX: 1, duration: 0.46, ease: "power2.out" }, 0.06);
+      tl.fromTo(q("#f09-kicker"), { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 0.14);
+      tl.fromTo(q("#f09-term"), { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.72, ease: "power3.out" }, 0.1);
+
+      /* the tick reveal: a pane-coloured cover collapses to its right edge,
+         uncovering PRE-LAID-OUT text left to right. steps() gives the
+         typewriter cadence without ever mutating textContent. */
+      var typeLine = function (n, at) {
+        tl.fromTo(q("#f09-cover-" + n), { scaleX: 1 },
+          { scaleX: 0, duration: 0.44, ease: "steps(17)" }, at);
+      };
+      typeLine(1, 0.62);
+      typeLine(2, 1.52);
+      typeLine(3, 2.42);
+      tl.fromTo(q("#f09-caret"), { opacity: 0 },
+        { opacity: 0.75, duration: 0.28, ease: "none" }, 3.0);
+
+      /* ---------------------------------------------------------------
+         Scene 2 (3.4-7.2) — the oracle panel builds, one row at a time,
+         and resolves to the verified state. The only phosphor in the shot.
+         --------------------------------------------------------------- */
+      tl.fromTo(q("#f09-oracle"), { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.66, ease: "power3.out" }, 3.4);
+
+      var revealRow = function (sel, at) {
+        tl.fromTo(q(sel), { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, at);
+      };
+      revealRow("#f09-row-aave", 3.98);
+      revealRow("#f09-row-link", 4.72);
+      revealRow("#f09-row-ratio", 5.46);
+
+      tl.fromTo(q("#f09-divider"), { scaleX: 0 },
+        { scaleX: 1, duration: 0.5, ease: "power2.out" }, 6.1);
+      tl.fromTo(q("#f09-verdict"), { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 6.26);
+
+      /* ---------------------------------------------------------------
+         Scene 3 (7.2-11.0) — the corruption. The panel re-runs: a fire bar
+         wipes its head, the fire edge lights, and each odometer rolls to
+         the corrupted state one after another.
+         --------------------------------------------------------------- */
+      tl.fromTo(q("#f09-oracle-bar"), { scaleX: 0 },
+        { scaleX: 1, duration: 0.55, ease: "power3.out" }, 7.2);
+      tl.fromTo(q("#f09-oracle-edge"), { opacity: 0 },
+        { opacity: 1, duration: 0.5, ease: "sine.out" }, 7.24);
+
+      /* one 48px slot, two pre-rendered values — the roll IS the state swap */
+      tl.fromTo(q("#f09-aave-strip"), { y: 0 },
+        { y: -48, duration: 0.34, ease: "power4.inOut" }, 7.52);
+      tl.fromTo(q("#f09-ratio-strip"), { y: 0 },
+        { y: -48, duration: 0.34, ease: "power4.inOut" }, 8.42);
+      tl.fromTo(q("#f09-verdict-strip"), { y: 0 },
+        { y: -44, duration: 0.3, ease: "power4.inOut" }, 9.36);
+      tl.fromTo(q("#f09-rule-tag"), { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 10.1);
+
+      /* ---------------------------------------------------------------
+         Scene 4 (11.0-14.28) — the payoff. The log drops back and one real
+         fire-orange line stamps across the terminal pane. Then both panes
+         hold, dead still.
+         --------------------------------------------------------------- */
+      tl.fromTo(q("#f09-ticks"), { opacity: 1 },
+        { opacity: 0.42, duration: 0.6, ease: "sine.inOut" }, 11.0);
+      tl.fromTo(q("#f09-blocked"), { opacity: 0, scaleX: 0.965 },
+        { opacity: 1, scaleX: 1, duration: 0.5, ease: "power3.out" }, 11.06);
+      tl.fromTo(q("#f09-blocked-text"), { opacity: 0, scale: 1.05 },
+        { opacity: 1, scale: 1, duration: 0.36, ease: "power4.out" }, 11.28);
+
+      /* hold out the full window — no exit; the root transition is the exit */
+      tl.to({}, { duration: 0.01 }, 14.27);
+
+      window.__timelines["09-sense"] = tl;
+    })();
+  </script>
+</template>

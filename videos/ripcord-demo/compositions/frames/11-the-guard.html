@@ -1,0 +1,279 @@
+<template data-info="11-the-guard — fourteen real rule ids cascade, then a real block that panic could not bypass">
+  <style>
+    /* ---- shipped fonts (project-root-relative paths, local files only) ---- */
+    @font-face {
+      font-family: "Clash Display";
+      font-style: normal;
+      font-weight: 600;
+      font-display: block;
+      src: url("assets/fonts/ClashDisplay-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Space Mono";
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    /* ---- frame root (contract: styled via #root, never a class) ---- */
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    /* ---- track 0 — full-bleed void ground (never painted on #root) ---- */
+    [id="f11-ground"] { position: absolute; inset: 0; background: #0a0b10; }
+
+    /* ---- track 1 — ripstop weave ---- */
+    [id="f11-weave"] {
+      position: absolute;
+      inset: -6%;
+      opacity: 0.18;
+      transform-origin: 50% 44%;
+      will-change: transform;
+      background-image:
+        repeating-linear-gradient(90deg, #23262f 0 1px, rgba(35, 38, 47, 0) 1px 44px),
+        repeating-linear-gradient(0deg, #23262f 0 1px, rgba(35, 38, 47, 0) 1px 44px),
+        repeating-linear-gradient(90deg, #23262f 0 2px, rgba(35, 38, 47, 0) 2px 220px),
+        repeating-linear-gradient(0deg, #23262f 0 2px, rgba(35, 38, 47, 0) 2px 220px);
+    }
+
+    /* ---- track 2 — the heading ---- */
+    [id="f11-head"] { position: absolute; inset: 0; }
+    [id="f11-stub"] {
+      position: absolute; left: 110px; top: 100px; width: 36px; height: 2px;
+      background: #ff4f00; transform-origin: left center;
+    }
+    [id="f11-title"] {
+      position: absolute;
+      left: 110px;
+      top: 138px;
+      font-family: "Clash Display", sans-serif;
+      font-weight: 600;
+      font-size: 5.2cqw;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: #edeae3;
+      white-space: nowrap;
+      will-change: transform;
+    }
+    [id="f11-sub"] {
+      position: absolute;
+      left: 110px;
+      top: 282px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1cqw;
+      line-height: 1;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+
+    /* ---- track 3 — the fourteen real rule ids as hairline mono chips ---- */
+    [id="f11-grid"] { position: absolute; inset: 0; }
+    [id="f11-rules"] {
+      position: absolute;
+      left: 110px;
+      top: 380px;
+      width: 1700px;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 22px;
+      will-change: transform;
+    }
+    .f11-chip {
+      position: relative; box-sizing: border-box; border: 1px solid #23262f;
+      padding: 18px 26px; will-change: transform;
+    }
+    .f11-lit {
+      position: absolute; inset: 0; z-index: 0;
+      background: rgba(237, 234, 227, 0.05); opacity: 0;
+    }
+    .f11-txt { position: relative; z-index: 1; display: grid; }
+    .f11-t-dim,
+    .f11-t-on {
+      grid-area: 1 / 1;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.5cqw;
+      line-height: 1.15;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .f11-t-dim { color: #8a8f9c; }
+    .f11-t-on { color: #edeae3; opacity: 0; }
+
+    /* ---- track 4 — the real captured verdict, stamped over the grid ---- */
+    [id="f11-verdict-layer"] { position: absolute; inset: 0; }
+    [id="f11-verdict"] {
+      position: absolute;
+      left: 110px;
+      top: 450px;
+      width: 1700px;
+      height: 118px;
+      box-sizing: border-box;
+      border: 1px solid #ff4f00;
+      background: rgba(10, 11, 16, 0.86);
+      display: flex;
+      align-items: center;
+      padding-left: 48px;
+      transform-origin: left center;
+      will-change: transform;
+    }
+    [id="f11-verdict-text"] {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 2.2cqw;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      color: #ff4f00;
+      white-space: nowrap;
+      will-change: transform;
+    }
+
+    /* ---- track 5 — the line that is the whole point ---- */
+    [id="f11-coda"] {
+      position: absolute;
+      left: 110px;
+      top: 706px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 1.55cqw;
+      line-height: 1.25;
+      letter-spacing: 0.01em;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+    .f11-w { display: inline-block; will-change: transform; }
+  </style>
+
+  <div id="root" data-composition-id="11-the-guard" data-width="1920" data-height="1080" data-duration="9.5">
+    <!-- track 0 — full-bleed void ground -->
+    <div id="f11-ground" class="clip" data-start="0" data-duration="9.5" data-track-index="0"></div>
+
+    <!-- track 1 — ripstop weave -->
+    <div id="f11-weave" class="clip" data-start="0" data-duration="9.5" data-track-index="1" aria-hidden="true"></div>
+
+    <!-- track 2 — heading -->
+    <div id="f11-head" class="clip" data-start="0" data-duration="9.5" data-track-index="2">
+      <div id="f11-stub" aria-hidden="true"></div>
+      <div id="f11-title">The Guard</div>
+      <div id="f11-sub">14 deterministic rules &middot; evaluated every decision</div>
+    </div>
+
+    <!-- track 3 — the fourteen real Guard rule ids, in Guard order -->
+    <div id="f11-grid" class="clip" data-start="0" data-duration="9.5" data-track-index="3">
+      <div id="f11-rules">
+        <div id="f11-chip-1" class="f11-chip"><div id="f11-lit-1" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">action-none</span><span id="f11-on-1" class="f11-t-on" aria-hidden="true">action-none</span></div></div>
+        <div id="f11-chip-2" class="f11-chip"><div id="f11-lit-2" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">critic-approval</span><span id="f11-on-2" class="f11-t-on" aria-hidden="true">critic-approval</span></div></div>
+        <div id="f11-chip-3" class="f11-chip"><div id="f11-lit-3" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">allowlist</span><span id="f11-on-3" class="f11-t-on" aria-hidden="true">allowlist</span></div></div>
+        <div id="f11-chip-4" class="f11-chip"><div id="f11-lit-4" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">amount-positive</span><span id="f11-on-4" class="f11-t-on" aria-hidden="true">amount-positive</span></div></div>
+        <div id="f11-chip-5" class="f11-chip"><div id="f11-lit-5" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">max-tx-usd</span><span id="f11-on-5" class="f11-t-on" aria-hidden="true">max-tx-usd</span></div></div>
+        <div id="f11-chip-6" class="f11-chip"><div id="f11-lit-6" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">daily-cap</span><span id="f11-on-6" class="f11-t-on" aria-hidden="true">daily-cap</span></div></div>
+        <div id="f11-chip-7" class="f11-chip"><div id="f11-lit-7" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">min-hf-improvement</span><span id="f11-on-7" class="f11-t-on" aria-hidden="true">min-hf-improvement</span></div></div>
+        <div id="f11-chip-8" class="f11-chip"><div id="f11-lit-8" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">hf-claim-honesty</span><span id="f11-on-8" class="f11-t-on" aria-hidden="true">hf-claim-honesty</span></div></div>
+        <div id="f11-chip-9" class="f11-chip"><div id="f11-lit-9" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">snapshot-provenance</span><span id="f11-on-9" class="f11-t-on" aria-hidden="true">snapshot-provenance</span></div></div>
+        <div id="f11-chip-10" class="f11-chip"><div id="f11-lit-10" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">oracle-sanity</span><span id="f11-on-10" class="f11-t-on" aria-hidden="true">oracle-sanity</span></div></div>
+        <div id="f11-chip-11" class="f11-chip"><div id="f11-lit-11" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">wallet-reserve-floor</span><span id="f11-on-11" class="f11-t-on" aria-hidden="true">wallet-reserve-floor</span></div></div>
+        <div id="f11-chip-12" class="f11-chip"><div id="f11-lit-12" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">wallet-solvency</span><span id="f11-on-12" class="f11-t-on" aria-hidden="true">wallet-solvency</span></div></div>
+        <div id="f11-chip-13" class="f11-chip"><div id="f11-lit-13" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">idempotency</span><span id="f11-on-13" class="f11-t-on" aria-hidden="true">idempotency</span></div></div>
+        <div id="f11-chip-14" class="f11-chip"><div id="f11-lit-14" class="f11-lit"></div><div class="f11-txt"><span class="f11-t-dim">arm-flag</span><span id="f11-on-14" class="f11-t-on" aria-hidden="true">arm-flag</span></div></div>
+      </div>
+    </div>
+
+    <!-- track 4 — the real captured verdict -->
+    <div id="f11-verdict-layer" class="clip" data-start="0" data-duration="9.5" data-track-index="4">
+      <div id="f11-verdict">
+        <div id="f11-verdict-text">guard: blocked &mdash; arm-flag &middot; mainnet requires explicit arm</div>
+      </div>
+    </div>
+
+    <!-- track 5 — the coda -->
+    <div id="f11-coda" class="clip" data-start="0" data-duration="9.5" data-track-index="5">
+      <span id="f11-cw-1" class="f11-w">this</span> <span id="f11-cw-2" class="f11-w">block</span>
+      <span id="f11-cw-3" class="f11-w">fired</span> <span id="f11-cw-4" class="f11-w">in</span>
+      <span id="f11-cw-5" class="f11-w">the</span> <span id="f11-cw-6" class="f11-w">panic</span>
+      <span id="f11-cw-7" class="f11-w">band.</span> <span id="f11-cw-8" class="f11-w">panic</span>
+      <span id="f11-cw-9" class="f11-w">could</span> <span id="f11-cw-10" class="f11-w">not</span>
+      <span id="f11-cw-11" class="f11-w">bypass</span> <span id="f11-cw-12" class="f11-w">it.</span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+
+      var root = document.querySelector('[data-composition-id="11-the-guard"]');
+      if (!root) return;
+      var q = function (sel) { return root.querySelector(sel); };
+      var tl = gsap.timeline({ paused: true });
+
+      /* macro drift under everything; the frame itself never moves */
+      tl.fromTo(q("#f11-weave"), { scale: 1, y: 0 },
+        { scale: 1.04, y: -8, duration: 9, ease: "sine.inOut" }, 0);
+
+      /* ---------------------------------------------------------------
+         Scene 1 (0.0-1.4) — the heading. Hero on screen well before 0.5s.
+         --------------------------------------------------------------- */
+      tl.fromTo(q("#f11-stub"), { scaleX: 0 },
+        { scaleX: 1, duration: 0.44, ease: "power2.out" }, 0.06);
+      tl.fromTo(q("#f11-title"), { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.68, ease: "power3.out" }, 0.12);
+      tl.fromTo(q("#f11-sub"), { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 0.58);
+
+      /* ---------------------------------------------------------------
+         Scene 2 (1.4-5.0) — the fourteen real rule ids cascade into the
+         wrapped grid 70ms apart, dim; then a second pass walks the array
+         and lights each chip as the Guard evaluates it. Nothing here is a
+         clock — every step is a fixed offset on the one paused timeline.
+         --------------------------------------------------------------- */
+      var i;
+      for (i = 1; i <= 14; i++) {
+        tl.fromTo(q("#f11-chip-" + i), { opacity: 0, y: 16 },
+          { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 1.4 + (i - 1) * 0.07);
+      }
+      for (i = 1; i <= 14; i++) {
+        tl.fromTo(q("#f11-lit-" + i), { opacity: 0 },
+          { opacity: 1, duration: 0.4, ease: "sine.out" }, 3.05 + (i - 1) * 0.114);
+        tl.fromTo(q("#f11-on-" + i), { opacity: 0 },
+          { opacity: 1, duration: 0.4, ease: "sine.out" }, 3.05 + (i - 1) * 0.114);
+      }
+
+      /* ---------------------------------------------------------------
+         Scene 3 (5.0-7.0) — the grid drops to 40% and the real captured
+         verdict stamps across it. Fire-orange only; no phosphor lives in
+         this frame at all.
+         --------------------------------------------------------------- */
+      tl.fromTo(q("#f11-rules"), { opacity: 1 },
+        { opacity: 0.4, duration: 0.6, ease: "sine.inOut" }, 5.0);
+      tl.fromTo(q("#f11-verdict"), { opacity: 0, scaleX: 0.965 },
+        { opacity: 1, scaleX: 1, duration: 0.52, ease: "power3.out" }, 5.06);
+      tl.fromTo(q("#f11-verdict-text"), { opacity: 0, scale: 1.045 },
+        { opacity: 1, scale: 1, duration: 0.36, ease: "power4.out" }, 5.3);
+
+      /* ---------------------------------------------------------------
+         Scene 4 (7.0-9.0) — the coda settles beneath, word by word, and
+         the frame holds dead still. This line is the argument.
+         --------------------------------------------------------------- */
+      for (i = 1; i <= 12; i++) {
+        tl.fromTo(q("#f11-cw-" + i), { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, duration: 0.42, ease: "power2.out" }, 7.0 + (i - 1) * 0.062);
+      }
+
+      /* hold out the full window — no exit; the root transition is the exit */
+      tl.to({}, { duration: 0.01 }, 8.99);
+
+      window.__timelines["11-the-guard"] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,290 @@
+<template>
+  <style>
+    /* ---- shipped fonts (project-root-relative paths) ---- */
+    @font-face {
+      font-family: "Space Mono";
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    /* Frame ground. container-type per frame.md's container law; the layout
+       below is authored in px against the fixed 1920x1080 canvas (1cqw = 19.2px). */
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    /* ---- ground: the void (full-bleed clip, never painted on #root) ---- */
+    .f07-bg {
+      position: absolute;
+      inset: 0;
+      background: #0a0b10;
+    }
+
+    .f07-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ---- shared metric type ---- */
+    .f07-num {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: #edeae3;
+      white-space: nowrap;
+    }
+    .f07-label {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      line-height: 1.2;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+    .f07-hair {
+      height: 1px;
+      background: #23262f;
+      transform-origin: 0% 50%;
+    }
+
+    /* ---- asymmetric 60/40 measurement row (stat-card: top border only) ---- */
+    #f07-col-a {
+      position: absolute;
+      left: 106px;
+      top: 214px;
+      width: 940px;
+    }
+    #f07-col-b {
+      position: absolute;
+      left: 1146px;
+      top: 214px;
+      width: 668px;
+    }
+
+    /* metric 1 — the hero count: 21s (8cqw) */
+    #f07-m1 {
+      margin-top: 34px;
+      font-size: 154px;
+      height: 154px;
+    }
+    #f07-count {
+      display: inline-block;
+      transform-origin: 0% 50%;
+      will-change: transform;
+    }
+    #f07-unit {
+      display: inline-block;
+      font-size: 95px;
+      color: #8a8f9c;
+      letter-spacing: 0;
+    }
+    #f07-l1 {
+      margin-top: 30px;
+      font-size: 26px;
+    }
+
+    /* metric 2 — gas, bottom-aligned to metric 1's baseline (5cqw) */
+    #f07-m2 {
+      margin-top: 92px;
+      font-size: 96px;
+      height: 96px;
+    }
+    #f07-l2 {
+      margin-top: 30px;
+      font-size: 22px;
+    }
+    #f07-l2 span {
+      display: inline-block;
+    }
+
+    /* ---- the payoff: recovered health factor, centred (10cqw) ---- */
+    #f07-payoff {
+      position: absolute;
+      left: 0;
+      top: 556px;
+      width: 1920px;
+      text-align: center;
+    }
+    #f07-payhair {
+      width: 760px;
+      margin: 0 auto;
+      transform-origin: 50% 50%;
+    }
+    #f07-hf {
+      display: block;
+      width: max-content;
+      margin: 40px auto 0;
+      font-size: 192px;
+      height: 192px;
+      color: #7cf5c4; /* phosphor — SCOPED to the recovered value, nowhere else */
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+    #f07-l3 {
+      margin-top: 28px;
+      font-size: 26px;
+      color: #edeae3;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="07-the-numbers"
+    data-width="1920"
+    data-height="1080"
+    data-duration="8.56"
+  >
+    <div id="f07-ground" class="clip f07-bg" data-start="0" data-duration="8.56" data-track-index="0"></div>
+
+    <div id="f07-scene" class="clip f07-stage" data-start="0" data-duration="8.56" data-track-index="1">
+      <div id="f07-col-a">
+        <div class="f07-hair" id="f07-hair-a"></div>
+        <div class="f07-num" id="f07-m1"><span id="f07-count">0</span
+          ><span id="f07-unit">s</span></div>
+        <div class="f07-label" id="f07-l1">SENSE -&gt; LANDED</div>
+      </div>
+
+      <div id="f07-col-b">
+        <div class="f07-hair" id="f07-hair-b"></div>
+        <div class="f07-num" id="f07-m2">184,531</div>
+        <div class="f07-label" id="f07-l2"><span id="f07-l2a">GAS &middot; SPONSORED</span
+          ><span id="f07-l2b">&nbsp;&middot; $0 TO THE POSITION</span></div>
+      </div>
+
+      <div id="f07-payoff">
+        <div class="f07-hair" id="f07-payhair"></div>
+        <div class="f07-num" id="f07-hf">1.6028</div>
+        <div class="f07-label" id="f07-l3">RECOVERED</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+
+      var countEl = document.getElementById("f07-count");
+      var state = { value: 0 };
+
+      /* ---------- Scene 1 (0.0-3.0s): void; 21s counts up, centre-left ----------
+         counting-dynamic-scale: value + transform scale share ONE decelerating
+         ease and one duration; font-size is static, only the transform moves. */
+      tl.fromTo(
+        "#f07-hair-a",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.6, ease: "power2.out" },
+        0.04
+      );
+      tl.fromTo("#f07-m1", { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.35, ease: "power2.out" }, 0.1);
+      tl.to(
+        state,
+        {
+          value: 21,
+          duration: 2.0,
+          ease: "power3.out",
+          // modifiers, NOT onUpdate: the renderer seeks with
+          // totalTime(t, suppressEvents) and GSAP suppresses onUpdate on a
+          // seek — the counter would render frozen at 0 in the MP4 while
+          // looking correct in live preview. modifiers runs inside every
+          // render pass, so the value is right at any playhead.
+          modifiers: {
+            value: function (v) {
+              countEl.textContent = String(Math.round(v));
+              return v;
+            },
+          },
+        },
+        0.12
+      );
+      tl.fromTo(
+        "#f07-count",
+        { scale: 0.55 },
+        { scale: 1, duration: 2.0, ease: "power3.out" },
+        0.12
+      );
+      tl.fromTo(
+        "#f07-l1",
+        { autoAlpha: 0, y: 16 },
+        { autoAlpha: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        0.9
+      );
+      /* the unit gets its own beat, after the digits land — no overshoot */
+      tl.fromTo(
+        "#f07-unit",
+        { autoAlpha: 0, y: 22 },
+        { autoAlpha: 1, y: 0, duration: 0.42, ease: "power3.out" },
+        2.14
+      );
+
+      /* ---------- Scene 2 (3.0-5.2s): "gas sponsored" — right column slides up ---------- */
+      tl.fromTo(
+        "#f07-hair-b",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.5, ease: "power2.out" },
+        2.94
+      );
+      tl.fromTo(
+        "#f07-m2",
+        { autoAlpha: 0, y: 46 },
+        { autoAlpha: 1, y: 0, duration: 0.8, ease: "power3.out" },
+        3.04
+      );
+      tl.fromTo(
+        "#f07-l2a",
+        { autoAlpha: 0, y: 18 },
+        { autoAlpha: 1, y: 0, duration: 0.55, ease: "power3.out" },
+        3.52
+      );
+      tl.fromTo(
+        "#f07-l2b",
+        { autoAlpha: 0, y: 18 },
+        { autoAlpha: 1, y: 0, duration: 0.55, ease: "power3.out" },
+        4.28
+      );
+
+      /* ---------- Scene 3 (5.2-8.56s): the payoff lands centre ----------
+         The two measurements dim to 35% (a recede, not an exit) and the
+         recovered health factor arrives on ONE scale-down from 1.05. */
+      tl.fromTo(
+        ["#f07-col-a", "#f07-col-b"],
+        { opacity: 1 },
+        { opacity: 0.35, duration: 0.7, ease: "power2.inOut" },
+        5.12
+      );
+      tl.fromTo(
+        "#f07-payhair",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.55, ease: "power2.out" },
+        5.28
+      );
+      tl.fromTo(
+        "#f07-hf",
+        { autoAlpha: 0, scale: 1.05 },
+        { autoAlpha: 1, scale: 1, duration: 0.9, ease: "power3.out" },
+        5.42
+      );
+      tl.fromTo(
+        "#f07-l3",
+        { autoAlpha: 0, y: 18 },
+        { autoAlpha: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        6.16
+      );
+
+      /* 6.76-8.56s: dead still. The hold on the recovered number is the payoff. */
+
+      window.__timelines["07-the-numbers"] = tl;
+    })();
+  </script>
+</template>

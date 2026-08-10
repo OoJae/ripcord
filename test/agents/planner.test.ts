@@ -37,6 +37,7 @@ describe("planner: accepted outputs", () => {
   });
 
   it("accepts a ```json fenced object (the only leniency)", async () => {
+    // biome-ignore lint/style/useTemplate: escaping backticks in a template literal would hide the very fence this test is about
     const llm = new FakeLlmClient(["```json\n" + VALID + "\n```"]);
     const { proposal } = await createLlmPlanner(llm).plan(ctx());
     expect(proposal.action).toBe("repay");

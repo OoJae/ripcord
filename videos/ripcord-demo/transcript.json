@@ -1,0 +1,1727 @@
+[
+  {
+    "text": "Every",
+    "start": 0.2,
+    "end": 0.39
+  },
+  {
+    "text": "DeFi",
+    "start": 0.39,
+    "end": 0.7
+  },
+  {
+    "text": "loan",
+    "start": 0.7,
+    "end": 1.02
+  },
+  {
+    "text": "has",
+    "start": 1.02,
+    "end": 1.26
+  },
+  {
+    "text": "one",
+    "start": 1.26,
+    "end": 1.5
+  },
+  {
+    "text": "number",
+    "start": 1.5,
+    "end": 1.93
+  },
+  {
+    "text": "that",
+    "start": 2,
+    "end": 2.29
+  },
+  {
+    "text": "matters,",
+    "start": 2.29,
+    "end": 3.03
+  },
+  {
+    "text": "health",
+    "start": 3.09,
+    "end": 3.45
+  },
+  {
+    "text": "factor.",
+    "start": 3.56,
+    "end": 4
+  },
+  {
+    "text": "When",
+    "start": 4.2,
+    "end": 4.28
+  },
+  {
+    "text": "it",
+    "start": 4.28,
+    "end": 4.42
+  },
+  {
+    "text": "touches",
+    "start": 4.42,
+    "end": 4.9
+  },
+  {
+    "text": "1.0,",
+    "start": 4.9,
+    "end": 5.68
+  },
+  {
+    "text": "your",
+    "start": 5.68,
+    "end": 5.86
+  },
+  {
+    "text": "collateral",
+    "start": 5.86,
+    "end": 6.32
+  },
+  {
+    "text": "gets",
+    "start": 6.32,
+    "end": 6.55
+  },
+  {
+    "text": "sold",
+    "start": 7.08,
+    "end": 7.25
+  },
+  {
+    "text": "by",
+    "start": 7.33,
+    "end": 7.45
+  },
+  {
+    "text": "a",
+    "start": 7.45,
+    "end": 7.56
+  },
+  {
+    "text": "stranger",
+    "start": 7.56,
+    "end": 7.7
+  },
+  {
+    "text": "at",
+    "start": 8.24,
+    "end": 8.38
+  },
+  {
+    "text": "a",
+    "start": 8.38,
+    "end": 8.45
+  },
+  {
+    "text": "discount",
+    "start": 8.45,
+    "end": 9.03
+  },
+  {
+    "text": "automatically.",
+    "start": 9.03,
+    "end": 10.24
+  },
+  {
+    "text": "Most",
+    "start": 10.44,
+    "end": 10.51
+  },
+  {
+    "text": "liquidations",
+    "start": 10.51,
+    "end": 11.31
+  },
+  {
+    "text": "aren't",
+    "start": 11.31,
+    "end": 11.71
+  },
+  {
+    "text": "lightning",
+    "start": 11.71,
+    "end": 12.32
+  },
+  {
+    "text": "strikes,",
+    "start": 12.32,
+    "end": 12.79
+  },
+  {
+    "text": "they're",
+    "start": 13.29,
+    "end": 13.42
+  },
+  {
+    "text": "slow",
+    "start": 13.57,
+    "end": 13.89
+  },
+  {
+    "text": "leaks.",
+    "start": 13.89,
+    "end": 14.32
+  },
+  {
+    "text": "A",
+    "start": 14.32,
+    "end": 14.52
+  },
+  {
+    "text": "position",
+    "start": 14.52,
+    "end": 15.05
+  },
+  {
+    "text": "drifting",
+    "start": 15.05,
+    "end": 15.69
+  },
+  {
+    "text": "for",
+    "start": 15.7,
+    "end": 15.94
+  },
+  {
+    "text": "hours",
+    "start": 15.94,
+    "end": 16.34
+  },
+  {
+    "text": "while",
+    "start": 16.34,
+    "end": 16.74
+  },
+  {
+    "text": "its",
+    "start": 16.74,
+    "end": 16.87
+  },
+  {
+    "text": "owner",
+    "start": 17.37,
+    "end": 17.38
+  },
+  {
+    "text": "sleeps.",
+    "start": 17.41,
+    "end": 17.92
+  },
+  {
+    "text": "And",
+    "start": 18.12,
+    "end": 18.14
+  },
+  {
+    "text": "in",
+    "start": 18.14,
+    "end": 18.28
+  },
+  {
+    "text": "October",
+    "start": 18.28,
+    "end": 18.79
+  },
+  {
+    "text": "2025,",
+    "start": 18.79,
+    "end": 19.84
+  },
+  {
+    "text": "when",
+    "start": 19.84,
+    "end": 20.06
+  },
+  {
+    "text": "19",
+    "start": 20.06,
+    "end": 20.4
+  },
+  {
+    "text": "billion",
+    "start": 20.4,
+    "end": 20.48
+  },
+  {
+    "text": "dollars",
+    "start": 21.01,
+    "end": 21.1
+  },
+  {
+    "text": "liquidated",
+    "start": 21.25,
+    "end": 21.67
+  },
+  {
+    "text": "in",
+    "start": 21.67,
+    "end": 21.915
+  },
+  {
+    "text": "a",
+    "start": 21.915,
+    "end": 22.16
+  },
+  {
+    "text": "single",
+    "start": 22.16,
+    "end": 22.4
+  },
+  {
+    "text": "cascade,",
+    "start": 22.4,
+    "end": 23.44
+  },
+  {
+    "text": "plenty",
+    "start": 23.64,
+    "end": 23.88
+  },
+  {
+    "text": "of",
+    "start": 23.89,
+    "end": 23.95
+  },
+  {
+    "text": "owners",
+    "start": 24.05,
+    "end": 24.46
+  },
+  {
+    "text": "were",
+    "start": 24.46,
+    "end": 24.74
+  },
+  {
+    "text": "wide",
+    "start": 24.81,
+    "end": 25.04
+  },
+  {
+    "text": "awake,",
+    "start": 25.04,
+    "end": 25.6
+  },
+  {
+    "text": "locked",
+    "start": 25.6,
+    "end": 25.9
+  },
+  {
+    "text": "out",
+    "start": 25.9,
+    "end": 25.99
+  },
+  {
+    "text": "of",
+    "start": 25.99,
+    "end": 26.24
+  },
+  {
+    "text": "the",
+    "start": 26.24,
+    "end": 26.49
+  },
+  {
+    "text": "infrastructure",
+    "start": 26.49,
+    "end": 26.89
+  },
+  {
+    "text": "they",
+    "start": 27,
+    "end": 27.12
+  },
+  {
+    "text": "needed",
+    "start": 27.12,
+    "end": 27.2
+  },
+  {
+    "text": "to",
+    "start": 27.2,
+    "end": 27.68
+  },
+  {
+    "text": "save",
+    "start": 27.68,
+    "end": 27.92
+  },
+  {
+    "text": "themselves.",
+    "start": 27.92,
+    "end": 28.96
+  },
+  {
+    "text": "Watching",
+    "start": 29.16,
+    "end": 29.47
+  },
+  {
+    "text": "is",
+    "start": 29.57,
+    "end": 29.63
+  },
+  {
+    "text": "not",
+    "start": 29.63,
+    "end": 29.83
+  },
+  {
+    "text": "protection.",
+    "start": 29.83,
+    "end": 30.72
+  },
+  {
+    "text": "Ripcord",
+    "start": 30.92,
+    "end": 31.23
+  },
+  {
+    "text": "is",
+    "start": 31.33,
+    "end": 31.45
+  },
+  {
+    "text": "the",
+    "start": 31.45,
+    "end": 31.7
+  },
+  {
+    "text": "part",
+    "start": 31.7,
+    "end": 32.02
+  },
+  {
+    "text": "that",
+    "start": 32.08,
+    "end": 32.36
+  },
+  {
+    "text": "acts.",
+    "start": 32.36,
+    "end": 32.72
+  },
+  {
+    "text": "Autonomous",
+    "start": 32.92,
+    "end": 33.55
+  },
+  {
+    "text": "liquidation",
+    "start": 33.55,
+    "end": 34.46
+  },
+  {
+    "text": "protection",
+    "start": 34.46,
+    "end": 35.25
+  },
+  {
+    "text": "for",
+    "start": 35.3,
+    "end": 35.31
+  },
+  {
+    "text": "AVE",
+    "start": 35.62,
+    "end": 35.78
+  },
+  {
+    "text": "V3",
+    "start": 35.81,
+    "end": 36.1
+  },
+  {
+    "text": "on",
+    "start": 36.1,
+    "end": 36.17
+  },
+  {
+    "text": "base.",
+    "start": 36.28,
+    "end": 36.64
+  },
+  {
+    "text": "On",
+    "start": 36.64,
+    "end": 36.84
+  },
+  {
+    "text": "the",
+    "start": 36.84,
+    "end": 37.04
+  },
+  {
+    "text": "1st",
+    "start": 37.04,
+    "end": 37.43
+  },
+  {
+    "text": "of",
+    "start": 37.43,
+    "end": 37.59
+  },
+  {
+    "text": "August,",
+    "start": 37.59,
+    "end": 38.21
+  },
+  {
+    "text": "a",
+    "start": 38.21,
+    "end": 38.29
+  },
+  {
+    "text": "real",
+    "start": 38.29,
+    "end": 38.57
+  },
+  {
+    "text": "position",
+    "start": 38.64,
+    "end": 39.18
+  },
+  {
+    "text": "on",
+    "start": 39.18,
+    "end": 39.69
+  },
+  {
+    "text": "base",
+    "start": 39.69,
+    "end": 39.7
+  },
+  {
+    "text": "may",
+    "start": 39.73,
+    "end": 39.82
+  },
+  {
+    "text": "net",
+    "start": 39.97,
+    "end": 40.09
+  },
+  {
+    "text": "slid",
+    "start": 40.19,
+    "end": 40.39
+  },
+  {
+    "text": "to",
+    "start": 40.39,
+    "end": 40.88
+  },
+  {
+    "text": "1.24.",
+    "start": 40.88,
+    "end": 41.68
+  },
+  {
+    "text": "No",
+    "start": 41.68,
+    "end": 41.88
+  },
+  {
+    "text": "human",
+    "start": 41.88,
+    "end": 42.14
+  },
+  {
+    "text": "was",
+    "start": 42.14,
+    "end": 42.34
+  },
+  {
+    "text": "involved",
+    "start": 42.34,
+    "end": 42.84
+  },
+  {
+    "text": "in",
+    "start": 42.87,
+    "end": 43
+  },
+  {
+    "text": "what",
+    "start": 43.05,
+    "end": 43.28
+  },
+  {
+    "text": "happened",
+    "start": 43.28,
+    "end": 43.82
+  },
+  {
+    "text": "next.",
+    "start": 43.82,
+    "end": 44.23
+  },
+  {
+    "text": "Ripcord",
+    "start": 44.52,
+    "end": 44.83
+  },
+  {
+    "text": "read",
+    "start": 44.83,
+    "end": 45.13
+  },
+  {
+    "text": "the",
+    "start": 45.13,
+    "end": 45.35
+  },
+  {
+    "text": "chain,",
+    "start": 45.35,
+    "end": 45.92
+  },
+  {
+    "text": "drafted",
+    "start": 45.92,
+    "end": 46.52
+  },
+  {
+    "text": "a",
+    "start": 46.54,
+    "end": 46.62
+  },
+  {
+    "text": "defense,",
+    "start": 46.62,
+    "end": 47.44
+  },
+  {
+    "text": "made",
+    "start": 47.44,
+    "end": 47.72
+  },
+  {
+    "text": "a",
+    "start": 47.72,
+    "end": 47.77
+  },
+  {
+    "text": "second",
+    "start": 47.88,
+    "end": 48.02
+  },
+  {
+    "text": "model",
+    "start": 48.02,
+    "end": 48.56
+  },
+  {
+    "text": "argue",
+    "start": 48.56,
+    "end": 48.9
+  },
+  {
+    "text": "with",
+    "start": 48.94,
+    "end": 49.19
+  },
+  {
+    "text": "the",
+    "start": 49.19,
+    "end": 49.4
+  },
+  {
+    "text": "first,",
+    "start": 49.4,
+    "end": 49.91
+  },
+  {
+    "text": "cleared",
+    "start": 50.12,
+    "end": 50.43
+  },
+  {
+    "text": "the",
+    "start": 50.53,
+    "end": 50.66
+  },
+  {
+    "text": "guard,",
+    "start": 50.66,
+    "end": 51.18
+  },
+  {
+    "text": "zero",
+    "start": 51.18,
+    "end": 51.48
+  },
+  {
+    "text": "violations,",
+    "start": 51.48,
+    "end": 52.4
+  },
+  {
+    "text": "then",
+    "start": 52.4,
+    "end": 52.48
+  },
+  {
+    "text": "repaid",
+    "start": 52.97,
+    "end": 53.36
+  },
+  {
+    "text": "$6",
+    "start": 53.36,
+    "end": 53.66
+  },
+  {
+    "text": "and",
+    "start": 54.16,
+    "end": 54.56
+  },
+  {
+    "text": "78",
+    "start": 54.56,
+    "end": 55.03
+  },
+  {
+    "text": "cents",
+    "start": 55.03,
+    "end": 55.42
+  },
+  {
+    "text": "of",
+    "start": 55.42,
+    "end": 55.59
+  },
+  {
+    "text": "debt",
+    "start": 55.59,
+    "end": 56
+  },
+  {
+    "text": "through",
+    "start": 56.04,
+    "end": 56.34
+  },
+  {
+    "text": "a",
+    "start": 56.34,
+    "end": 56.39
+  },
+  {
+    "text": "keeper",
+    "start": 56.39,
+    "end": 56.87
+  },
+  {
+    "text": "hub",
+    "start": 56.87,
+    "end": 57.04
+  },
+  {
+    "text": "workflow.",
+    "start": 57.44,
+    "end": 57.76
+  },
+  {
+    "text": "21",
+    "start": 57.96,
+    "end": 58.22
+  },
+  {
+    "text": "seconds",
+    "start": 58.22,
+    "end": 58.75
+  },
+  {
+    "text": "from",
+    "start": 58.75,
+    "end": 59.04
+  },
+  {
+    "text": "sensing",
+    "start": 59.05,
+    "end": 59.58
+  },
+  {
+    "text": "the",
+    "start": 59.58,
+    "end": 59.81
+  },
+  {
+    "text": "danger",
+    "start": 59.81,
+    "end": 60.27
+  },
+  {
+    "text": "to",
+    "start": 60.27,
+    "end": 60.31
+  },
+  {
+    "text": "the",
+    "start": 60.31,
+    "end": 60.81
+  },
+  {
+    "text": "transaction",
+    "start": 60.81,
+    "end": 61.45
+  },
+  {
+    "text": "landing.",
+    "start": 62,
+    "end": 62.08
+  },
+  {
+    "text": "Gas,",
+    "start": 62.28,
+    "end": 63.09
+  },
+  {
+    "text": "sponsored.",
+    "start": 63.09,
+    "end": 63.91
+  },
+  {
+    "text": "Health",
+    "start": 64.12,
+    "end": 64.43
+  },
+  {
+    "text": "factor,",
+    "start": 64.53,
+    "end": 65.2
+  },
+  {
+    "text": "1.60.",
+    "start": 65.21,
+    "end": 66.32
+  },
+  {
+    "text": "That",
+    "start": 66.52,
+    "end": 66.62
+  },
+  {
+    "text": "transaction",
+    "start": 66.62,
+    "end": 67.46
+  },
+  {
+    "text": "is",
+    "start": 67.46,
+    "end": 67.61
+  },
+  {
+    "text": "on",
+    "start": 67.61,
+    "end": 67.76
+  },
+  {
+    "text": "base.",
+    "start": 67.76,
+    "end": 68.26
+  },
+  {
+    "text": "Go",
+    "start": 68.26,
+    "end": 68.52
+  },
+  {
+    "text": "and",
+    "start": 68.52,
+    "end": 68.72
+  },
+  {
+    "text": "read",
+    "start": 68.72,
+    "end": 69.03
+  },
+  {
+    "text": "it.",
+    "start": 69.03,
+    "end": 69.44
+  },
+  {
+    "text": "Here's",
+    "start": 69.64,
+    "end": 69.83
+  },
+  {
+    "text": "how",
+    "start": 69.83,
+    "end": 69.95
+  },
+  {
+    "text": "it",
+    "start": 70.05,
+    "end": 70.16
+  },
+  {
+    "text": "works.",
+    "start": 70.16,
+    "end": 70.72
+  },
+  {
+    "text": "A",
+    "start": 70.72,
+    "end": 70.92
+  },
+  {
+    "text": "sensor",
+    "start": 70.92,
+    "end": 71.21
+  },
+  {
+    "text": "reads",
+    "start": 71.21,
+    "end": 71.56
+  },
+  {
+    "text": "the",
+    "start": 71.56,
+    "end": 71.77
+  },
+  {
+    "text": "position,",
+    "start": 71.77,
+    "end": 72.48
+  },
+  {
+    "text": "then",
+    "start": 72.48,
+    "end": 72.77
+  },
+  {
+    "text": "cross-checks",
+    "start": 72.77,
+    "end": 73.28
+  },
+  {
+    "text": "AVE's",
+    "start": 73.7,
+    "end": 73.9
+  },
+  {
+    "text": "own",
+    "start": 74.05,
+    "end": 74.17
+  },
+  {
+    "text": "oracle",
+    "start": 74.28,
+    "end": 74.48
+  },
+  {
+    "text": "against",
+    "start": 74.96,
+    "end": 75.1
+  },
+  {
+    "text": "Chainlink.",
+    "start": 75.17,
+    "end": 75.84
+  },
+  {
+    "text": "Because",
+    "start": 76.04,
+    "end": 76.35
+  },
+  {
+    "text": "the",
+    "start": 76.45,
+    "end": 76.59
+  },
+  {
+    "text": "worst",
+    "start": 76.59,
+    "end": 76.97
+  },
+  {
+    "text": "liquidations",
+    "start": 76.97,
+    "end": 77.86
+  },
+  {
+    "text": "of",
+    "start": 77.86,
+    "end": 78.02
+  },
+  {
+    "text": "2026",
+    "start": 78.02,
+    "end": 78.96
+  },
+  {
+    "text": "weren't",
+    "start": 78.96,
+    "end": 79.46
+  },
+  {
+    "text": "drift.",
+    "start": 79.46,
+    "end": 80.08
+  },
+  {
+    "text": "They",
+    "start": 80.28,
+    "end": 80.38
+  },
+  {
+    "text": "were",
+    "start": 80.38,
+    "end": 80.59
+  },
+  {
+    "text": "bad",
+    "start": 80.69,
+    "end": 80.9
+  },
+  {
+    "text": "prices.",
+    "start": 80.9,
+    "end": 81.6
+  },
+  {
+    "text": "Ripcord",
+    "start": 81.8,
+    "end": 82.11
+  },
+  {
+    "text": "refuses",
+    "start": 82.21,
+    "end": 82.76
+  },
+  {
+    "text": "to",
+    "start": 82.78,
+    "end": 82.95
+  },
+  {
+    "text": "act",
+    "start": 82.97,
+    "end": 83.2
+  },
+  {
+    "text": "on",
+    "start": 83.2,
+    "end": 83.37
+  },
+  {
+    "text": "one.",
+    "start": 83.37,
+    "end": 83.92
+  },
+  {
+    "text": "A",
+    "start": 83.92,
+    "end": 84.12
+  },
+  {
+    "text": "planner",
+    "start": 84.12,
+    "end": 84.43
+  },
+  {
+    "text": "proposes",
+    "start": 84.53,
+    "end": 85.15
+  },
+  {
+    "text": "exactly",
+    "start": 85.15,
+    "end": 85.69
+  },
+  {
+    "text": "one",
+    "start": 85.69,
+    "end": 85.86
+  },
+  {
+    "text": "action.",
+    "start": 85.92,
+    "end": 86.47
+  },
+  {
+    "text": "An",
+    "start": 86.47,
+    "end": 86.84
+  },
+  {
+    "text": "independent",
+    "start": 86.84,
+    "end": 87.5
+  },
+  {
+    "text": "critic",
+    "start": 87.5,
+    "end": 87.89
+  },
+  {
+    "text": "has",
+    "start": 87.89,
+    "end": 88.09
+  },
+  {
+    "text": "to",
+    "start": 88.09,
+    "end": 88.22
+  },
+  {
+    "text": "approve",
+    "start": 88.22,
+    "end": 88.68
+  },
+  {
+    "text": "it.",
+    "start": 88.68,
+    "end": 89.04
+  },
+  {
+    "text": "Neither",
+    "start": 89.24,
+    "end": 89.5
+  },
+  {
+    "text": "model",
+    "start": 89.5,
+    "end": 89.83
+  },
+  {
+    "text": "is",
+    "start": 89.83,
+    "end": 89.96
+  },
+  {
+    "text": "trusted",
+    "start": 89.96,
+    "end": 90.41
+  },
+  {
+    "text": "with",
+    "start": 90.42,
+    "end": 90.68
+  },
+  {
+    "text": "anything.",
+    "start": 90.68,
+    "end": 91.44
+  },
+  {
+    "text": "They",
+    "start": 91.64,
+    "end": 91.72
+  },
+  {
+    "text": "can't",
+    "start": 91.72,
+    "end": 92.07
+  },
+  {
+    "text": "so",
+    "start": 92.07,
+    "end": 92.21
+  },
+  {
+    "text": "much",
+    "start": 92.21,
+    "end": 92.49
+  },
+  {
+    "text": "as",
+    "start": 92.49,
+    "end": 92.61
+  },
+  {
+    "text": "name",
+    "start": 92.65,
+    "end": 92.91
+  },
+  {
+    "text": "and",
+    "start": 92.91,
+    "end": 93.12
+  },
+  {
+    "text": "address.",
+    "start": 93.12,
+    "end": 93.84
+  },
+  {
+    "text": "Then",
+    "start": 94.04,
+    "end": 94.16
+  },
+  {
+    "text": "the",
+    "start": 94.16,
+    "end": 94.35
+  },
+  {
+    "text": "guard.",
+    "start": 94.45,
+    "end": 95.01
+  },
+  {
+    "text": "14",
+    "start": 95.24,
+    "end": 95.44
+  },
+  {
+    "text": "deterministic",
+    "start": 95.44,
+    "end": 96.3
+  },
+  {
+    "text": "rules",
+    "start": 96.3,
+    "end": 96.63
+  },
+  {
+    "text": "that",
+    "start": 96.63,
+    "end": 96.87
+  },
+  {
+    "text": "re-derive",
+    "start": 96.88,
+    "end": 97.46
+  },
+  {
+    "text": "every",
+    "start": 97.46,
+    "end": 97.59
+  },
+  {
+    "text": "number",
+    "start": 98.09,
+    "end": 98.19
+  },
+  {
+    "text": "the.",
+    "start": 98.19,
+    "end": 98.64
+  },
+  {
+    "text": "Models",
+    "start": 98.84,
+    "end": 99.08
+  },
+  {
+    "text": "claimed.",
+    "start": 99.09,
+    "end": 99.81
+  },
+  {
+    "text": "It",
+    "start": 99.81,
+    "end": 100.04
+  },
+  {
+    "text": "can",
+    "start": 100.04,
+    "end": 100.24
+  },
+  {
+    "text": "veto",
+    "start": 100.24,
+    "end": 100.56
+  },
+  {
+    "text": "them",
+    "start": 100.56,
+    "end": 100.88
+  },
+  {
+    "text": "both.",
+    "start": 100.88,
+    "end": 101.44
+  },
+  {
+    "text": "Nothing",
+    "start": 101.64,
+    "end": 101.9
+  },
+  {
+    "text": "vetoes",
+    "start": 101.9,
+    "end": 102.29
+  },
+  {
+    "text": "the",
+    "start": 102.29,
+    "end": 102.49
+  },
+  {
+    "text": "guard.",
+    "start": 102.49,
+    "end": 103.04
+  },
+  {
+    "text": "And",
+    "start": 103.04,
+    "end": 103.24
+  },
+  {
+    "text": "you",
+    "start": 103.24,
+    "end": 103.44
+  },
+  {
+    "text": "choose",
+    "start": 103.44,
+    "end": 103.84
+  },
+  {
+    "text": "how",
+    "start": 103.84,
+    "end": 104.04
+  },
+  {
+    "text": "much",
+    "start": 104.04,
+    "end": 104.31
+  },
+  {
+    "text": "rope",
+    "start": 104.31,
+    "end": 104.58
+  },
+  {
+    "text": "it",
+    "start": 104.58,
+    "end": 104.71
+  },
+  {
+    "text": "gets.",
+    "start": 104.71,
+    "end": 105.2
+  },
+  {
+    "text": "Advisory",
+    "start": 105.4,
+    "end": 105.71
+  },
+  {
+    "text": "only",
+    "start": 105.81,
+    "end": 106.11
+  },
+  {
+    "text": "recommends.",
+    "start": 106.11,
+    "end": 107.12
+  },
+  {
+    "text": "Copilot",
+    "start": 107.32,
+    "end": 107.63
+  },
+  {
+    "text": "waits",
+    "start": 107.73,
+    "end": 108.03
+  },
+  {
+    "text": "for",
+    "start": 108.03,
+    "end": 108.26
+  },
+  {
+    "text": "your",
+    "start": 108.26,
+    "end": 108.56
+  },
+  {
+    "text": "yes.",
+    "start": 108.56,
+    "end": 109.04
+  },
+  {
+    "text": "An",
+    "start": 109.04,
+    "end": 109.24
+  },
+  {
+    "text": "autopilot",
+    "start": 109.24,
+    "end": 109.98
+  },
+  {
+    "text": "acts",
+    "start": 109.98,
+    "end": 110.32
+  },
+  {
+    "text": "on",
+    "start": 110.32,
+    "end": 110.49
+  },
+  {
+    "text": "its",
+    "start": 110.49,
+    "end": 110.74
+  },
+  {
+    "text": "own.",
+    "start": 110.74,
+    "end": 111.28
+  },
+  {
+    "text": "But",
+    "start": 111.28,
+    "end": 111.48
+  },
+  {
+    "text": "give",
+    "start": 111.48,
+    "end": 111.72
+  },
+  {
+    "text": "it",
+    "start": 111.73,
+    "end": 111.79
+  },
+  {
+    "text": "a",
+    "start": 111.89,
+    "end": 111.92
+  },
+  {
+    "text": "cancel",
+    "start": 111.92,
+    "end": 112.31
+  },
+  {
+    "text": "window",
+    "start": 112.31,
+    "end": 112.72
+  },
+  {
+    "text": "and",
+    "start": 112.72,
+    "end": 112.93
+  },
+  {
+    "text": "it",
+    "start": 112.93,
+    "end": 113.07
+  },
+  {
+    "text": "announces",
+    "start": 113.07,
+    "end": 113.71
+  },
+  {
+    "text": "the",
+    "start": 113.71,
+    "end": 113.83
+  },
+  {
+    "text": "defense",
+    "start": 114.33,
+    "end": 114.42
+  },
+  {
+    "text": "first,",
+    "start": 114.42,
+    "end": 114.92
+  },
+  {
+    "text": "then",
+    "start": 114.92,
+    "end": 115.03
+  },
+  {
+    "text": "waits",
+    "start": 115.03,
+    "end": 115.52
+  },
+  {
+    "text": "for",
+    "start": 115.52,
+    "end": 115.66
+  },
+  {
+    "text": "you",
+    "start": 115.66,
+    "end": 115.84
+  },
+  {
+    "text": "to",
+    "start": 115.84,
+    "end": 115.96
+  },
+  {
+    "text": "stop",
+    "start": 115.96,
+    "end": 116.21
+  },
+  {
+    "text": "it.",
+    "start": 116.21,
+    "end": 116.55
+  },
+  {
+    "text": "Except",
+    "start": 116.76,
+    "end": 117.07
+  },
+  {
+    "text": "in",
+    "start": 117.17,
+    "end": 117.31
+  },
+  {
+    "text": "panic.",
+    "start": 117.31,
+    "end": 118.08
+  },
+  {
+    "text": "An",
+    "start": 118.08,
+    "end": 118.28
+  },
+  {
+    "text": "unreachable",
+    "start": 118.28,
+    "end": 118.89
+  },
+  {
+    "text": "owner",
+    "start": 118.89,
+    "end": 119.2
+  },
+  {
+    "text": "shouldn't",
+    "start": 119.2,
+    "end": 119.76
+  },
+  {
+    "text": "become",
+    "start": 119.76,
+    "end": 120.14
+  },
+  {
+    "text": "a",
+    "start": 120.14,
+    "end": 120.2
+  },
+  {
+    "text": "liquidation.",
+    "start": 120.2,
+    "end": 121.12
+  },
+  {
+    "text": "Ripcord",
+    "start": 121.32,
+    "end": 121.63
+  },
+  {
+    "text": "also",
+    "start": 121.63,
+    "end": 121.93
+  },
+  {
+    "text": "sells",
+    "start": 121.93,
+    "end": 122.28
+  },
+  {
+    "text": "its",
+    "start": 122.33,
+    "end": 122.53
+  },
+  {
+    "text": "own",
+    "start": 122.53,
+    "end": 122.75
+  },
+  {
+    "text": "risk",
+    "start": 122.75,
+    "end": 123.04
+  },
+  {
+    "text": "engine",
+    "start": 123.04,
+    "end": 123.46
+  },
+  {
+    "text": "on",
+    "start": 123.48,
+    "end": 123.65
+  },
+  {
+    "text": "the",
+    "start": 123.65,
+    "end": 123.67
+  },
+  {
+    "text": "KeeperHub",
+    "start": 124.17,
+    "end": 124.54
+  },
+  {
+    "text": "marketplace.",
+    "start": 124.54,
+    "end": 125.68
+  },
+  {
+    "text": "Another",
+    "start": 125.88,
+    "end": 126.36
+  },
+  {
+    "text": "agent",
+    "start": 126.36,
+    "end": 126.84
+  },
+  {
+    "text": "paid",
+    "start": 126.84,
+    "end": 127.23
+  },
+  {
+    "text": "for",
+    "start": 127.23,
+    "end": 127.51
+  },
+  {
+    "text": "it",
+    "start": 127.51,
+    "end": 127.71
+  },
+  {
+    "text": "in",
+    "start": 127.71,
+    "end": 127.88
+  },
+  {
+    "text": "USDC.",
+    "start": 127.9,
+    "end": 128.32
+  },
+  {
+    "text": "Settling",
+    "start": 128.52,
+    "end": 128.83
+  },
+  {
+    "text": "into",
+    "start": 128.93,
+    "end": 129.19
+  },
+  {
+    "text": "the",
+    "start": 129.19,
+    "end": 129.41
+  },
+  {
+    "text": "same",
+    "start": 129.41,
+    "end": 129.69
+  },
+  {
+    "text": "wallet",
+    "start": 129.7,
+    "end": 130.14
+  },
+  {
+    "text": "Ripcord",
+    "start": 130.14,
+    "end": 130.65
+  },
+  {
+    "text": "defends.",
+    "start": 130.65,
+    "end": 131.44
+  },
+  {
+    "text": "322",
+    "start": 131.64,
+    "end": 132.58
+  },
+  {
+    "text": "tests.",
+    "start": 132.58,
+    "end": 133.6
+  },
+  {
+    "text": "Every",
+    "start": 133.8,
+    "end": 133.94
+  },
+  {
+    "text": "right",
+    "start": 133.94,
+    "end": 134.28
+  },
+  {
+    "text": "behind",
+    "start": 134.28,
+    "end": 134.68
+  },
+  {
+    "text": "the",
+    "start": 134.68,
+    "end": 134.88
+  },
+  {
+    "text": "guard.",
+    "start": 134.89,
+    "end": 135.43
+  },
+  {
+    "text": "One",
+    "start": 135.64,
+    "end": 135.69
+  },
+  {
+    "text": "real",
+    "start": 135.69,
+    "end": 135.95
+  },
+  {
+    "text": "save.",
+    "start": 136.05,
+    "end": 136.61
+  },
+  {
+    "text": "On",
+    "start": 136.61,
+    "end": 136.84
+  },
+  {
+    "text": "record.",
+    "start": 136.84,
+    "end": 137.68
+  },
+  {
+    "text": "Ripcord.",
+    "start": 137.88,
+    "end": 138.56
+  },
+  {
+    "text": "Pull",
+    "start": 138.76,
+    "end": 138.83
+  },
+  {
+    "text": "before",
+    "start": 138.83,
+    "end": 139.23
+  },
+  {
+    "text": "the",
+    "start": 139.23,
+    "end": 139.43
+  },
+  {
+    "text": "drop.",
+    "start": 139.43,
+    "end": 139.92
+  }
+]

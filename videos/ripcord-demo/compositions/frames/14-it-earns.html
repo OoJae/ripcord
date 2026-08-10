@@ -1,0 +1,478 @@
+<template data-info="14-it-earns — the listing, two real receipts, and the one wallet they settle into">
+  <style>
+    /* ---- shipped fonts (staged local files, project-root relative) ----
+       This frame is all measurement — slug, prices, hashes, address — so it is
+       set entirely in Space Mono. No Clash Display is named, so none is loaded. */
+    @font-face {
+      font-family: "Space Mono";
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    /* ---- frame root (contract: styled via #root, never a class) ----
+       z-index is load-bearing here, not decoration: assemble-index HOISTS the
+       approved clip out of this file and mounts it at the host root AFTER the
+       frame, so by DOM order the footage would paint on top of the data. The
+       frame is the only element that can claim the higher layer, and it does. */
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      z-index: 2;
+    }
+
+    /* ---- track 0 — the void, full-bleed on its own clip layer (never #root) ---- */
+    .f14-earns-ground {
+      position: absolute;
+      inset: 0;
+      /* TRANSPARENT on purpose. This frame sits at z-index 2 so its overlays
+         paint above the hoisted footage; an opaque ground here would then
+         cover the video completely. The host root already paints the void
+         base beneath everything, so the field still reads #0A0B10 wherever
+         the footage does not. */
+      /* A VEIL, not a ground. The frame sits at z-index 2 above the hoisted
+         footage, so this semi-opaque layer reliably knocks the video back —
+         a gsap opacity tween on the hoisted node does not take, and at full
+         strength the site's own copy competes with the receipt data. */
+      background: rgba(10, 11, 16, 0.88);
+}
+
+    /* ---- track 2 — the data plane ---- */
+    .f14-earns-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* shared: an ink plate lifting off the dimmed footage. Flat — 1px hairline,
+       0 radius, no shadow. The ground is nearly opaque so mono stays crisp
+       whichever way the hoisted footage ends up compositing. */
+    .f14-earns-card,
+    .f14-earns-node {
+      position: absolute;
+      background: rgba(10, 11, 16, 0.93);
+      border: 1px solid #23262f;
+    }
+
+    /* ---- the marketplace listing, centre-left ---- */
+    .f14-earns-card {
+      left: 110px;
+      top: 250px;
+      width: 760px;
+      height: 264px;
+    }
+    .f14-earns-stub {
+      position: absolute;
+      left: 44px;
+      top: 48px;
+      width: 36px;
+      height: 2px;
+      background: #ff4f00;
+      transform-origin: 0% 50%;
+    }
+    .f14-earns-slug {
+      position: absolute;
+      left: 44px;
+      top: 90px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 40px;
+      line-height: 1;
+      letter-spacing: 0;
+      color: #edeae3;
+      white-space: nowrap;
+    }
+    .f14-earns-carddiv {
+      position: absolute;
+      left: 44px;
+      top: 180px;
+      width: 672px;
+      height: 1px;
+      background: #23262f;
+      transform-origin: 0% 50%;
+    }
+    .f14-earns-meta {
+      position: absolute;
+      left: 44px;
+      top: 212px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+    .f14-earns-accent {
+      color: #ff4f00;
+    }
+
+    /* ---- the two receipts, right column. stat-card idiom: top border only ---- */
+    .f14-earns-row {
+      position: absolute;
+      left: 1010px;
+      width: 680px;
+      height: 118px;
+      background: rgba(10, 11, 16, 0.9);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 46px 40px 0;
+    }
+    .f14-earns-row-1 {
+      top: 250px;
+    }
+    .f14-earns-row-2 {
+      top: 406px;
+    }
+    .f14-earns-hair {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 1px;
+      background: #23262f;
+      transform-origin: 0% 50%;
+    }
+    .f14-earns-price {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+      font-size: 40px;
+      line-height: 1;
+      color: #edeae3;
+      white-space: nowrap;
+    }
+    .f14-earns-hash {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+
+    /* ---- the hairline connector: two receipts, one destination ---- */
+    .f14-earns-wires {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: visible;
+    }
+    /* dasharray/dashoffset are primed in script, never in CSS — a CSS dash
+       declaration and a GSAP draw-on fight over the same property. */
+    .f14-earns-wire {
+      fill: none;
+      stroke: #5a5f6c;
+      stroke-width: 1;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+    }
+
+    /* ---- the settlement node: the one verified destination ---- */
+    .f14-earns-node {
+      left: 910px;
+      top: 690px;
+      width: 900px;
+      height: 124px;
+    }
+    .f14-earns-nodelabel {
+      position: absolute;
+      left: 44px;
+      top: 48px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 27px;
+      line-height: 1;
+      letter-spacing: 0;
+      /* phosphor — SCOPED to this one verified settlement, nowhere else in the film */
+      color: #7cf5c4;
+      white-space: nowrap;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="14-it-earns"
+    data-width="1920"
+    data-height="1080"
+    data-duration="10.82"
+  >
+    <!-- track 0 — the void -->
+    <div
+      id="f14-earns-ground"
+      class="clip f14-earns-ground"
+      data-start="0"
+      data-duration="10.82"
+      data-track-index="0"
+    ></div>
+
+    <!-- track 1 — real captured evidence footage, held as GROUND, not content.
+         Muted (audio is orchestrator-owned at the root). The source is 9.4s
+         against a 10.32s frame and is deliberately NOT looped: it holds its
+         last frame through the closing beat rather than restarting under the
+         hold. Dim + slow push are applied on the timeline, because frame-local
+         CSS does not survive the hoist to the host root. -->
+    <!-- approved frame video hoisted by assemble-index -->
+
+    <!-- track 2 — the data plane -->
+    <div
+      id="f14-earns-stage"
+      class="clip f14-earns-stage"
+      data-start="0"
+      data-duration="10.82"
+      data-track-index="2"
+    >
+      <!-- the listing -->
+      <div id="f14-earns-card" class="f14-earns-card">
+        <div id="f14-earns-stub" class="f14-earns-stub"></div>
+        <div id="f14-earns-slug" class="f14-earns-slug">ripcord-risk-score</div>
+        <div id="f14-earns-carddiv" class="f14-earns-carddiv"></div>
+        <div id="f14-earns-meta" class="f14-earns-meta">
+          <span class="f14-earns-accent">LISTED</span> &middot; KEEPERHUB
+          MARKETPLACE &middot; $0.02/CALL
+        </div>
+      </div>
+
+      <!-- receipt 1 -->
+      <div id="f14-earns-row-1" class="f14-earns-row f14-earns-row-1">
+        <div id="f14-earns-hair-1" class="f14-earns-hair"></div>
+        <span id="f14-earns-price-1" class="f14-earns-price">$0.05</span>
+        <span id="f14-earns-hash-1" class="f14-earns-hash"
+          >0xb9ddfd5a&hellip;c72e</span
+        >
+      </div>
+
+      <!-- receipt 2 -->
+      <div id="f14-earns-row-2" class="f14-earns-row f14-earns-row-2">
+        <div id="f14-earns-hair-2" class="f14-earns-hair"></div>
+        <span id="f14-earns-price-2" class="f14-earns-price">$0.05</span>
+        <span id="f14-earns-hash-2" class="f14-earns-hash"
+          >0x2850f226&hellip;02ca</span
+        >
+      </div>
+
+      <!-- both receipts fall to one destination -->
+      <svg
+        class="f14-earns-wires"
+        viewBox="0 0 1920 1080"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path
+          id="f14-earns-wire-a"
+          class="f14-earns-wire"
+          data-len="382"
+          d="M1690.5 368.5 H1750.5 V690.5"
+        />
+        <path
+          id="f14-earns-wire-b"
+          class="f14-earns-wire"
+          data-len="206"
+          d="M1010.5 524.5 H970.5 V690.5"
+        />
+      </svg>
+
+      <!-- the settlement -->
+      <div id="f14-earns-node" class="f14-earns-node">
+        <div id="f14-earns-nodelabel" class="f14-earns-nodelabel">
+          -&gt; 0x30C8A36e&hellip; &mdash; the wallet the daemon defends
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var FRAME_ID = "14-it-earns";
+      var DURATION = 10.32;
+
+      window.__timelines = window.__timelines || {};
+
+      var byId = function (id) {
+        return document.getElementById(id);
+      };
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* Measured geometry for the draw-on; data-len is the fallback when the
+         path has not been laid out yet. No CSS dash declaration to fight. */
+      function dashPrime(el) {
+        var len = 0;
+        if (el && typeof el.getTotalLength === "function")
+          len = el.getTotalLength();
+        if (!(len > 0)) len = parseFloat(el.getAttribute("data-len")) || 0;
+        len = len * 1.02;
+        el.style.strokeDasharray = String(len);
+        el.style.strokeDashoffset = String(len);
+        return len;
+      }
+
+      /* ---------------------------------------------------------------
+         GROUND (0.00–10.32) — the evidence footage, dimmed to 35% and held
+         at a slow push. It is background behind the data, never the subject.
+         Before assembly this element is frame-local; after assembly
+         assemble-index hoists it to the host root keeping this id, so
+         getElementById finds it either way — and a tween is the only way to
+         reach it, since frame-local CSS does not cross the hoist boundary.
+         --------------------------------------------------------------- */
+      var evidence = byId("f14-earns-evidence");
+      if (evidence) {
+        tl.fromTo(
+          evidence,
+          { opacity: 0.17, scale: 1.04, transformOrigin: "50% 50%" },
+          {
+            opacity: 0.17,
+            scale: 1.075,
+            duration: DURATION,
+            ease: "none",
+            transformOrigin: "50% 50%",
+          },
+          0
+        );
+      }
+
+      /* ---------------------------------------------------------------
+         Scene 1 (0.00–3.20) — "Ripcord also sells its own risk engine on the
+         KeeperHub marketplace." The listing assembles centre-left: plate,
+         orange stub, the slug, then the terms land on "marketplace".
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        byId("f14-earns-card"),
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.85, ease: "power3.out" },
+        0.06
+      );
+      tl.fromTo(
+        byId("f14-earns-stub"),
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.5, ease: "power2.out" },
+        0.22
+      );
+      tl.fromTo(
+        byId("f14-earns-slug"),
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        0.34
+      );
+      tl.fromTo(
+        byId("f14-earns-carddiv"),
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.6, ease: "power2.out" },
+        1.55
+      );
+      tl.fromTo(
+        byId("f14-earns-meta"),
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" },
+        1.85
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 2 (3.20–6.60) — "Another agent paid for it in USDC." Two real
+         receipts slide up in the right column, 200ms apart: the amount first,
+         then each payment's hash resolves under it. The listing recedes to
+         48% as the money takes focus — a recede, never an exit.
+         --------------------------------------------------------------- */
+      function receipt(n, at) {
+        tl.fromTo(
+          byId("f14-earns-row-" + n),
+          { opacity: 0, y: 26 },
+          { opacity: 1, y: 0, duration: 0.75, ease: "power3.out" },
+          at
+        );
+        tl.fromTo(
+          byId("f14-earns-hair-" + n),
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.62, ease: "power2.out" },
+          at + 0.04
+        );
+        tl.fromTo(
+          byId("f14-earns-price-" + n),
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
+          at + 0.16
+        );
+      }
+
+      receipt(1, 3.2);
+      receipt(2, 3.4);
+
+      /* each payment's identity lands a beat after its amount */
+      tl.fromTo(
+        byId("f14-earns-hash-1"),
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+        4.7
+      );
+      tl.fromTo(
+        byId("f14-earns-hash-2"),
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+        4.94
+      );
+
+      tl.fromTo(
+        byId("f14-earns-card"),
+        { opacity: 1 },
+        { opacity: 0.48, duration: 0.9, ease: "sine.inOut" },
+        5.6
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 3 (6.60–10.32) — "settling into the same wallet Ripcord
+         defends." A hairline falls out of each receipt, down opposite
+         gutters, onto one node — which then resolves in phosphor. Then the
+         frame holds dead still and only the footage keeps breathing.
+         --------------------------------------------------------------- */
+      var wireA = byId("f14-earns-wire-a");
+      var wireB = byId("f14-earns-wire-b");
+      if (wireA) {
+        var lenA = dashPrime(wireA);
+        tl.fromTo(
+          wireA,
+          { strokeDashoffset: lenA },
+          { strokeDashoffset: 0, duration: 0.9, ease: "power2.out" },
+          6.6
+        );
+      }
+      if (wireB) {
+        var lenB = dashPrime(wireB);
+        tl.fromTo(
+          wireB,
+          { strokeDashoffset: lenB },
+          { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" },
+          6.78
+        );
+      }
+
+      tl.fromTo(
+        byId("f14-earns-node"),
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.75, ease: "power3.out" },
+        7.55
+      );
+      tl.fromTo(
+        byId("f14-earns-nodelabel"),
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        7.95
+      );
+
+      /* 8.65–10.32: stillness on the verified settlement. No exit — the root
+         transition is the cut. This pad only carries the playhead to length. */
+      tl.to({}, { duration: 0.01 }, DURATION - 0.01);
+
+      window.__timelines[FRAME_ID] = tl;
+    })();
+  </script>
+</template>

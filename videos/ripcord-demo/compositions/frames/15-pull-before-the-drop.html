@@ -1,0 +1,339 @@
+<template data-info="15-pull-before-the-drop — three verifiable facts clear, the mark blooms whole, the film stops">
+  <style>
+    /* ---- shipped fonts (staged local files, project-root relative) ---- */
+    @font-face {
+      font-family: "Clash Display";
+      font-style: normal;
+      font-weight: 600;
+      font-display: block;
+      src: url("assets/fonts/ClashDisplay-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Space Mono";
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    /* ---- frame root (contract: styled via #root, never a class).
+           Layout is authored in px against the fixed 1920x1080 canvas
+           (1cqw = 19.2px); the 1px hairlines stay 1px. ---- */
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    /* ---- track 0 — the void, full-bleed on its own clip layer (never #root) ---- */
+    .f15-pull-ground {
+      position: absolute;
+      inset: 0;
+      background: #0a0b10;
+    }
+
+    /* ---- track 1 — everything that resolves ---- */
+    .f15-pull-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ---- the three closing facts: dim mono, left-aligned, centre-screen ---- */
+    .f15-pull-fact {
+      position: absolute;
+      left: 560px;
+      width: 800px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 36px;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #8a8f9c;
+    }
+    .f15-pull-fact-1 {
+      top: 396px;
+    }
+    .f15-pull-fact-2 {
+      top: 504px;
+    }
+    .f15-pull-fact-3 {
+      top: 612px;
+    }
+    .f15-pull-rule {
+      position: absolute;
+      left: 560px;
+      width: 800px;
+      height: 1px;
+      background: #23262f;
+      transform-origin: 0% 50%;
+    }
+    .f15-pull-rule-1 {
+      top: 468px;
+    }
+    .f15-pull-rule-2 {
+      top: 576px;
+    }
+
+    /* ---- the lockup: the mark, already assembled, the rip closed ---- */
+    .f15-pull-mark {
+      position: absolute;
+      left: 288px;
+      top: 340px;
+      width: 1344px;
+      height: 212px;
+      overflow: visible;
+      transform-origin: 50% 50%;
+    }
+    /* the pull handle — fire-orange, the only colour in the frame */
+    .f15-pull-ring {
+      fill: none;
+      stroke: #ff4f00;
+      stroke-width: 72;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    /* the three silk cords */
+    .f15-pull-cord {
+      fill: none;
+      stroke: #edeae3;
+      stroke-width: 40;
+      stroke-linecap: round;
+    }
+    .f15-pull-ltr {
+      fill: #edeae3;
+    }
+
+    /* ---- the tagline: the one Clash Display moment in the frame ---- */
+    .f15-pull-tagline {
+      position: absolute;
+      left: 0;
+      top: 620px;
+      width: 1920px;
+      text-align: center;
+      font-family: "Clash Display", sans-serif;
+      font-weight: 600;
+      font-size: 61px;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #edeae3;
+    }
+
+    /* ---- the live address, mono and dim ---- */
+    .f15-pull-url {
+      position: absolute;
+      left: 0;
+      top: 720px;
+      width: 1920px;
+      text-align: center;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 26px;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      white-space: nowrap;
+      color: #8a8f9c;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="15-pull-before-the-drop"
+    data-width="1920"
+    data-height="1080"
+    data-duration="8.5"
+  >
+    <!-- track 0 — the void -->
+    <div
+      id="f15-pull-ground"
+      class="clip f15-pull-ground"
+      data-start="0"
+      data-duration="8.5"
+      data-track-index="0"
+    ></div>
+
+    <!-- track 1 — facts, then the lockup that replaces them -->
+    <div
+      id="f15-pull-stage"
+      class="clip f15-pull-stage"
+      data-start="0"
+      data-duration="8.5"
+      data-track-index="1"
+    >
+      <div id="f15-pull-fact-1" class="f15-pull-fact f15-pull-fact-1">
+        322 TESTS
+      </div>
+      <div id="f15-pull-rule-1" class="f15-pull-rule f15-pull-rule-1"></div>
+      <div id="f15-pull-fact-2" class="f15-pull-fact f15-pull-fact-2">
+        EVERY WRITE BEHIND THE GUARD
+      </div>
+      <div id="f15-pull-rule-2" class="f15-pull-rule f15-pull-rule-2"></div>
+      <div id="f15-pull-fact-3" class="f15-pull-fact f15-pull-fact-3">
+        ONE REAL SAVE ON RECORD
+      </div>
+
+      <!-- the wordmark, inlined from assets/wordmark.svg. Frame 4 built this
+           mark with the rip torn open and then closed it; here it arrives
+           whole — the fragment already at its resting offset, nothing left
+           to assemble. -->
+      <svg
+        id="f15-pull-mark"
+        class="f15-pull-mark"
+        viewBox="-880 -790 5960 940"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="Ripcord"
+      >
+        <defs>
+          <clipPath id="f15-pull-cut-l">
+            <polygon points="-880,-790 4035,-790 3775,150 -880,150" />
+          </clipPath>
+          <clipPath id="f15-pull-cut-r">
+            <polygon points="4075,-790 5080,-790 5080,150 3815,150" />
+          </clipPath>
+        </defs>
+
+        <rect
+          class="f15-pull-ring"
+          x="-800"
+          y="-210"
+          width="470"
+          height="200"
+          rx="100"
+        />
+
+        <path class="f15-pull-cord" d="M-565 -250 V-640" />
+        <path class="f15-pull-cord" d="M-680 -250 C-680 -430 -740 -520 -790 -640" />
+        <path class="f15-pull-cord" d="M-450 -250 C-450 -430 -390 -520 -340 -640" />
+
+        <g clip-path="url(#f15-pull-cut-l)">
+          <path class="f15-pull-ltr" d="M190.0 0H40.0V-670H410.0Q534.0 -670 601.5 -617.5Q669.0 -565 669.0 -469Q669.0 -301 480.0 -283V-275Q522.0 -264 544.5 -242.0Q567.0 -220 588.0 -180L685.0 0H511.0L419.0 -174Q398.0 -214 372.0 -228.5Q346.0 -243 289.0 -243H190.0ZM190.0 -535V-356H409.0Q464.0 -356 488.0 -375.5Q512.0 -395 512.0 -446Q512.0 -495 487.5 -515.0Q463.0 -535 409.0 -535Z M942.0 0H792.0V-670H942.0Z M1231.0 0H1081.0V-670H1431.0Q1549.0 -670 1617.5 -606.0Q1686.0 -542 1686.0 -428.0Q1686.0 -314 1617.0 -249.5Q1548.0 -185 1431.0 -185H1231.0ZM1415.0 -535H1231.0V-320H1415.0Q1480.0 -320 1508.5 -343.5Q1537.0 -367 1537.0 -428Q1537.0 -488 1508.0 -511.5Q1479.0 -535 1415.0 -535Z M2142.0 10Q1977.0 10 1880.5 -84.0Q1784.0 -178 1784.0 -335.0Q1784.0 -492 1880.5 -586.0Q1977.0 -680 2142.0 -680Q2299.0 -680 2391.5 -606.5Q2484.0 -533 2484.0 -406V-391H2317.0V-406Q2317.0 -473 2276.0 -504.5Q2235.0 -536 2145.0 -536Q2034.0 -536 1988.5 -491.0Q1943.0 -446 1943.0 -335.0Q1943.0 -224 1988.5 -179.0Q2034.0 -134 2145.0 -134Q2235.0 -134 2276.0 -165.5Q2317.0 -197 2317.0 -264V-279H2484.0V-264Q2484.0 -137 2391.5 -63.5Q2299.0 10 2142.0 10Z M2954.0 10Q2788.0 10 2691.0 -84.0Q2594.0 -178 2594.0 -335.0Q2594.0 -492 2691.0 -586.0Q2788.0 -680 2954.0 -680Q3123.0 -680 3220.5 -586.5Q3318.0 -493 3318.0 -335.0Q3318.0 -177 3220.5 -83.5Q3123.0 10 2954.0 10ZM2798.0 -179.0Q2843.0 -134 2954.0 -134.0Q3065.0 -134 3111.5 -179.0Q3158.0 -224 3158.0 -335.0Q3158.0 -446 3111.5 -491.0Q3065.0 -536 2954.0 -536.0Q2843.0 -536 2798.0 -491.0Q2753.0 -446 2753.0 -335.0Q2753.0 -224 2798.0 -179.0Z M3593.0 0H3443.0V-670H3813.0Q3937.0 -670 4004.5 -617.5Q4072.0 -565 4072.0 -469Q4072.0 -301 3883.0 -283V-275Q3925.0 -264 3947.5 -242.0Q3970.0 -220 3991.0 -180L4088.0 0H3914.0L3822.0 -174Q3801.0 -214 3775.0 -228.5Q3749.0 -243 3692.0 -243H3593.0ZM3593.0 -535V-356H3812.0Q3867.0 -356 3891.0 -375.5Q3915.0 -395 3915.0 -446Q3915.0 -495 3890.5 -515.0Q3866.0 -535 3812.0 -535Z M4526.0 0H4203.0V-670H4526.0Q4688.0 -670 4782.5 -581.0Q4877.0 -492 4877.0 -335.0Q4877.0 -178 4782.5 -89.0Q4688.0 0 4526.0 0ZM4526.0 -535H4353.0V-135H4526.0Q4632.0 -135 4674.5 -176.5Q4717.0 -218 4717.0 -335.0Q4717.0 -452 4674.5 -493.5Q4632.0 -535 4526.0 -535Z" />
+        </g>
+
+        <!-- the torn fragment, resting closed at its final offset -->
+        <g clip-path="url(#f15-pull-cut-r)" transform="translate(14 26)">
+          <path class="f15-pull-ltr" d="M190.0 0H40.0V-670H410.0Q534.0 -670 601.5 -617.5Q669.0 -565 669.0 -469Q669.0 -301 480.0 -283V-275Q522.0 -264 544.5 -242.0Q567.0 -220 588.0 -180L685.0 0H511.0L419.0 -174Q398.0 -214 372.0 -228.5Q346.0 -243 289.0 -243H190.0ZM190.0 -535V-356H409.0Q464.0 -356 488.0 -375.5Q512.0 -395 512.0 -446Q512.0 -495 487.5 -515.0Q463.0 -535 409.0 -535Z M942.0 0H792.0V-670H942.0Z M1231.0 0H1081.0V-670H1431.0Q1549.0 -670 1617.5 -606.0Q1686.0 -542 1686.0 -428.0Q1686.0 -314 1617.0 -249.5Q1548.0 -185 1431.0 -185H1231.0ZM1415.0 -535H1231.0V-320H1415.0Q1480.0 -320 1508.5 -343.5Q1537.0 -367 1537.0 -428Q1537.0 -488 1508.0 -511.5Q1479.0 -535 1415.0 -535Z M2142.0 10Q1977.0 10 1880.5 -84.0Q1784.0 -178 1784.0 -335.0Q1784.0 -492 1880.5 -586.0Q1977.0 -680 2142.0 -680Q2299.0 -680 2391.5 -606.5Q2484.0 -533 2484.0 -406V-391H2317.0V-406Q2317.0 -473 2276.0 -504.5Q2235.0 -536 2145.0 -536Q2034.0 -536 1988.5 -491.0Q1943.0 -446 1943.0 -335.0Q1943.0 -224 1988.5 -179.0Q2034.0 -134 2145.0 -134Q2235.0 -134 2276.0 -165.5Q2317.0 -197 2317.0 -264V-279H2484.0V-264Q2484.0 -137 2391.5 -63.5Q2299.0 10 2142.0 10Z M2954.0 10Q2788.0 10 2691.0 -84.0Q2594.0 -178 2594.0 -335.0Q2594.0 -492 2691.0 -586.0Q2788.0 -680 2954.0 -680Q3123.0 -680 3220.5 -586.5Q3318.0 -493 3318.0 -335.0Q3318.0 -177 3220.5 -83.5Q3123.0 10 2954.0 10ZM2798.0 -179.0Q2843.0 -134 2954.0 -134.0Q3065.0 -134 3111.5 -179.0Q3158.0 -224 3158.0 -335.0Q3158.0 -446 3111.5 -491.0Q3065.0 -536 2954.0 -536.0Q2843.0 -536 2798.0 -491.0Q2753.0 -446 2753.0 -335.0Q2753.0 -224 2798.0 -179.0Z M3593.0 0H3443.0V-670H3813.0Q3937.0 -670 4004.5 -617.5Q4072.0 -565 4072.0 -469Q4072.0 -301 3883.0 -283V-275Q3925.0 -264 3947.5 -242.0Q3970.0 -220 3991.0 -180L4088.0 0H3914.0L3822.0 -174Q3801.0 -214 3775.0 -228.5Q3749.0 -243 3692.0 -243H3593.0ZM3593.0 -535V-356H3812.0Q3867.0 -356 3891.0 -375.5Q3915.0 -395 3915.0 -446Q3915.0 -495 3890.5 -515.0Q3866.0 -535 3812.0 -535Z M4526.0 0H4203.0V-670H4526.0Q4688.0 -670 4782.5 -581.0Q4877.0 -492 4877.0 -335.0Q4877.0 -178 4782.5 -89.0Q4688.0 0 4526.0 0ZM4526.0 -535H4353.0V-135H4526.0Q4632.0 -135 4674.5 -176.5Q4717.0 -218 4717.0 -335.0Q4717.0 -452 4674.5 -493.5Q4632.0 -535 4526.0 -535Z" />
+        </g>
+      </svg>
+
+      <div id="f15-pull-tagline" class="f15-pull-tagline">
+        PULL BEFORE THE DROP
+      </div>
+      <div id="f15-pull-url" class="f15-pull-url">oojae.github.io/ripcord</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var FRAME_ID = "15-pull-before-the-drop";
+      var DURATION = 8.5;
+
+      window.__timelines = window.__timelines || {};
+
+      var byId = function (id) {
+        return document.getElementById(id);
+      };
+
+      var tl = gsap.timeline({ paused: true });
+
+      var fact1 = byId("f15-pull-fact-1");
+      var fact2 = byId("f15-pull-fact-2");
+      var fact3 = byId("f15-pull-fact-3");
+      var rule1 = byId("f15-pull-rule-1");
+      var rule2 = byId("f15-pull-rule-2");
+
+      /* ---------------------------------------------------------------
+         Scene 1 (0.00–3.40) — the void. One fact per spoken beat, 0.9s
+         apart, each hairline arriving just ahead of the line it separates.
+         Nothing else is on stage: the count is up before 0.5s.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        fact1,
+        { autoAlpha: 0, y: 22 },
+        { autoAlpha: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        0.1
+      );
+
+      tl.fromTo(
+        rule1,
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.55, ease: "power2.out" },
+        0.92
+      );
+      tl.fromTo(
+        fact2,
+        { autoAlpha: 0, y: 22 },
+        { autoAlpha: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        1.0
+      );
+
+      tl.fromTo(
+        rule2,
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.55, ease: "power2.out" },
+        1.82
+      );
+      tl.fromTo(
+        fact3,
+        { autoAlpha: 0, y: 22 },
+        { autoAlpha: 1, y: 0, duration: 0.7, ease: "power3.out" },
+        1.9
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 2 (3.40–5.40) — on "Ripcord": the ledger clears in one breath
+         (autoAlpha kills them outright, no ghost left on the plane) and the
+         mark BLOOMS whole from the empty stage — one smooth long-tail
+         settle, no overshoot, no parts. Frame 4 tore the rip open and shut
+         it; this is that build already resolved.
+         --------------------------------------------------------------- */
+      tl.to(
+        [fact1, rule1, fact2, rule2, fact3],
+        { autoAlpha: 0, duration: 0.5, ease: "power2.inOut" },
+        3.4
+      );
+
+      tl.fromTo(
+        byId("f15-pull-mark"),
+        { autoAlpha: 0, scale: 0.7, transformOrigin: "50% 50%" },
+        {
+          autoAlpha: 1,
+          scale: 1,
+          duration: 1.05,
+          ease: "power3.out",
+          transformOrigin: "50% 50%",
+        },
+        3.95
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 3 (5.40–8.50) — on "pull before the drop": the tagline lands
+         under the mark, the live address settles under that, and the film
+         stops moving. A held, still lockup — the last thing on screen.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        byId("f15-pull-tagline"),
+        { autoAlpha: 0, y: 18 },
+        { autoAlpha: 1, y: 0, duration: 0.8, ease: "power3.out" },
+        5.45
+      );
+      tl.fromTo(
+        byId("f15-pull-url"),
+        { autoAlpha: 0, y: 12 },
+        { autoAlpha: 1, y: 0, duration: 0.7, ease: "power2.out" },
+        6.15
+      );
+
+      /* 6.85–8.50: dead still. No fade-out — the lockup holds to the cut. */
+      tl.to({}, { duration: 0.01 }, DURATION - 0.01);
+
+      window.__timelines[FRAME_ID] = tl;
+    })();
+  </script>
+</template>

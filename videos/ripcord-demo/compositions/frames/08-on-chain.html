@@ -1,0 +1,137 @@
+<template>
+  <style>
+    /* ---- shipped fonts (project-root-relative paths) ---- */
+    @font-face {
+      font-family: "Space Mono";
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+    }
+
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    /* ---- ground (full-bleed clip, never painted on #root) ---- */
+    .f08-bg {
+      position: absolute;
+      inset: 0;
+      background: #0a0b10;
+    }
+
+    .f08-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ---- the wipe window: clips the plate as it travels up into frame.
+       Transform-only wipe — the plate slides, the window does the masking. ---- */
+    #f08-window {
+      position: absolute;
+      left: 106px;
+      top: 372px;
+      width: 1708px;
+      overflow: hidden;
+    }
+
+    /* ---- the evidence plate: hairline border, flat plane, no elevation ---- */
+    #f08-plate {
+      border: 1px solid #23262f;
+      background: #0d0f16;
+      padding: 56px 60px 58px;
+      will-change: transform;
+    }
+
+    #f08-src {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 24px;
+      line-height: 1.2;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+      white-space: nowrap;
+    }
+
+    /* The real, unretouched Basescan rows — hash, Success, block, timestamp.
+       Cropped from the live page (assets/basescan-tx.png) to the evidence
+       itself; nothing recoloured or composited. Its whiteness against the void
+       is the point: this is somebody else's page, not our design. */
+    #f08-hashwrap {
+      width: max-content;
+      margin-top: 44px;
+    }
+    #f08-shot {
+      display: block;
+      width: 1588px;
+      height: auto;
+      border: 1px solid #23262f;
+    }
+    /* the ONE addition to the page */
+    #f08-underline {
+      width: 100%;
+      height: 2px;
+      margin-top: 16px;
+      background: #ff4f00;
+      transform-origin: 0% 50%;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="08-on-chain"
+    data-width="1920"
+    data-height="1080"
+    data-duration="3.62"
+  >
+    <div id="f08-ground" class="clip f08-bg" data-start="0" data-duration="3.62" data-track-index="0"></div>
+
+    <div id="f08-scene" class="clip f08-stage" data-start="0" data-duration="3.62" data-track-index="1">
+      <div id="f08-window">
+        <div id="f08-plate">
+          <div id="f08-src">BASESCAN &middot; BASE MAINNET &middot; UNRETOUCHED</div>
+          <div id="f08-hashwrap">
+            <img id="f08-shot" src="assets/basescan-proof.png" alt="" />
+            <div id="f08-underline"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    window.__timelines = window.__timelines || {};
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+
+      /* ---------- Scene 1 (0.0-1.2s): ONE move — the plate wipes up ----------
+         titlecard-reveal, adapted: a single restrained reveal, expressive ease,
+         nothing cropped, recoloured or filtered. */
+      tl.fromTo(
+        "#f08-plate",
+        { yPercent: 100 },
+        { yPercent: 0, duration: 0.95, ease: "expo.out" },
+        0.06
+      );
+
+      /* ---------- Scene 2 (1.2-3.12s): the underline draws under the hash ----------
+         The only thing added to the page. Then the frame holds dead still. */
+      tl.fromTo(
+        "#f08-underline",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.62, ease: "power2.out" },
+        1.3
+      );
+
+      /* 1.92-3.12s: stillness. The held read IS the beat — no second phase. */
+
+      window.__timelines["08-on-chain"] = tl;
+    })();
+  </script>
+</template>

@@ -684,13 +684,11 @@ describe("regression: a human veto must outlive one tick", () => {
 
   it("PANIC still overrides a prior cancel — the veto is not a suicide pact", async () => {
     const h = modeHarness("autopilot", "1.20");
-    let calls = 0;
     h.deps.approvalGate = {
       async requestApproval() {
         return false;
       },
       async awaitCancelWindow() {
-        calls += 1;
         return false;
       },
     };

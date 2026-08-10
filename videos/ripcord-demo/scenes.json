@@ -1,0 +1,152 @@
+[
+  {
+    "id": "01-number",
+    "wordIndex": 0,
+    "start": 0.0,
+    "match": "8/8",
+    "end": 10.44,
+    "dur": 10.44,
+    "frame": 1,
+    "voice": "assets/voice/01.wav"
+  },
+  {
+    "id": "02-leak",
+    "wordIndex": 25,
+    "start": 10.44,
+    "match": "5/5",
+    "end": 29.16,
+    "dur": 18.72,
+    "frame": 2,
+    "voice": "assets/voice/02.wav"
+  },
+  {
+    "id": "03-watching",
+    "wordIndex": 71,
+    "start": 29.16,
+    "match": "4/4",
+    "end": 30.92,
+    "dur": 1.76,
+    "frame": 3,
+    "voice": "assets/voice/03.wav"
+  },
+  {
+    "id": "04-actor",
+    "wordIndex": 75,
+    "start": 30.92,
+    "match": "6/6",
+    "end": 36.64,
+    "dur": 5.72,
+    "frame": 4,
+    "voice": "assets/voice/04.wav"
+  },
+  {
+    "id": "05-slid",
+    "wordIndex": 89,
+    "start": 36.64,
+    "match": "8/8",
+    "end": 44.52,
+    "dur": 7.88,
+    "frame": 5,
+    "voice": "assets/voice/05.wav"
+  },
+  {
+    "id": "06-pull",
+    "wordIndex": 112,
+    "start": 44.52,
+    "match": "7/7",
+    "end": 57.96,
+    "dur": 13.44,
+    "frame": 6,
+    "voice": "assets/voice/06.wav"
+  },
+  {
+    "id": "07-stats",
+    "wordIndex": 145,
+    "start": 57.96,
+    "match": "6/6",
+    "end": 66.52,
+    "dur": 8.56,
+    "frame": 7,
+    "voice": "assets/voice/07.wav"
+  },
+  {
+    "id": "08-onchain",
+    "wordIndex": 160,
+    "start": 66.52,
+    "match": "5/5",
+    "end": 69.64,
+    "dur": 3.12,
+    "frame": 8,
+    "voice": "assets/voice/08.wav"
+  },
+  {
+    "id": "09-sense",
+    "wordIndex": 169,
+    "start": 69.64,
+    "match": "9/9",
+    "end": 83.92,
+    "dur": 14.28,
+    "frame": 9,
+    "voice": "assets/voice/09.wav"
+  },
+  {
+    "id": "10-argue",
+    "wordIndex": 203,
+    "start": 83.92,
+    "match": "6/6",
+    "end": 94.04,
+    "dur": 10.12,
+    "frame": 10,
+    "voice": "assets/voice/10.wav"
+  },
+  {
+    "id": "11-guard",
+    "wordIndex": 230,
+    "start": 94.04,
+    "match": "6/6",
+    "end": 103.04,
+    "dur": 9.0,
+    "frame": 11,
+    "voice": "assets/voice/11.wav"
+  },
+  {
+    "id": "12-modes",
+    "wordIndex": 252,
+    "start": 103.04,
+    "match": "8/8",
+    "end": 116.76,
+    "dur": 13.72,
+    "frame": 12,
+    "voice": "assets/voice/12.wav"
+  },
+  {
+    "id": "13-panic",
+    "wordIndex": 293,
+    "start": 116.76,
+    "match": "6/6",
+    "end": 121.32,
+    "dur": 4.56,
+    "frame": 13,
+    "voice": "assets/voice/13.wav"
+  },
+  {
+    "id": "14-market",
+    "wordIndex": 303,
+    "start": 121.32,
+    "match": "7/7",
+    "end": 131.64,
+    "dur": 10.32,
+    "frame": 14,
+    "voice": "assets/voice/14.wav"
+  },
+  {
+    "id": "15-close",
+    "wordIndex": 328,
+    "start": 131.64,
+    "match": "3/3",
+    "end": 140.136,
+    "dur": 8.496,
+    "frame": 15,
+    "voice": "assets/voice/15.wav"
+  }
+]

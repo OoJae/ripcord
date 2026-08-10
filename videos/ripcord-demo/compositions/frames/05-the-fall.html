@@ -1,0 +1,453 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Clash Display";
+      font-weight: 600;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/ClashDisplay-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Satoshi";
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/Satoshi-Regular.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Space Mono";
+      font-weight: 400;
+      font-style: normal;
+      font-display: block;
+      src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    }
+
+    /* Styled via #root, never a class on the data-composition-id element.
+       #root paints NO ground of its own — the full-bleed void is the .clip
+       layer below it. Layout is authored in px against the fixed 1920x1080
+       canvas; container-type stays per frame.md's container law. */
+    #root {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1920px;
+      height: 1080px;
+      container-type: size;
+      overflow: hidden;
+      background: transparent;
+      color: #edeae3;
+      font-family: "Satoshi", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+          /* z-index is load-bearing, not decoration: assemble-index HOISTS the
+         approved clip out of this file and mounts it at the host root AFTER
+         the frame, so by DOM order the footage paints on top of every overlay
+         in here. The frame root must claim the higher layer or the whole
+         designed composition renders underneath the video. */
+      z-index: 2;
+}
+
+    /* ---- full-bleed ground, lowest track ---- */
+    .f05fall-ground {
+      position: absolute;
+      inset: 0;
+      /* TRANSPARENT on purpose. This frame sits at z-index 2 so its overlays
+         paint above the hoisted footage; an opaque ground here would then
+         cover the video completely. The host root already paints the void
+         base beneath everything, so the field still reads #0A0B10 wherever
+         the footage does not. */
+      background: transparent;
+}
+
+    /* ---- hairline ring around the footage plate ----
+       px, and 1px OUTSIDE the host geometry of the hoisted video element: the
+       assembler writes that geometry in px and paints the video above the
+       frame, so the ring can only sit just outside the landed plate rect
+       (96,64 1120x630). Flat: 1px, no radius, no shadow. */
+    .f05fall-ring {
+      position: absolute;
+      left: 95px;
+      top: 63px;
+      width: 1122px;
+      height: 632px;
+      border: 1px solid #23262f;
+    }
+
+    /* ---- the right gutter the plate vacates: chrome + the station stack ----
+       Everything here is right-pinned to x=1824, so each station reads as a
+       marker driven into the right edge of the frame. */
+    .f05fall-gutter {
+      position: absolute;
+      left: 1360px;
+      top: 0;
+      width: 464px;
+      height: 100%;
+    }
+
+    .f05fall-stamp {
+      position: absolute;
+      left: 0;
+      top: 66px;
+      width: 100%;
+      text-align: right;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 22px;
+      line-height: 1.2;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #8a8f9c;
+    }
+
+    .f05fall-mark {
+      position: absolute;
+      left: 0;
+      width: 100%;
+    }
+    #f05fall-markA {
+      top: 300px;
+    }
+    #f05fall-markB {
+      top: 452px;
+    }
+
+    .f05fall-rule {
+      width: 100%;
+      height: 1px;
+      background: #23262f;
+      transform-origin: 0% 50%;
+    }
+
+    .f05fall-line {
+      display: flex;
+      justify-content: flex-end;
+      align-items: baseline;
+      margin-top: 22px;
+    }
+
+    /* MEASUREMENT — mono, tabular: if it is a number, it is set in mono */
+    .f05fall-val {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      font-size: 46px;
+      line-height: 1;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      color: #8a8f9c;
+    }
+    .f05fall-tag {
+      margin-left: 20px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #8a8f9c;
+    }
+    /* the ACT band is the only place the accent lands in the gutter */
+    #f05fall-markB .f05fall-val,
+    #f05fall-markB .f05fall-tag {
+      color: #ff4f00;
+    }
+
+    /* ---- the readout the whole frame ends on ---- */
+    .f05fall-readout {
+      position: absolute;
+      left: 96px;
+      top: 726px;
+      display: flex;
+      align-items: baseline;
+    }
+    .f05fall-hfk {
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8a8f9c;
+    }
+    .f05fall-hfv {
+      margin-left: 24px;
+      font-family: "Space Mono", monospace;
+      font-weight: 400;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      font-size: 104px;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      color: #ff4f00;
+    }
+
+    /* STATEMENT — Clash Display, uppercase */
+    .f05fall-say {
+      position: absolute;
+      left: 96px;
+      top: 856px;
+      font-family: "Clash Display", sans-serif;
+      font-weight: 600;
+      font-size: 30px;
+      line-height: 1.2;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      color: #edeae3;
+    }
+    .f05fall-ch {
+      display: inline-block;
+      white-space: pre;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="05-the-fall" data-duration="7.88"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div
+      id="f05fall-ground"
+      class="clip f05fall-ground"
+      data-start="0"
+      data-duration="7.88"
+      data-track-index="0"
+    ></div>
+
+    <!-- Real captured footage of the live site descending past its own policy
+         bands. Muted (audio is orchestrator-owned at the root) and unlooped:
+         the source is 14.47s against a 7.88s frame, offset 3.4s into the clip
+         so the scroll is already falling at t=0 and settles on the WARN band
+         by the close. Declared full-bleed; the move to the plate is a
+         transform, never a cut. -->
+    <!-- approved frame video hoisted by assemble-index -->
+
+    <div id="f05fall-ring" class="f05fall-ring"></div>
+
+    <div class="f05fall-gutter">
+      <div id="f05fall-stamp" class="f05fall-stamp">
+        2026-08-01 &middot; BASE MAINNET
+      </div>
+
+      <div id="f05fall-markA" class="f05fall-mark">
+        <div id="f05fall-ruleA" class="f05fall-rule"></div>
+        <div id="f05fall-lineA" class="f05fall-line">
+          <span class="f05fall-val">1.50</span
+          ><span class="f05fall-tag">WARN</span>
+        </div>
+      </div>
+
+      <div id="f05fall-markB" class="f05fall-mark">
+        <div id="f05fall-ruleB" class="f05fall-rule"></div>
+        <div id="f05fall-lineB" class="f05fall-line">
+          <span class="f05fall-val">1.25</span
+          ><span class="f05fall-tag">ACT</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="f05fall-readout">
+      <span id="f05fall-hfk" class="f05fall-hfk">HF</span
+      ><span id="f05fall-hfv" class="f05fall-hfv">1.2400</span>
+    </div>
+
+    <div
+      id="f05fall-say"
+      class="f05fall-say"
+      role="img"
+      aria-label="No human in the loop"
+      data-text="NO HUMAN IN THE LOOP"
+    ></div>
+  </div>
+
+  <script>
+    (function () {
+      var ID = "05-the-fall";
+      var DURATION = 7.88;
+
+      var byId = function (id) {
+        return document.getElementById(id);
+      };
+
+      /* Deterministic character split — no randomness, no clocks. */
+      function chars(el) {
+        var out = [];
+        if (!el) return out;
+        var text = el.getAttribute("data-text") || "";
+        el.textContent = "";
+        for (var i = 0; i < text.length; i++) {
+          var s = document.createElement("span");
+          s.className = "f05fall-ch";
+          s.setAttribute("aria-hidden", "true");
+          s.textContent = text.charAt(i);
+          el.appendChild(s);
+          out.push(s);
+        }
+        return out;
+      }
+
+      /* Before assembly the video element is frame-local; after assembly
+         assemble-index hoists it to the host root, keeping this id.
+         getElementById finds it either way. */
+      var descent = byId("f05fall-descent");
+      var ring = byId("f05fall-ring");
+      var stamp = byId("f05fall-stamp");
+      var markA = byId("f05fall-markA");
+      var markB = byId("f05fall-markB");
+      var ruleA = byId("f05fall-ruleA");
+      var ruleB = byId("f05fall-ruleB");
+      var lineA = byId("f05fall-lineA");
+      var lineB = byId("f05fall-lineB");
+      var hfk = byId("f05fall-hfk");
+      var hfv = byId("f05fall-hfv");
+      var say = chars(byId("f05fall-say"));
+
+      var tl = gsap.timeline({ paused: true });
+
+      /* ---------------------------------------------------------------
+         Scene 1 (0.00-1.60) — "On the first of August".
+         The descent runs full-bleed with a 0.8% creep; transform-origin
+         stays 0 0 for the entire shot so the pull-back below is ONE
+         continuous transform, never a re-anchor jump. At 0.75 the page
+         eases back to its plate, opening the right gutter, and the mono
+         date stamp resolves into it.
+         --------------------------------------------------------------- */
+      if (descent) tl.fromTo(
+        descent,
+        { scale: 1, x: 0, y: 0, transformOrigin: "0px 0px" },
+        {
+          scale: 1.008,
+          x: 0,
+          y: 0,
+          duration: 0.75,
+          ease: "none",
+          transformOrigin: "0px 0px",
+        },
+        0,
+      );
+      if (descent) tl.to(
+        descent,
+        {
+          scale: 0.583333,
+          x: 96,
+          y: 64,
+          duration: 0.9,
+          ease: "power3.inOut",
+          transformOrigin: "0px 0px",
+        },
+        0.75,
+      );
+      tl.fromTo(
+        stamp,
+        { opacity: 0, y: -10 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+        1.5,
+      );
+      tl.fromTo(
+        ring,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.6, ease: "power2.out" },
+        1.6,
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 2 (1.60-4.00) — "a real position on Base mainnet".
+         As the footage's own altimeter passes each threshold a station
+         drives into the right edge: 1.50 WARN dim, then 1.25 ACT in
+         fire-orange, lower down the gutter. They STACK — the first one
+         never leaves.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        ruleA,
+        { scaleX: 0, transformOrigin: "0% 50%" },
+        {
+          scaleX: 1,
+          duration: 0.55,
+          ease: "power2.out",
+          transformOrigin: "0% 50%",
+        },
+        2.3,
+      );
+      tl.fromTo(
+        lineA,
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        2.5,
+      );
+      tl.fromTo(
+        ruleB,
+        { scaleX: 0, transformOrigin: "0% 50%" },
+        {
+          scaleX: 1,
+          duration: 0.55,
+          ease: "power2.out",
+          transformOrigin: "0% 50%",
+        },
+        3.45,
+      );
+      tl.fromTo(
+        lineB,
+        { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        3.65,
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 3 (4.00-6.20) — "slid to one point two four".
+         The vacated bottom-left takes the readout: the mono unit first,
+         then the figure itself rising 26px on one heavy decelerating
+         ease. No phosphor anywhere in this frame — nothing has recovered.
+         --------------------------------------------------------------- */
+      tl.fromTo(
+        hfk,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" },
+        4.2,
+      );
+      tl.fromTo(
+        hfv,
+        { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.85, ease: "power3.out" },
+        4.35,
+      );
+
+      /* ---------------------------------------------------------------
+         Scene 4 (6.20-7.88) — "No human was involved in what happened
+         next." Every annotation recedes to 40% — the page, its ring, the
+         stamp, both stations — and only HF 1.2400 keeps full weight while
+         the statement types beneath it. Then the frame holds, on danger.
+         --------------------------------------------------------------- */
+      /* immediateRender:false — ring and stamp already carry an earlier
+         opacity fromTo, and a late fromTo that renders on creation would
+         stamp opacity 1 over their hidden start states at t=0. */
+      tl.fromTo(
+        [descent, ring, stamp, markA, markB].filter(Boolean),
+        { opacity: 1 },
+        {
+          opacity: 0.4,
+          duration: 0.6,
+          ease: "power2.inOut",
+          immediateRender: false,
+        },
+        6.2,
+      );
+      tl.fromTo(
+        say,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.06, ease: "none", stagger: 0.042 },
+        6.55,
+      );
+
+      /* holds the timeline to the frame's full length; no motion of its own */
+      tl.to({}, { duration: DURATION }, 0);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines[ID] = tl;
+    })();
+  </script>
+</template>
