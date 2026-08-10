@@ -22,3 +22,14 @@ videos/*/assets/voice/
 videos/*/vo.m4a
 videos/*/tools/venv/
 videos/*/.hyperframes/
+
+# Internal working docs — agent instructions, planning, strategy, raw assets.
+# Kept on disk, deliberately not published.
+/CLAUDE.md
+docs/ripcord-battle-plan.md
+docs/ripcord-build-guide.md
+docs/ripcord-claude-code-master-prompt.md
+docs/session-2-handoff.md
+docs/video/*.m4a
+videos/*/CLAUDE.md
+videos/*/AGENTS.md

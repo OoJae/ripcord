@@ -189,6 +189,6 @@ The Base Sepolia Aave V3 market is live (6 reserves), so the Anvil-fork fallback
 
 ## Development
 
-Spec: [docs/ripcord-build-guide.md](docs/ripcord-build-guide.md) · Strategy: [docs/ripcord-battle-plan.md](docs/ripcord-battle-plan.md) · KeeperHub API verification: [docs/keeperhub-verification.md](docs/keeperhub-verification.md) · Friction log: [FRICTION.md](FRICTION.md) · Evidence: [docs/evidence/EVIDENCE.md](docs/evidence/EVIDENCE.md)
+Architecture: [docs/architecture.md](docs/architecture.md) · KeeperHub API verification: [docs/keeperhub-verification.md](docs/keeperhub-verification.md) · Friction log: [FRICTION.md](FRICTION.md) · Evidence: [docs/evidence/EVIDENCE.md](docs/evidence/EVIDENCE.md) · Brand: [docs/brand/BRAND.md](docs/brand/BRAND.md)
 
 Tests mirror `src/` under `test/`. The load-bearing ones are in [test/daemon/wiring.test.ts](test/daemon/wiring.test.ts): they drive a real daemon tick with a Planner and Critic that always want to spend, and assert the executor spy was never called. Unit-testing the Guard proves it says "no"; those prove the assembled daemon obeys it.
