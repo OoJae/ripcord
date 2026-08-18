@@ -1,0 +1,11 @@
+{
+  "name": "ripcord-finalist-deck",
+  "private": true,
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.8.3 present .",
+    "studio": "npx --yes hyperframes@0.8.3 preview",
+    "lint": "npx --yes hyperframes@0.8.3 lint",
+    "check": "npx --yes hyperframes@0.8.3 check",
+    "snapshot": "npx --yes hyperframes@0.8.3 snapshot"
+  }
+}

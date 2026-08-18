@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Ripcord — KeeperHub finalist presentation</title>
+<style>
+  /* ── shipped fonts — no network at present time ─────────────────────────── */
+  @font-face {
+    font-family: "Clash Display";
+    src: url("assets/fonts/ClashDisplay-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "Space Mono";
+    src: url("assets/fonts/SpaceMono-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+  }
+
+  /*
+   * Brand doctrine, inherited from the product and the film:
+   *  - measurements are Space Mono; statements are Clash Display uppercase.
+   *  - phosphor #7CF5C4 ONLY on a recovered or verified value.
+   *  - fire-orange #FF4F00 is danger and the act of pulling — otherwise a hairline.
+   *  - the only decoration is the ripstop weave.
+   */
+  body { margin: 0; background: #0a0b10; }
+
+  .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    /* the ripstop weave over the void — the brand's only texture */
+    background:
+      repeating-linear-gradient(0deg,  rgba(237,234,227,0.015) 0 1px, transparent 1px 12px),
+      repeating-linear-gradient(90deg, rgba(237,234,227,0.015) 0 1px, transparent 1px 12px),
+      repeating-linear-gradient(0deg,  rgba(237,234,227,0.025) 0 1px, transparent 1px 96px),
+      repeating-linear-gradient(90deg, rgba(237,234,227,0.025) 0 1px, transparent 1px 96px),
+      #0a0b10;
+  }
+
+  .stage { position: absolute; inset: 0; padding: 110px 140px; box-sizing: border-box; }
+
+  .display {
+    font-family: "Clash Display", sans-serif;
+    color: #edeae3;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    line-height: 1.04;
+    margin: 0;
+  }
+  .mono {
+    font-family: "Space Mono", monospace;
+    color: #edeae3;
+    font-weight: 400;
+    margin: 0;
+  }
+  .label {
+    font-family: "Space Mono", monospace;
+    font-size: 40px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8a8f9c;
+    margin: 0;
+  }
+  .dim  { color: #8a8f9c; }
+  .fire { color: #ff4f00; }
+  .phos { color: #7cf5c4; }
+
+  .rule { height: 1px; background: #23262f; border: 0; margin: 0; }
+
+  /* pipeline chips (slide 3) */
+  .chip {
+    display: inline-block;
+    padding: 18px 34px;
+    border: 1px solid #23262f;
+    border-radius: 999px;
+    font-family: "Space Mono", monospace;
+    font-size: 40px;
+    letter-spacing: 0.1em;
+    color: #edeae3;
+    white-space: nowrap;
+  }
+  .chip.guard { border-color: #ff4f00; }
+  .joint { width: 44px; height: 1px; background: #23262f; align-self: center; }
+
+  /* measurement rows (slides 4/8) */
+  .m-row {
+    display: grid;
+    grid-template-columns: 620px 1fr;
+    gap: 40px;
+    padding: 18px 0;
+    border-bottom: 1px solid #23262f;
+    align-items: baseline;
+  }
+  .m-row .k { font-family: "Space Mono", monospace; font-size: 40px; letter-spacing: 0.12em; color: #8a8f9c; text-transform: uppercase; }
+  .m-row .v { font-family: "Space Mono", monospace; font-size: 46px; color: #edeae3; }
+
+  /* the CSS arrow — Clash/Space Mono ship no U+2192; never fake it with a glyph */
+  .arr { display: inline-block; vertical-align: middle; margin: 0 34px; }
+  .arr .shaft { display: inline-block; vertical-align: middle; width: 90px; height: 3px; background: #8a8f9c; }
+  .arr .head  { display: inline-block; vertical-align: middle; width: 0; height: 0; border-left: 22px solid #8a8f9c; border-top: 13px solid transparent; border-bottom: 13px solid transparent; margin-left: -2px; }
+
+  .plate { border: 1px solid #23262f; background: #0d0f16; }
+</style>
+</head>
+<body>
+
+<script type="application/hyperframes-slideshow+json">
+{
+  "slides": [
+    {
+      "sceneId": "title",
+      "notes": "0:00-0:20 - Hi, I'm Oluwademilade, and this is Ripcord: autonomous liquidation protection for Aave V3 on Base, built solo. One sentence of setup: everything in this deck happened on Base mainnet, and every number on these slides is publicly auditable - I'll show you where. [Advance.]"
+    },
+    {
+      "sceneId": "problem",
+      "notes": "0:20-1:05 - Most liquidations aren't lightning strikes. They're slow leaks - a position drifting for hours while its owner sleeps. [Advance -> $19B] And in October 2025, nineteen billion dollars liquidated in a single cascade - and plenty of owners were wide awake. They were locked out of the infrastructure they needed to save themselves. Every existing tool watches your position. [Advance -> thesis] Watching is not protection. Somebody has to pull.",
+      "fragments": [10.5, 15.0, 19.5]
+    },
+    {
+      "sceneId": "loop",
+      "notes": "1:05-1:45 - Ripcord is the part that acts, and this is the whole system on one line. A sensor reads the chain - reads only. A planner LLM proposes exactly one action. [Advance -> the three claims] A second, independent LLM - the Critic - has to return an explicit APPROVE. And then the Guard, which is not a model, re-derives every number they claimed and can veto them both. Two models argue; deterministic code decides. Execution goes out through KeeperHub, and everything is recorded under one decision id.",
+      "fragments": [27.5, 33.0]
+    },
+    {
+      "sceneId": "save",
+      "notes": "1:45-2:20 - THE CENTERPIECE, SLOW DOWN. This is not a simulation. On the 1st of August, a real position on Base mainnet slid into the act band, and Ripcord caught it unattended. Health factor 1.24 back to 1.60. [Advance -> measurements] $6.78 repaid - the exact figure the Guard re-derived. 21 seconds from sensing the danger to the transaction landing. Gas 184,531, fully sponsored - the wallet needed no ETH for it. Guard: 12 of 12 checks, zero violations. [Advance.]",
+      "fragments": [44.0, 49.5]
+    },
+    {
+      "sceneId": "receipt",
+      "notes": "2:20-2:35 - And here is the receipt. Basescan, unretouched. That hash is in the submission - you can check it while I talk. [Hold a beat of silence; let them read. Advance.]"
+    },
+    {
+      "sceneId": "guard",
+      "notes": "2:35-3:20 - The reason to trust this is that nothing the models say is trusted. [Advance -> rules] The Guard is 14 deterministic rules today - it was 12 on the day of the save; the other two came out of adversarial review. It re-derives the math. Neither model can name an address - addresses exist only in an allowlisted config. No APPROVE, no execution. DRY_RUN is the default, and mainnet writes need a separate arm flag. [Advance -> oracle] And one gate I want to call out: 2026's worst liquidations were bad PRICES, not slow drift - Moonwell's $1.12 cbETH print, Aave's $27M CAPO glitch. No poller out-races a block, but an agent can refuse to act on an absurd price. Ripcord cross-checks Aave's oracle against Chainlink and blocks on divergence.",
+      "fragments": [63.0, 66.0, 71.5]
+    },
+    {
+      "sceneId": "keeperhub",
+      "notes": "3:20-3:50 - Every write goes through KeeperHub - the daemon holds no keys and viem is reads-only. [Advance -> surfaces] The defend workflow re-reads the chain inside the workflow and gates on it, so even a compromised daemon can't push a stale defense through. Around it: the execution API with backoff polling, gas sponsorship on every transaction, the MCP server I built with, and the marketplace. This isn't KeeperHub as a webhook - it's KeeperHub as the execution layer.",
+      "fragments": [79.5, 83.0]
+    },
+    {
+      "sceneId": "x402",
+      "notes": "3:50-4:20 - And it pays for itself. The risk engine is listed on the KeeperHub marketplace. [Advance -> the buyer] A second, independent agent wallet - holding zero ETH - paid for two calls in USDC over x402, and that revenue, ten cents, landed in the same wallet the daemon defends. [Advance -> verify] You can verify this with no account: an unpaid POST to the slug returns a live HTTP 402 whose payTo IS the defended wallet. It's live today at two cents a call.",
+      "fragments": [91.0, 93.5, 98.5]
+    },
+    {
+      "sceneId": "friction",
+      "notes": "4:20-4:50 - Last thing, and it's the thing I'd most like you to read. The system caught its own mistakes, and I published the record. [Advance -> the bugs] Two adversarial review rounds - 22 and 31 candidate findings, each independently refuted before it counted - found real defects: a mock sensor that could have driven a live mainnet defense, a Guard trusting arithmetic the LLM supplied, an RPC key leaking into a third-party prompt, a human veto that lasted exactly one tick. [Advance -> the point] All fixed, each pinned by a regression test that fails against the pre-fix code. And when a deployed workflow turned out to bypass the Guard, I disabled it rather than ship an un-Guarded mainnet write. The safety architecture is the product - FRICTION.md is the evidence it works.",
+      "fragments": [107.5, 112.5, 117.0]
+    },
+    {
+      "sceneId": "close",
+      "notes": "4:50-5:00 - Agents decide. Ripcord is how the rescue lands. 322 tests, a live site, a 2-minute film, and a transaction on Basescan. I'm happy to take questions - and if you only open one link, make it FRICTION.md. [STOP. Breathe. Q&A.]"
+    }
+  ],
+  "slideSequences": []
+}
+</script>
+
+<div id="deck-root" data-composition-id="deck" data-start="0" data-duration="130"
+     data-label="Ripcord finalist deck" data-width="1920" data-height="1080"
+     style="position:relative; width:1920px; height:1080px; overflow:hidden; background:#0a0b10;">
+
+<!-- ══ Slide 1 · title ═══════════════════════════════════════════════════ -->
+<div id="scene-title" class="scene clip" data-track-index="1" data-composition-id="title" data-start="0" data-duration="8"
+     data-label="Title" data-width="1920" data-height="1080">
+  <section id="stage-title" class="clip" data-start="0" data-duration="8" data-track-index="2"
+           style="position:absolute; inset:0; display:grid; place-items:center;">
+    <div style="display:grid; justify-items:center; gap:56px;">
+      <img id="t-mark" data-anim src="assets/wordmark.svg" alt="Ripcord" style="width:1120px; height:auto;" />
+      <p id="t-def" data-anim class="label" style="color:#edeae3;">Autonomous liquidation protection for Aave V3 on Base</p>
+      <p id="t-meta" data-anim class="label">KeeperHub &middot; Agents Onchain &middot; finalist &middot; Aug 19 2026</p>
+    </div>
+  </section>
+</div>
+
+<!-- ══ Slide 2 · problem ═════════════════════════════════════════════════ -->
+<div id="scene-problem" class="scene clip" data-track-index="1" data-composition-id="problem" data-start="8" data-duration="16"
+     data-label="The problem" data-width="1920" data-height="1080">
+  <section id="stage-problem" class="clip" data-start="0" data-duration="16" data-track-index="3"
+           style="position:absolute; inset:0; padding:110px 150px; box-sizing:border-box;">
+    <h1 id="p-head" data-anim class="display" style="font-size:84px; max-width:1500px;">
+      Most liquidations are slow leaks &mdash; positions drifting for hours while their owners sleep.
+    </h1>
+
+    <div id="p-stat" style="margin-top:60px; opacity:0;">
+      <div style="display:flex; align-items:baseline; gap:48px;">
+        <span class="display" style="font-size:176px; letter-spacing:-0.03em;">$19B</span>
+        <span class="label" style="padding-bottom:26px;">Oct 2025 &middot; liquidated in one cascade</span>
+      </div>
+      <p class="mono" style="font-size:44px; color:#8a8f9c; margin-top:18px; max-width:1400px;">
+        plenty of owners were wide awake &mdash; locked out of the infrastructure they needed.
+      </p>
+    </div>
+
+    <h2 id="p-thesis" class="display" style="font-size:88px; margin-top:70px; opacity:0;">
+      Watching is not protection.
+    </h2>
+  </section>
+</div>
+
+<!-- ══ Slide 3 · the loop ════════════════════════════════════════════════ -->
+<div id="scene-loop" class="scene clip" data-track-index="1" data-composition-id="loop" data-start="24" data-duration="16"
+     data-label="Two models argue" data-width="1920" data-height="1080">
+  <section id="stage-loop" class="clip" data-start="0" data-duration="16" data-track-index="4"
+           style="position:absolute; inset:0; padding:130px 150px; box-sizing:border-box;">
+    <h1 id="l-head" data-anim class="display" style="font-size:88px;">
+      Two models argue. Deterministic code decides.
+    </h1>
+
+    <div id="l-pipe" data-anim style="margin-top:110px; display:flex; gap:0; align-items:center;">
+      <span class="chip">SENSE</span><span class="joint"></span>
+      <span class="chip">PLAN</span><span class="joint"></span>
+      <span class="chip">CRITIQUE</span><span class="joint"></span>
+      <span class="chip guard">GUARD</span><span class="joint"></span>
+      <span class="chip">EXECUTE</span><span class="joint"></span>
+      <span class="chip">RECORD</span>
+    </div>
+
+    <div id="l-claims" style="margin-top:110px; display:grid; gap:44px; opacity:0;">
+      <p class="mono" style="font-size:46px;">The Planner proposes exactly one action, with one amount.</p>
+      <p class="mono" style="font-size:46px;">An independent Critic must return an explicit <span class="phos">APPROVE</span>.</p>
+      <p class="mono" style="font-size:46px;">The Guard &mdash; not a model &mdash; re-derives every number and can veto them both.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ══ Slide 4 · the save ════════════════════════════════════════════════ -->
+<div id="scene-save" class="scene clip" data-track-index="1" data-composition-id="save" data-start="40" data-duration="12"
+     data-label="The save" data-width="1920" data-height="1080">
+  <section id="stage-save" class="clip" data-start="0" data-duration="12" data-track-index="5"
+           style="position:absolute; inset:0; padding:96px 150px; box-sizing:border-box;">
+    <h1 id="s-head" data-anim class="display" style="font-size:68px; max-width:1620px;">
+      On August 1st it caught a real position on Base mainnet &mdash; unattended.
+    </h1>
+
+    <div id="s-hf" data-anim style="margin-top:44px; display:flex; align-items:center;">
+      <span class="mono" style="font-size:132px; line-height:1.1; color:#ff4f00;">1.2400</span>
+      <span class="arr"><span class="shaft"></span><span class="head"></span></span>
+      <span class="mono phos" style="font-size:132px; line-height:1.1;">1.6028</span>
+      <span class="label" style="margin-left:56px;">health factor</span>
+    </div>
+
+    <div id="s-grid" style="margin-top:32px; max-width:1620px; opacity:0;">
+      <div class="m-row"><span class="k">repaid</span><span class="v">$6.78 USDC &mdash; the exact figure the Guard re-derived</span></div>
+      <div class="m-row"><span class="k">sense to landed</span><span class="v">21 seconds</span></div>
+      <div class="m-row"><span class="k">gas</span><span class="v">184,531 &mdash; sponsored; the wallet needed no ETH</span></div>
+      <div class="m-row"><span class="k">guard</span><span class="v">12/12 checks &middot; 0 violations</span></div>
+    </div>
+
+    </section>
+</div>
+
+<!-- ══ Slide 5 · the receipt ═════════════════════════════════════════════ -->
+<div id="scene-receipt" class="scene clip" data-track-index="1" data-composition-id="receipt" data-start="52" data-duration="10"
+     data-label="The receipt" data-width="1920" data-height="1080">
+  <section id="stage-receipt" class="clip" data-start="0" data-duration="10" data-track-index="11"
+           style="position:absolute; inset:0; display:grid; place-items:center;">
+    <div id="r-window" style="overflow:hidden;">
+      <div id="r-plate" class="plate" style="padding:44px 52px;">
+        <p class="label" style="margin-bottom:26px;">Basescan &middot; Base mainnet &middot; unretouched</p>
+        <img src="assets/basescan-proof.png" alt="" style="display:block; width:1500px; height:auto; border:1px solid #23262f;" />
+        <div id="r-underline" style="width:1500px; height:2px; background:#ff4f00; margin-top:16px; transform-origin:0% 50%;"></div>
+        <p class="mono" style="font-size:42px; margin-top:22px;">tx 0x6e314ece...9cd05</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══ Slide 6 · the guard ═══════════════════════════════════════════════ -->
+<div id="scene-guard" class="scene clip" data-track-index="1" data-composition-id="guard" data-start="62" data-duration="16"
+     data-label="Nothing is trusted" data-width="1920" data-height="1080">
+  <section id="stage-guard" class="clip" data-start="0" data-duration="16" data-track-index="6"
+           style="position:absolute; inset:0; padding:88px 150px; box-sizing:border-box;">
+    <h1 id="g-head" data-anim class="display" style="font-size:76px; white-space:nowrap;">
+      Nothing the models say is trusted.
+    </h1>
+
+    <div id="g-rules" style="margin-top:52px; display:grid; gap:26px; opacity:0;">
+      <p class="mono" style="font-size:42px; line-height:1.45;"><span class="fire">14</span> deterministic rules re-derive every figure the models claimed.</p>
+      <p class="mono" style="font-size:42px; line-height:1.45;">Neither model can name an address &mdash; addresses exist only in an allowlisted config.</p>
+      <p class="mono" style="font-size:42px; line-height:1.45;">No Critic APPROVE, no execution. DRY_RUN by default; mainnet also needs ARM=1.</p>
+      <p class="mono" style="font-size:42px; line-height:1.45; color:#8a8f9c;">12 rules on the day of the save &mdash; two more came out of adversarial review.</p>
+    </div>
+
+    <div id="g-oracle" style="margin-top:44px; opacity:0;">
+      <hr class="rule" style="margin-bottom:26px;" />
+      <p class="mono" style="font-size:42px; line-height:1.45; max-width:1620px;">
+        It refuses absurd prices: Aave's oracle is cross-checked against <span style="color:#edeae3;">Chainlink</span>;
+        divergence blocks. <span class="dim">(Moonwell's $1.12 cbETH print &middot; Aave's $27M CAPO glitch.)</span>
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- ══ Slide 7 · keeperhub ═══════════════════════════════════════════════ -->
+<div id="scene-keeperhub" class="scene clip" data-track-index="1" data-composition-id="keeperhub" data-start="78" data-duration="12"
+     data-label="The execution layer" data-width="1920" data-height="1080">
+  <section id="stage-keeperhub" class="clip" data-start="0" data-duration="12" data-track-index="7"
+           style="position:absolute; inset:0; padding:120px 150px; box-sizing:border-box;">
+    <h1 id="k-head" data-anim class="display" style="font-size:80px; max-width:1620px;">
+      Every write goes through KeeperHub &mdash; and the workflow re-reads the chain before it will act.
+    </h1>
+
+    <div id="k-surfaces" style="margin-top:96px; display:flex; flex-wrap:wrap; gap:26px; max-width:1640px; opacity:0;">
+      <span class="chip">webhook workflow &mdash; the only path that moves money</span>
+      <span class="chip">in-workflow re-read + Condition gate</span>
+      <span class="chip">write-contract repay</span>
+      <span class="chip">execution API + backoff polling</span>
+      <span class="chip">gas sponsorship on every tx</span>
+      <span class="chip">MCP server + plugin</span>
+      <span class="chip">marketplace + x402</span>
+    </div>
+  </section>
+</div>
+
+<!-- ══ Slide 8 · x402 ════════════════════════════════════════════════════ -->
+<div id="scene-x402" class="scene clip" data-track-index="1" data-composition-id="x402" data-start="90" data-duration="14"
+     data-label="It pays for itself" data-width="1920" data-height="1080">
+  <section id="stage-x402" class="clip" data-start="0" data-duration="14" data-track-index="8"
+           style="position:absolute; inset:0; padding:130px 150px; box-sizing:border-box;">
+    <h1 id="x-head" data-anim class="display" style="font-size:96px;">
+      Ripcord pays for itself.
+    </h1>
+
+    <div id="x-buyer" style="margin-top:90px; opacity:0;">
+      <p class="mono" style="font-size:46px; max-width:1620px;">
+        The risk engine is listed on the KeeperHub marketplace. A second agent &mdash; its wallet holding
+        <span style="color:#edeae3;">zero ETH</span> &mdash; paid for two calls in USDC over x402.
+      </p>
+      <div style="display:flex; align-items:center; margin-top:56px;">
+        <span class="mono" style="font-size:120px;">$0.10</span>
+        <span class="arr"><span class="shaft"></span><span class="head"></span></span>
+        <span class="mono phos" style="font-size:56px; max-width:900px;">the same wallet the daemon defends</span>
+      </div>
+    </div>
+
+    <p id="x-verify" class="mono" style="font-size:44px; color:#8a8f9c; margin-top:80px; max-width:1620px; opacity:0;">
+      Verify with no account: an unpaid POST returns a live HTTP 402 whose payTo is the defended wallet.
+      Live today at $0.02/call.
+    </p>
+  </section>
+</div>
+
+<!-- ══ Slide 9 · friction ════════════════════════════════════════════════ -->
+<div id="scene-friction" class="scene clip" data-track-index="1" data-composition-id="friction" data-start="104" data-duration="16"
+     data-label="What broke" data-width="1920" data-height="1080">
+  <section id="stage-friction" class="clip" data-start="0" data-duration="16" data-track-index="9"
+           style="position:absolute; inset:0; padding:80px 150px; box-sizing:border-box;">
+    <h1 id="f-head" data-anim class="display" style="font-size:70px; max-width:1680px;">
+      The system caught its own mistakes &mdash; that record is why you can trust it.
+    </h1>
+
+    <div id="f-rounds" style="margin-top:44px; opacity:0;">
+      <p class="mono" style="font-size:42px; line-height:1.45; max-width:1620px;">
+        Two adversarial review rounds &mdash; <span style="color:#edeae3;">22</span> and
+        <span style="color:#edeae3;">31</span> candidate findings, each independently refuted before it counted.
+      </p>
+      <div style="margin-top:32px; display:grid; gap:20px;">
+        <p class="mono" style="font-size:41px; line-height:1.45;"><span class="fire">&#215;</span>&nbsp; a mock sensor that could have driven a live mainnet defense</p>
+        <p class="mono" style="font-size:41px; line-height:1.45;"><span class="fire">&#215;</span>&nbsp; a Guard trusting arithmetic the LLM supplied</p>
+        <p class="mono" style="font-size:41px; line-height:1.45;"><span class="fire">&#215;</span>&nbsp; an RPC key leaking into a third-party prompt</p>
+        <p class="mono" style="font-size:41px; line-height:1.45;"><span class="fire">&#215;</span>&nbsp; a human veto that lasted exactly one tick</p>
+      </div>
+    </div>
+
+    <p id="f-point" class="mono" style="font-size:42px; line-height:1.45; margin-top:40px; max-width:1680px; opacity:0;">
+      All fixed &mdash; each pinned by a regression test that fails against the pre-fix code.
+      <span class="dim">The full dated log is public: FRICTION.md.</span>
+    </p>
+  </section>
+</div>
+
+<!-- ══ Slide 10 · close ═══════════════════════════════════════════════════ -->
+<div id="scene-close" class="scene clip" data-track-index="1" data-composition-id="close" data-start="120" data-duration="10"
+     data-label="Close" data-width="1920" data-height="1080">
+  <section id="stage-close" class="clip" data-start="0" data-duration="10" data-track-index="10"
+           style="position:absolute; inset:0; display:grid; place-items:center;">
+    <div style="display:grid; justify-items:center; gap:70px; text-align:center;">
+      <h1 id="c-head" data-anim class="display" style="font-size:100px; max-width:1600px;">
+        Agents decide. Ripcord is how the rescue lands.
+      </h1>
+      <p id="c-proof" data-anim class="mono" style="font-size:42px; color:#8a8f9c; letter-spacing:0.08em;">
+        322 tests &middot; oojae.github.io/ripcord &middot; github.com/OoJae/ripcord &middot; the save on Basescan
+      </p>
+      <img id="c-mark" data-anim src="assets/mark.svg" alt="" style="width:96px; height:auto; opacity:0.9;" />
+    </div>
+  </section>
+</div>
+
+</div>
+
+<script src="assets/vendor/gsap.min.js"></script>
+<script>
+  /*
+   * Standalone slideshow harness (see slideshow skill: standalone-harness.md).
+   * The present server hosts the bare player, so the composition self-drives:
+   *  1. a seekable root timeline the player's direct adapter can scrub,
+   *  2. a visibility controller keyed on the playhead,
+   *  3. imperative entrances + fragment reveals on playhead crossing,
+   *  4. a scenes bootstrap postMessage so sceneIds resolve to time ranges.
+   */
+  (function () {
+    var DURATION = 130;
+    var SCENES = [
+      { id: "title",     start: 0,   duration: 8  },
+      { id: "problem",   start: 8,   duration: 16 },
+      { id: "loop",      start: 24,  duration: 16 },
+      { id: "save",      start: 40,  duration: 12 },
+      { id: "receipt",   start: 52,  duration: 10 },
+      { id: "guard",     start: 62,  duration: 16 },
+      { id: "keeperhub", start: 78,  duration: 12 },
+      { id: "x402",      start: 90,  duration: 14 },
+      { id: "friction",  start: 104, duration: 16 },
+      { id: "close",     start: 120, duration: 10 }
+    ];
+    /* fragment reveals: absolute playhead time -> element */
+    var FRAGMENTS = [
+      { time: 15.0,  id: "p-stat",     revealed: false },
+      { time: 19.5,  id: "p-thesis",   revealed: false },
+      { time: 33.0,  id: "l-claims",   revealed: false },
+      { time: 49.5,  id: "s-grid",     revealed: false },
+      { time: 66.0,  id: "g-rules",    revealed: false },
+      { time: 71.5,  id: "g-oracle",   revealed: false },
+      { time: 83.0,  id: "k-surfaces", revealed: false },
+      { time: 93.5,  id: "x-buyer",    revealed: false },
+      { time: 98.5,  id: "x-verify",   revealed: false },
+      { time: 112.5, id: "f-rounds",   revealed: false },
+      { time: 117.0, id: "f-point",    revealed: false }
+    ];
+
+    /* 1 — the seekable root timeline */
+    window.__timelines = window.__timelines || {};
+    var root = gsap.timeline({ paused: true });
+    root.to({ p: 0 }, { p: 1, duration: DURATION, ease: "none" });
+    window.__timelines["deck"] = root;
+
+    function sceneEl(id) { return document.getElementById("scene-" + id); }
+
+    /* 3a — generic entrance: rise whatever the scene marked data-anim */
+    function fireEntrance(scene) {
+      var el = sceneEl(scene.id);
+      if (!el) return;
+      if (scene.id === "receipt") {
+        /* the film's frame-08 move: plate wipes up, underline draws */
+        gsap.from("#r-plate", { yPercent: 100, duration: 0.95, ease: "expo.out", overwrite: true });
+        gsap.from("#r-underline", { scaleX: 0, duration: 0.62, ease: "power2.out", delay: 0.9, overwrite: true });
+        return;
+      }
+      var els = el.querySelectorAll("[data-anim]");
+      if (els.length) {
+        gsap.from(els, { opacity: 0, y: 26, duration: 0.5, stagger: 0.09, ease: "power3.out", overwrite: true });
+      }
+    }
+
+    /* 3b — fragment reveals fire on first crossing; reset on scene re-entry */
+    function revealFragment(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      gsap.fromTo(el, { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", overwrite: true });
+    }
+    function resetFragmentsIn(scene) {
+      for (var i = 0; i < FRAGMENTS.length; i++) {
+        var f = FRAGMENTS[i];
+        if (f.time >= scene.start && f.time < scene.start + scene.duration) {
+          f.revealed = false;
+          var el = document.getElementById(f.id);
+          if (el) gsap.set(el, { opacity: 0, clearProps: "transform" });
+        }
+      }
+    }
+
+    /* 2 — the visibility controller */
+    var lastActiveId = null;
+    function updateVisibility(t) {
+      for (var i = 0; i < SCENES.length; i++) {
+        var sc = SCENES[i];
+        var el = sceneEl(sc.id);
+        if (!el) continue;
+        var active = t >= sc.start && t < sc.start + sc.duration;
+        el.style.opacity = active ? "1" : "0";
+        el.style.visibility = active ? "visible" : "hidden";
+        el.style.pointerEvents = active ? "auto" : "none";
+        if (active && lastActiveId !== sc.id) {
+          lastActiveId = sc.id;
+          resetFragmentsIn(sc);
+          fireEntrance(sc);
+        }
+      }
+      for (var j = 0; j < FRAGMENTS.length; j++) {
+        var f = FRAGMENTS[j];
+        if (!f.revealed && t >= f.time) { f.revealed = true; revealFragment(f.id); }
+      }
+    }
+    window.__hfSetTime = updateVisibility;
+    updateVisibility(0);
+    root.eventCallback("onUpdate", function () { updateVisibility(root.time()); });
+
+    /* 4 — scenes bootstrap so the slideshow maps sceneId -> playhead */
+    function postTimeline() {
+      parent.postMessage({
+        source: "hf-preview",
+        type: "timeline",
+        durationInFrames: DURATION * 30,
+        scenes: SCENES
+      }, "*");
+    }
+    if (document.readyState === "complete") {
+      setTimeout(postTimeline, 300);
+    } else {
+      window.addEventListener("load", function () { setTimeout(postTimeline, 300); });
+    }
+  })();
+</script>
+</body>
+</html>
