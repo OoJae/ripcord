@@ -156,20 +156,15 @@
       "fragments": [91.0, 93.5, 98.5]
     },
     {
-      "sceneId": "friction",
-      "notes": "4:20-4:50 - Last thing, and it's the thing I'd most like you to read. The system caught its own mistakes, and I published the record. [Advance -> the bugs] Two adversarial review rounds - 22 and 31 candidate findings, each independently refuted before it counted - found real defects: a mock sensor that could have driven a live mainnet defense, a Guard trusting arithmetic the LLM supplied, an RPC key leaking into a third-party prompt, a human veto that lasted exactly one tick. [Advance -> the point] All fixed, each pinned by a regression test that fails against the pre-fix code. And when a deployed workflow turned out to bypass the Guard, I disabled it rather than ship an un-Guarded mainnet write. The safety architecture is the product - FRICTION.md is the evidence it works.",
-      "fragments": [107.5, 112.5, 117.0]
-    },
-    {
       "sceneId": "close",
-      "notes": "4:50-5:00 - Agents decide. Ripcord is how the rescue lands. 322 tests, a live site, a 2-minute film, and a transaction on Basescan. I'm happy to take questions - and if you only open one link, make it FRICTION.md. [STOP. Breathe. Q&A.]"
+      "notes": "4:20-5:00 - Agents decide. Ripcord is how the rescue lands. 322 tests, a live site, a 2-minute film, and a transaction on Basescan. I'm happy to take questions - and if you only open one link, make it FRICTION.md. [STOP. Breathe. Q&A.]"
     }
   ],
   "slideSequences": []
 }
 </script>
 
-<div id="deck-root" data-composition-id="deck" data-start="0" data-duration="130"
+<div id="deck-root" data-composition-id="deck" data-start="0" data-duration="114"
      data-label="Ripcord finalist deck" data-width="1920" data-height="1080"
      style="position:relative; width:1920px; height:1080px; overflow:hidden; background:#0a0b10;">
 
@@ -181,7 +176,7 @@
     <div style="display:grid; justify-items:center; gap:56px;">
       <img id="t-mark" data-anim src="assets/wordmark.svg" alt="Ripcord" style="width:1120px; height:auto;" />
       <p id="t-def" data-anim class="label" style="color:#edeae3;">Autonomous liquidation protection for Aave V3 on Base</p>
-      <p id="t-meta" data-anim class="label">KeeperHub &middot; Agents Onchain &middot; finalist &middot; Aug 19 2026</p>
+      <p id="t-meta" data-anim class="label">KeeperHub &middot; Agents Onchain</p>
     </div>
   </section>
 </div>
@@ -354,37 +349,8 @@
   </section>
 </div>
 
-<!-- ══ Slide 9 · friction ════════════════════════════════════════════════ -->
-<div id="scene-friction" class="scene clip" data-track-index="1" data-composition-id="friction" data-start="104" data-duration="16"
-     data-label="What broke" data-width="1920" data-height="1080">
-  <section id="stage-friction" class="clip" data-start="0" data-duration="16" data-track-index="9"
-           style="position:absolute; inset:0; padding:80px 150px; box-sizing:border-box;">
-    <h1 id="f-head" data-anim class="display" style="font-size:70px; max-width:1680px;">
-      The system caught its own mistakes &mdash; that record is why you can trust it.
-    </h1>
-
-    <div id="f-rounds" style="margin-top:44px; opacity:0;">
-      <p class="mono" style="font-size:42px; line-height:1.45; max-width:1620px;">
-        Two adversarial review rounds &mdash; <span style="color:#edeae3;">22</span> and
-        <span style="color:#edeae3;">31</span> candidate findings, each independently refuted before it counted.
-      </p>
-      <div style="margin-top:32px; display:grid; gap:20px;">
-        <p class="mono" style="font-size:41px; line-height:1.45;"><span class="fire">&#215;</span>&nbsp; a mock sensor that could have driven a live mainnet defense</p>
-        <p class="mono" style="font-size:41px; line-height:1.45;"><span class="fire">&#215;</span>&nbsp; a Guard trusting arithmetic the LLM supplied</p>
-        <p class="mono" style="font-size:41px; line-height:1.45;"><span class="fire">&#215;</span>&nbsp; an RPC key leaking into a third-party prompt</p>
-        <p class="mono" style="font-size:41px; line-height:1.45;"><span class="fire">&#215;</span>&nbsp; a human veto that lasted exactly one tick</p>
-      </div>
-    </div>
-
-    <p id="f-point" class="mono" style="font-size:42px; line-height:1.45; margin-top:40px; max-width:1680px; opacity:0;">
-      All fixed &mdash; each pinned by a regression test that fails against the pre-fix code.
-      <span class="dim">The full dated log is public: FRICTION.md.</span>
-    </p>
-  </section>
-</div>
-
-<!-- ══ Slide 10 · close ═══════════════════════════════════════════════════ -->
-<div id="scene-close" class="scene clip" data-track-index="1" data-composition-id="close" data-start="120" data-duration="10"
+<!-- ══ Slide 9 · close ═══════════════════════════════════════════════════ -->
+<div id="scene-close" class="scene clip" data-track-index="1" data-composition-id="close" data-start="104" data-duration="10"
      data-label="Close" data-width="1920" data-height="1080">
   <section id="stage-close" class="clip" data-start="0" data-duration="10" data-track-index="10"
            style="position:absolute; inset:0; display:grid; place-items:center;">
@@ -413,7 +379,7 @@
    *  4. a scenes bootstrap postMessage so sceneIds resolve to time ranges.
    */
   (function () {
-    var DURATION = 130;
+    var DURATION = 114;
     var SCENES = [
       { id: "title",     start: 0,   duration: 8  },
       { id: "problem",   start: 8,   duration: 16 },
@@ -423,8 +389,7 @@
       { id: "guard",     start: 62,  duration: 16 },
       { id: "keeperhub", start: 78,  duration: 12 },
       { id: "x402",      start: 90,  duration: 14 },
-      { id: "friction",  start: 104, duration: 16 },
-      { id: "close",     start: 120, duration: 10 }
+      { id: "close",     start: 104, duration: 10 }
     ];
     /* fragment reveals: absolute playhead time -> element */
     var FRAGMENTS = [
@@ -436,9 +401,7 @@
       { time: 71.5,  id: "g-oracle",   revealed: false },
       { time: 83.0,  id: "k-surfaces", revealed: false },
       { time: 93.5,  id: "x-buyer",    revealed: false },
-      { time: 98.5,  id: "x-verify",   revealed: false },
-      { time: 112.5, id: "f-rounds",   revealed: false },
-      { time: 117.0, id: "f-point",    revealed: false }
+      { time: 98.5,  id: "x-verify",   revealed: false }
     ];
 
     /* 1 — the seekable root timeline */
